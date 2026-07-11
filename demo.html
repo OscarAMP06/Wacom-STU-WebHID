@@ -89,7 +89,6 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     border-top: 1px solid #f1f5f9;
 }
 
-/* Panel de administrador */
 #adminPanel {
     margin: 0 24px 24px;
     background: rgb(237,233,254);
@@ -132,6 +131,7 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     <div id="header">
         <h1>✍️ Firma Digital · Almacén</h1>
         <p>Taller Automotriz · Claro</p>
+        <button onclick="toggleAdmin()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:16px;">⚙️</button>
     </div>
 
     <div id="status" class="disconnected">● Pad no conectado</div>
@@ -141,7 +141,7 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     <div id="firmaBox">
         <div id="appcont">
             <canvas id="myCanvas" width="800" height="480"></canvas>
-            <svg width="800" height="480" id="ssvvgg"></svg>
+            <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvgg"></svg>
         </div>
     </div>
 
@@ -190,12 +190,10 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     var colaPluma = "#FFBF00";
     var grosorPluma = 2;
 
-    // Área real de firma restringida (coincide con el recuadro visual)
     var areaFirma = { x1: 40, y1: 60, x2: 760, y2: 440 };
 
-    // Panel de admin solo visible con ?admin=1 en la URL
-    if (new URLSearchParams(window.location.search).get('admin') === '1') {
-        document.getElementById('adminPanel').classList.add('visible');
+    function toggleAdmin() {
+        document.getElementById('adminPanel').classList.toggle('visible');
     }
 
     wacom.checkAvailable().then(function (supp) {
@@ -310,7 +308,6 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         console.log(svgData);
     }
 
-    // --- Funciones exclusivas del panel de administrador ---
     async function aplicarAjustesAdmin() {
         colaPluma = document.getElementById('adminColorPluma').value;
         grosorPluma = document.getElementById('adminGrosorPluma').value;
