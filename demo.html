@@ -308,11 +308,11 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         console.log(svgData);
     }
 
-    async function aplicarAjustesAdmin() {
-        colaPluma = document.getElementById('adminColorPluma').value;
-        grosorPluma = document.getElementById('adminGrosorPluma').value;
-        await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
-    }
+   async function aplicarAjustesAdmin() {
+    colaPluma = document.getElementById('adminColorPluma').value;
+    grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
+    await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
+}
 
     async function aplicarBrillo() {
         var valor = document.getElementById('adminBrillo').value;
