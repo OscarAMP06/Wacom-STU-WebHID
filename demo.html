@@ -30,6 +30,78 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 #status.disconnected { color: rgb(220,38,38); }
 #status.connected { color: rgb(22,163,74); }
 
+/* Sección de documento SAP */
+#documentoSection {
+    margin: 0 24px 16px;
+    background: rgb(239,246,255);
+    border: 1px solid rgb(191,219,254);
+    border-radius: 10px;
+    padding: 16px;
+}
+#documentoSection h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: rgb(21,101,192);
+    font-weight: 600;
+}
+#btnCarpeta {
+    background: rgb(21,101,192);
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
+#listaArchivos {
+    margin-top: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+.archivoItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid rgb(226,232,240);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.archivoItem:hover { background: rgb(239,246,255); }
+.archivoItem button {
+    background: rgb(34,197,94);
+    color: #fff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+#previewPdf {
+    margin-top: 12px;
+    text-align: center;
+}
+#pdfCanvas {
+    max-width: 100%;
+    border: 1px solid rgb(191,219,254);
+    border-radius: 6px;
+}
+#docNumeroDetectado {
+    margin-top: 10px;
+    background: rgb(220,252,231);
+    color: rgb(22,101,52);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: none;
+}
+
 #btnConnect {
     display: block;
     width: calc(100% - 48px);
@@ -44,6 +116,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     cursor: pointer;
 }
 #btnConnect:hover { background: rgb(13,71,161); }
+#btnConnect:disabled { background: rgb(203,213,225); cursor: not-allowed; }
 
 #firmaBox {
     margin: 0 24px 16px;
@@ -60,7 +133,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     max-width: 620px;
     margin: 0 auto;
 }
-canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
+canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block; }
 #ssvvgg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
 #acciones {
@@ -136,7 +209,17 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
 
     <div id="status" class="disconnected">● Pad no conectado</div>
 
-    <button id="btnConnect" onclick="connect()">Conectar pad de firma</button>
+    <div id="documentoSection">
+        <h3>📄 Documento de SAP</h3>
+        <button id="btnCarpeta" onclick="conectarCarpeta()">📁 Conectar carpeta de PDFs pendientes</button>
+        <div id="listaArchivos"></div>
+        <div id="previewPdf" style="display:none;">
+            <canvas id="pdfCanvas"></canvas>
+            <div id="docNumeroDetectado"></div>
+        </div>
+    </div>
+
+    <button id="btnConnect" onclick="connect()" disabled>Conectar pad de firma</button>
 
     <div id="firmaBox">
         <div id="appcont">
@@ -174,8 +257,12 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     <div id="footer">Sistema de Autogestión · Wacom STU-540</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="wacomstu540.js"></script>
 <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.worker.min.js";
+
     var wacom = new wacomstu540()
     var image;
     var poly;
@@ -192,10 +279,83 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
 
     var areaFirma = { x1: 40, y1: 60, x2: 760, y2: 440 };
 
+    // Variables del documento PDF actual
+    var carpetaPendientes = null;
+    var pdfBytesActual = null;
+    var numeroDocumentoDetectado = null;
+
     function toggleAdmin() {
         document.getElementById('adminPanel').classList.toggle('visible');
     }
 
+    // --- Etapa 3: Conexión a carpeta y carga de PDF ---
+    async function conectarCarpeta() {
+        try {
+            carpetaPendientes = await window.showDirectoryPicker();
+            await listarPdfs();
+        } catch (e) {
+            console.log("Selección de carpeta cancelada");
+        }
+    }
+
+    async function listarPdfs() {
+        var contenedor = document.getElementById('listaArchivos');
+        contenedor.innerHTML = '';
+        var archivos = [];
+        for await (const entrada of carpetaPendientes.values()) {
+            if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
+                archivos.push(entrada);
+            }
+        }
+        if (archivos.length === 0) {
+            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">No hay PDFs pendientes en esta carpeta</div>';
+            return;
+        }
+        archivos.forEach(function (entrada) {
+            var fila = document.createElement('div');
+            fila.className = 'archivoItem';
+            fila.innerHTML = '<span>📄 ' + entrada.name + '</span><button>Cargar</button>';
+            fila.querySelector('button').onclick = function () { cargarPdf(entrada); };
+            contenedor.appendChild(fila);
+        });
+    }
+
+    async function cargarPdf(entradaArchivo) {
+        var archivo = await entradaArchivo.getFile();
+        pdfBytesActual = await archivo.arrayBuffer();
+
+        var pdf = await pdfjsLib.getDocument({ data: pdfBytesActual.slice(0) }).promise;
+        var pagina = await pdf.getPage(1);
+
+        var viewport = pagina.getViewport({ scale: 1.3 });
+        var canvasPdf = document.getElementById('pdfCanvas');
+        canvasPdf.width = viewport.width;
+        canvasPdf.height = viewport.height;
+        var ctxPdf = canvasPdf.getContext('2d');
+        await pagina.render({ canvasContext: ctxPdf, viewport: viewport }).promise;
+
+        var contenidoTexto = await pagina.getTextContent();
+        var textoCompleto = contenidoTexto.items.map(function (i) { return i.str; }).join(' ');
+        var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
+
+        var cajaNumero = document.getElementById('docNumeroDetectado');
+        if (coincidencia) {
+            numeroDocumentoDetectado = coincidencia[1];
+            cajaNumero.style.display = 'block';
+            cajaNumero.innerText = '✓ Documento detectado: ' + numeroDocumentoDetectado;
+        } else {
+            numeroDocumentoDetectado = null;
+            cajaNumero.style.display = 'block';
+            cajaNumero.style.background = 'rgb(254,242,242)';
+            cajaNumero.style.color = 'rgb(153,27,27)';
+            cajaNumero.innerText = '⚠ No se detectó el número de documento automáticamente';
+        }
+
+        document.getElementById('previewPdf').style.display = 'block';
+        document.getElementById('btnConnect').disabled = false;
+    }
+
+    // --- Firma digital (Wacom) ---
     wacom.checkAvailable().then(function (supp) {
         if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
     })
@@ -304,15 +464,15 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         if (!hayTrazos) return;
         ssvvgg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
         var svgData = ssvvgg.outerHTML;
-        alert("Firma capturada. (Próximo paso: se integrará con el PDF)");
+        alert("Firma capturada. (Próximo paso: estamparla sobre el PDF y guardar)");
         console.log(svgData);
     }
 
-   async function aplicarAjustesAdmin() {
-    colaPluma = document.getElementById('adminColorPluma').value;
-    grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
-    await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
-}
+    async function aplicarAjustesAdmin() {
+        colaPluma = document.getElementById('adminColorPluma').value;
+        grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
+        await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
+    }
 
     async function aplicarBrillo() {
         var valor = document.getElementById('adminBrillo').value;
