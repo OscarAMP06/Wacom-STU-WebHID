@@ -100,6 +100,12 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     font-weight: 600;
     display: none;
 }
+#posicionFirmaAviso {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #64748b;
+    display: none;
+}
 
 #btnConnect {
     display: block;
@@ -215,6 +221,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         <div id="previewPdf" style="display:none;">
             <canvas id="pdfCanvas"></canvas>
             <div id="docNumeroDetectado"></div>
+            <div id="posicionFirmaAviso"></div>
         </div>
     </div>
 
@@ -229,7 +236,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     <div id="acciones">
         <button id="btnLimpiar" onclick="clearscreen()">Limpiar</button>
-        <button id="btnConfirmar" onclick="confirmarFirma()" disabled>Confirmar firma</button>
+        <button id="btnConfirmar" onclick="confirmarFirma()" disabled>Confirmar y guardar PDF firmado</button>
     </div>
 
     <div id="adminPanel">
@@ -281,6 +288,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var carpetaPendientes = null;
     var pdfBytesActual = null;
     var numeroDocumentoDetectado = null;
+    var posicionFirmaPdf = null;
 
     function toggleAdmin() {
         document.getElementById('adminPanel').classList.toggle('visible');
@@ -333,19 +341,42 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
         var contenidoTexto = await pagina.getTextContent();
         var textoCompleto = contenidoTexto.items.map(function (i) { return i.str; }).join(' ');
-        var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
 
+        // Detectar número de documento
+        var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
         var cajaNumero = document.getElementById('docNumeroDetectado');
         if (coincidencia) {
             numeroDocumentoDetectado = coincidencia[1];
             cajaNumero.style.display = 'block';
+            cajaNumero.style.background = 'rgb(220,252,231)';
+            cajaNumero.style.color = 'rgb(22,101,52)';
             cajaNumero.innerText = '✓ Documento detectado: ' + numeroDocumentoDetectado;
         } else {
             numeroDocumentoDetectado = null;
             cajaNumero.style.display = 'block';
             cajaNumero.style.background = 'rgb(254,242,242)';
             cajaNumero.style.color = 'rgb(153,27,27)';
-            cajaNumero.innerText = '⚠ No se detectó el número de documento automáticamente';
+            cajaNumero.innerText = '⚠ No se detectó el número de documento';
+        }
+
+        // Detectar posición de "Recibido por" para ubicar la firma
+        var itemRecibido = contenidoTexto.items.find(function (it) {
+            return it.str.indexOf("Recibido por") !== -1;
+        });
+        var avisoPosicion = document.getElementById('posicionFirmaAviso');
+        avisoPosicion.style.display = 'block';
+        if (itemRecibido) {
+            var charWidth = itemRecibido.width / itemRecibido.str.length;
+            var indiceInicio = itemRecibido.str.indexOf("Recibido por") + "Recibido por".length + 1;
+            posicionFirmaPdf = {
+                x: itemRecibido.transform[4] + (charWidth * indiceInicio),
+                y: itemRecibido.transform[5]
+            };
+            avisoPosicion.innerText = '📍 Posición de firma detectada correctamente';
+            console.log('Posición firma:', posicionFirmaPdf);
+        } else {
+            posicionFirmaPdf = null;
+            avisoPosicion.innerText = '⚠ No se detectó la línea "Recibido por" — se usará posición aproximada';
         }
 
         document.getElementById('previewPdf').style.display = 'block';
@@ -456,12 +487,83 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
     }
 
-    function confirmarFirma() {
+    // --- Etapa 4: Estampar firma y guardar PDF ---
+    function rasterizarFirmaComoPng() {
+        return new Promise(function (resolve) {
+            ssvvgg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            var svgData = new XMLSerializer().serializeToString(ssvvgg);
+            var svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            var url = URL.createObjectURL(svgBlob);
+
+            var img = new Image();
+            img.onload = function () {
+                var canvasFirma = document.createElement('canvas');
+                canvasFirma.width = 800;
+                canvasFirma.height = 480;
+                var ctxFirma = canvasFirma.getContext('2d');
+                ctxFirma.drawImage(img, 0, 0, 800, 480);
+                URL.revokeObjectURL(url);
+                canvasFirma.toBlob(function (blob) {
+                    var reader = new FileReader();
+                    reader.onload = function () {
+                        resolve(new Uint8Array(reader.result));
+                    };
+                    reader.readAsArrayBuffer(blob);
+                }, 'image/png');
+            };
+            img.src = url;
+        });
+    }
+
+    async function confirmarFirma() {
         if (!hayTrazos) return;
-        ssvvgg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
-        var svgData = ssvvgg.outerHTML;
-        alert("Firma capturada. (Próximo paso: estamparla sobre el PDF y guardar)");
-        console.log(svgData);
+        if (!pdfBytesActual) { alert("Primero carga un documento PDF"); return; }
+
+        document.getElementById('btnConfirmar').disabled = true;
+        document.getElementById('btnConfirmar').innerText = "Procesando...";
+
+        try {
+            var pngBytes = await rasterizarFirmaComoPng();
+
+            var pdfDoc = await PDFLib.PDFDocument.load(pdfBytesActual);
+            var paginaPdfLib = pdfDoc.getPages()[0];
+            var pngImage = await pdfDoc.embedPng(pngBytes);
+
+            var anchoFirma = 100;
+            var altoFirma = anchoFirma * (480 / 800);
+
+            var posX = posicionFirmaPdf ? posicionFirmaPdf.x : 350;
+            var posY = posicionFirmaPdf ? posicionFirmaPdf.y + 2 : 80;
+
+            paginaPdfLib.drawImage(pngImage, {
+                x: posX,
+                y: posY,
+                width: anchoFirma,
+                height: altoFirma
+            });
+
+            var pdfBytesFinal = await pdfDoc.save();
+            var blobFinal = new Blob([pdfBytesFinal], { type: 'application/pdf' });
+            var urlFinal = URL.createObjectURL(blobFinal);
+
+            var nombreArchivo = (numeroDocumentoDetectado || 'firma_' + Date.now()) + '.pdf';
+            var enlace = document.createElement('a');
+            enlace.href = urlFinal;
+            enlace.download = nombreArchivo;
+            document.body.appendChild(enlace);
+            enlace.click();
+            document.body.removeChild(enlace);
+
+            document.getElementById('btnConfirmar').innerText = "✓ PDF guardado";
+            setTimeout(function () {
+                document.getElementById('btnConfirmar').innerText = "Confirmar y guardar PDF firmado";
+            }, 3000);
+        } catch (e) {
+            console.error(e);
+            alert("Error al generar el PDF: " + e.message);
+            document.getElementById('btnConfirmar').disabled = false;
+            document.getElementById('btnConfirmar').innerText = "Confirmar y guardar PDF firmado";
+        }
     }
 
     async function aplicarAjustesAdmin() {
