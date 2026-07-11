@@ -30,7 +30,6 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 #status.disconnected { color: rgb(220,38,38); }
 #status.connected { color: rgb(22,163,74); }
 
-/* Sección de documento SAP */
 #documentoSection {
     margin: 0 24px 16px;
     background: rgb(239,246,255);
@@ -257,11 +256,11 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     <div id="footer">Sistema de Autogestión · Wacom STU-540</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="wacomstu540.js"></script>
 <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.worker.min.js";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
     var wacom = new wacomstu540()
     var image;
@@ -279,7 +278,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     var areaFirma = { x1: 40, y1: 60, x2: 760, y2: 440 };
 
-    // Variables del documento PDF actual
     var carpetaPendientes = null;
     var pdfBytesActual = null;
     var numeroDocumentoDetectado = null;
@@ -288,7 +286,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('adminPanel').classList.toggle('visible');
     }
 
-    // --- Etapa 3: Conexión a carpeta y carga de PDF ---
     async function conectarCarpeta() {
         try {
             carpetaPendientes = await window.showDirectoryPicker();
@@ -355,7 +352,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('btnConnect').disabled = false;
     }
 
-    // --- Firma digital (Wacom) ---
     wacom.checkAvailable().then(function (supp) {
         if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
     })
