@@ -16,6 +16,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     color: #fff;
     padding: 18px 24px;
     text-align: center;
+    position: relative;
 }
 #header h1 { margin: 0; font-size: 18px; font-weight: 600; }
 #header p { margin: 4px 0 0; font-size: 12px; color: rgba(255,255,255,0.65); }
@@ -87,6 +88,44 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     color: #94a3b8;
     border-top: 1px solid #f1f5f9;
 }
+
+/* Panel de administrador */
+#adminPanel {
+    margin: 0 24px 24px;
+    background: rgb(237,233,254);
+    border: 1px solid rgb(221,214,254);
+    border-radius: 10px;
+    padding: 16px;
+    display: none;
+}
+#adminPanel.visible { display: block; }
+#adminPanel h3 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: rgb(109,40,217);
+    font-weight: 600;
+}
+.adminRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+    color: rgb(88,28,135);
+}
+.adminRow input[type=color], .adminRow input[type=range] { cursor: pointer; }
+#deviceInfo {
+    font-family: monospace;
+    font-size: 11px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 8px;
+    margin-top: 8px;
+    color: #475569;
+    white-space: pre-wrap;
+    max-height: 120px;
+    overflow-y: auto;
+}
 </style>
 
 <div id="app">
@@ -111,6 +150,27 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         <button id="btnConfirmar" onclick="confirmarFirma()" disabled>Confirmar firma</button>
     </div>
 
+    <div id="adminPanel">
+        <h3>🔧 Panel de administrador</h3>
+        <div class="adminRow">
+            <span>Color de pluma</span>
+            <input id="adminColorPluma" type="color" value="#FFBF00" onchange="aplicarAjustesAdmin()" />
+        </div>
+        <div class="adminRow">
+            <span>Grosor de pluma</span>
+            <input id="adminGrosorPluma" type="range" min="0" max="5" value="2" onchange="aplicarAjustesAdmin()" />
+        </div>
+        <div class="adminRow">
+            <span>Brillo de pantalla</span>
+            <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
+        </div>
+        <div class="adminRow">
+            <span>Info del dispositivo</span>
+            <button onclick="mostrarInfoDispositivo()" style="padding:4px 10px;border-radius:6px;border:none;background:rgb(109,40,217);color:#fff;font-size:11px;cursor:pointer;">Consultar</button>
+        </div>
+        <div id="deviceInfo" style="display:none;"></div>
+    </div>
+
     <div id="footer">Sistema de Autogestión · Wacom STU-540</div>
 </div>
 
@@ -120,17 +180,23 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     var image;
     var poly;
     var pen_state = false
-    var imgreq = false;
     var lastPressure = 0.0
     var hayTrazos = false;
 
     var canvas = document.getElementById('myCanvas')
     var context = myCanvas.getContext("2d")
-    var img = new Image()
 
     var coloFondo = "#0B1F4A";
     var colaPluma = "#FFBF00";
     var grosorPluma = 2;
+
+    // Área real de firma restringida (coincide con el recuadro visual)
+    var areaFirma = { x1: 40, y1: 60, x2: 760, y2: 440 };
+
+    // Panel de admin solo visible con ?admin=1 en la URL
+    if (new URLSearchParams(window.location.search).get('admin') === '1') {
+        document.getElementById('adminPanel').classList.add('visible');
+    }
 
     wacom.checkAvailable().then(function (supp) {
         if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
@@ -152,16 +218,13 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
             await wacom.clearScreen()
             await wacom.setPenColorAndWidth(colaPluma, grosorPluma)
             await wacom.setWritingMode(1)
-            await wacom.setWritingArea({ x1: 0, y1: 0, x2: 800, y2: 480 })
+            await wacom.setWritingArea(areaFirma)
             await wacom.setInking(true)
             wacom.onPenData(function (pen) {
                 pointevent(pen.press > 0, pen.cx, pen.cy, pen.press)
             })
             addpoly()
-            img.onload = loadImg
-            setTimeout(function () {
-                dibujarMensajeInicial()
-            }, 150)
+            setTimeout(dibujarMensajeInicial, 150)
             document.getElementById('status').className = 'connected';
             document.getElementById('status').innerText = '● Pad conectado — firme en el recuadro';
             document.getElementById('btnConnect').innerText = 'Reconectar';
@@ -171,14 +234,14 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
     function dibujarMensajeInicial() {
         context.fillStyle = coloFondo;
         context.fillRect(0, 0, canvas.width, canvas.height);
-        context.strokeStyle = "#FFBF00";
+        context.strokeStyle = colaPluma;
         context.lineWidth = 3;
-        context.strokeRect(20, 20, 760, 440);
+        context.strokeRect(areaFirma.x1, areaFirma.y1, areaFirma.x2 - areaFirma.x1, areaFirma.y2 - areaFirma.y1);
         context.fillStyle = "#ffffff";
-        context.font = "28px Arial";
+        context.font = "24px Arial";
         context.textAlign = "center";
-        context.fillText("Firme aquí", 400, 240);
-        empujarImagenAlPad(false);
+        context.fillText("Firme aquí", 400, (areaFirma.y1 + areaFirma.y2) / 2);
+        empujarImagenAlPad();
     }
 
     async function clearscreen() {
@@ -191,7 +254,7 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         setTimeout(async () => { await wacom.setInking(true) }, 200)
     }
 
-    async function empujarImagenAlPad(activarTinta) {
+    async function empujarImagenAlPad() {
         var imageData = context.getImageData(0, 0, 800, 480)
         const rgb24 = new Uint8Array((imageData.data.length / 4) * 3)
         var i = 0, j = 0;
@@ -203,7 +266,6 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         }
         image = rgb24
         await wacom.setImage(image)
-        if (activarTinta) await wacom.setInking(true)
     }
 
     function pressdiff(a, b) { return a > b ? a - b : b - a }
@@ -244,8 +306,26 @@ canvas { border-radius: 6px; width: 100%; height: auto; display: block; }
         if (!hayTrazos) return;
         ssvvgg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
         var svgData = ssvvgg.outerHTML;
-        // Etapa siguiente: aquí vamos a convertir esto en imagen y estamparlo en el PDF
         alert("Firma capturada. (Próximo paso: se integrará con el PDF)");
         console.log(svgData);
+    }
+
+    // --- Funciones exclusivas del panel de administrador ---
+    async function aplicarAjustesAdmin() {
+        colaPluma = document.getElementById('adminColorPluma').value;
+        grosorPluma = document.getElementById('adminGrosorPluma').value;
+        await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
+    }
+
+    async function aplicarBrillo() {
+        var valor = document.getElementById('adminBrillo').value;
+        await wacom.setBacklight(valor);
+    }
+
+    async function mostrarInfoDispositivo() {
+        var info = await wacom.getTabletInfo();
+        var caja = document.getElementById('deviceInfo');
+        caja.style.display = 'block';
+        caja.innerText = JSON.stringify(info, null, 2);
     }
 </script>
