@@ -668,10 +668,16 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             var paginaPdfLib = pdfDoc.getPages()[0];
 
             var imgFirma = await pdfDoc.embedPng(pngFirma);
-            var anchoFirma = 100;
-            var altoFirma = anchoFirma * (480 / 800);
-            var posFirma = posicionFirmaPdf || { x: 350, y: 80 };
-            paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y + 2, width: anchoFirma, height: altoFirma });
+var anchoFirma = 130;
+var altoFirma = 32;
+var posFirma = posicionFirmaPdf || { x: 350, y: 80 };
+paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y - 5, width: anchoFirma, height: altoFirma });
+
+var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
+var anchoTarjeta = 80;
+var altoTarjeta = 20;
+var posTarjeta = posicionTarjetaPdf || { x: 200, y: 80 };
+paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y - 3, width: anchoTarjeta, height: altoTarjeta });
 
             var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
             var anchoTarjeta = 60;
