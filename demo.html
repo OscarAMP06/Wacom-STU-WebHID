@@ -183,6 +183,24 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     color: rgb(88,28,135);
 }
 .adminRow input[type=color], .adminRow input[type=range] { cursor: pointer; }
+.adminRow input[type=number] {
+    width: 70px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid rgb(221,214,254);
+}
+#btnGuardarCalibracion {
+    width: 100%;
+    margin-top: 10px;
+    background: rgb(109,40,217);
+    color: #fff;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
 #deviceInfo {
     font-family: monospace;
     font-size: 11px;
@@ -242,7 +260,22 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <span>Brillo de pantalla</span>
             <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
         </div>
-        <div class="adminRow">
+
+        <h3 style="margin-top:16px;">📍 Calibración — Firma</h3>
+        <div class="adminRow"><span>Posición X</span><input id="posXFirma" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Posición Y</span><input id="posYFirma" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Ancho</span><input id="anchoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Alto</span><input id="altoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+
+        <h3 style="margin-top:16px;">📍 Calibración — No. Tarjeta</h3>
+        <div class="adminRow"><span>Posición X</span><input id="posXTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Posición Y</span><input id="posYTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Ancho</span><input id="anchoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+        <div class="adminRow"><span>Alto</span><input id="altoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+
+        <button id="btnGuardarCalibracion" onclick="guardarCalibracion()">💾 Guardar esta calibración (permanente)</button>
+
+        <div class="adminRow" style="margin-top:12px;">
             <span>Info del dispositivo</span>
             <button onclick="mostrarInfoDispositivo()" style="padding:4px 10px;border-radius:6px;border:none;background:rgb(109,40,217);color:#fff;font-size:11px;cursor:pointer;">Consultar</button>
         </div>
@@ -274,11 +307,81 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var entradaArchivoActual = null;
     var pdfBytesActual = null;
     var numeroDocumentoDetectado = null;
-    var posicionFirmaPdf = null;
-    var posicionTarjetaPdf = null;
+
+    // Coordenadas calibradas (persisten en localStorage). Se cargan al iniciar.
+    var posFirma = { x: 350, y: 80, ancho: 130, alto: 32 };
+    var posTarjeta = { x: 200, y: 80, ancho: 80, alto: 20 };
+
+    // Referencias para poder re-dibujar la vista previa en vivo mientras se calibra
+    var paginaActualPdf = null;
+    var viewportActualPdf = null;
+    var alturaPaginaPuntos = null;
+    var escalaRenderPdf = 1.3;
+
     function toggleAdmin() {
         document.getElementById('adminPanel').classList.toggle('visible');
     }
+
+    function cargarCalibracionGuardada() {
+        var guardado = localStorage.getItem('calibracionFirmaSAP');
+        if (guardado) {
+            var datos = JSON.parse(guardado);
+            posFirma = datos.firma;
+            posTarjeta = datos.tarjeta;
+        }
+        document.getElementById('posXFirma').value = posFirma.x;
+        document.getElementById('posYFirma').value = posFirma.y;
+        document.getElementById('anchoFirmaInput').value = posFirma.ancho;
+        document.getElementById('altoFirmaInput').value = posFirma.alto;
+        document.getElementById('posXTarjeta').value = posTarjeta.x;
+        document.getElementById('posYTarjeta').value = posTarjeta.y;
+        document.getElementById('anchoTarjetaInput').value = posTarjeta.ancho;
+        document.getElementById('altoTarjetaInput').value = posTarjeta.alto;
+    }
+
+    function guardarCalibracion() {
+        localStorage.setItem('calibracionFirmaSAP', JSON.stringify({ firma: posFirma, tarjeta: posTarjeta }));
+        alert('✓ Calibración guardada. Se usará automáticamente en todos los próximos documentos.');
+    }
+
+    function recalcularYRedibujar() {
+        posFirma = {
+            x: Number(document.getElementById('posXFirma').value),
+            y: Number(document.getElementById('posYFirma').value),
+            ancho: Number(document.getElementById('anchoFirmaInput').value),
+            alto: Number(document.getElementById('altoFirmaInput').value)
+        };
+        posTarjeta = {
+            x: Number(document.getElementById('posXTarjeta').value),
+            y: Number(document.getElementById('posYTarjeta').value),
+            ancho: Number(document.getElementById('anchoTarjetaInput').value),
+            alto: Number(document.getElementById('altoTarjetaInput').value)
+        };
+        redibujarPreviewConMarcadores();
+    }
+
+    // Vuelve a dibujar el PDF y superpone los 2 recuadros EXACTAMENTE donde caerá la imagen real
+    async function redibujarPreviewConMarcadores() {
+        if (!paginaActualPdf) return;
+        var canvasPdf = document.getElementById('pdfCanvas');
+        var ctxPdf = canvasPdf.getContext('2d');
+        await paginaActualPdf.render({ canvasContext: ctxPdf, viewport: viewportActualPdf }).promise;
+
+        function dibujarMarcador(pos, color) {
+            var cx = pos.x * escalaRenderPdf;
+            var cy = (alturaPaginaPuntos - pos.y - pos.alto) * escalaRenderPdf;
+            var cw = pos.ancho * escalaRenderPdf;
+            var ch = pos.alto * escalaRenderPdf;
+            ctxPdf.strokeStyle = color;
+            ctxPdf.lineWidth = 2;
+            ctxPdf.strokeRect(cx, cy, cw, ch);
+            ctxPdf.fillStyle = color + '33';
+            ctxPdf.fillRect(cx, cy, cw, ch);
+        }
+        dibujarMarcador(posFirma, '#22c55e');
+        dibujarMarcador(posTarjeta, '#d97706');
+    }
+
     async function conectarCarpeta() {
         try {
             carpetaPendientes = await window.showDirectoryPicker();
@@ -287,6 +390,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             console.log("Selección de carpeta cancelada");
         }
     }
+
     async function listarPdfs() {
         var contenedor = document.getElementById('listaArchivos');
         contenedor.innerHTML = '';
@@ -308,20 +412,27 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             contenedor.appendChild(fila);
         });
     }
+
     async function cargarPdf(entradaArchivo) {
         entradaArchivoActual = entradaArchivo;
         var archivo = await entradaArchivo.getFile();
         pdfBytesActual = await archivo.arrayBuffer();
+
         var pdf = await pdfjsLib.getDocument({ data: pdfBytesActual.slice(0) }).promise;
         var pagina = await pdf.getPage(1);
-        var viewport = pagina.getViewport({ scale: 1.3 });
+        paginaActualPdf = pagina;
+
+        var viewport = pagina.getViewport({ scale: escalaRenderPdf });
+        viewportActualPdf = viewport;
+        alturaPaginaPuntos = pagina.getViewport({ scale: 1 }).height;
+
         var canvasPdf = document.getElementById('pdfCanvas');
         canvasPdf.width = viewport.width;
         canvasPdf.height = viewport.height;
-        var ctxPdf = canvasPdf.getContext('2d');
-        await pagina.render({ canvasContext: ctxPdf, viewport: viewport }).promise;
+
         var contenidoTexto = await pagina.getTextContent();
         var textoCompleto = contenidoTexto.items.map(function (i) { return i.str; }).join(' ');
+
         var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
         var cajaNumero = document.getElementById('docNumeroDetectado');
         if (coincidencia) {
@@ -337,39 +448,20 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             cajaNumero.style.color = 'rgb(153,27,27)';
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
-        // Detectar "Recibido por" (columna derecha)
-        var itemRecibido = contenidoTexto.items.find(function (it) { return it.str.indexOf("Recibido por") !== -1; });
-        if (itemRecibido) {
-            var cw = itemRecibido.width / itemRecibido.str.length;
-            var ini = itemRecibido.str.indexOf("Recibido por") + "Recibido por".length + 1;
-            posicionFirmaPdf = { x: itemRecibido.transform[4] + (cw * ini), y: itemRecibido.transform[5] };
-            console.log('DIAGNÓSTICO Recibido por → texto: "' + itemRecibido.str + '" | X inicial: ' + itemRecibido.transform[4] + ' | Width total: ' + itemRecibido.width + ' | X calculada para firma: ' + posicionFirmaPdf.x);
-        } else {
-            posicionFirmaPdf = null;
-        }
-        // Detectar "Tarjeta" DE LA MISMA COLUMNA que "Recibido por" (no la de "Despachado por")
-        var candidatosTarjeta = contenidoTexto.items.filter(function (it) { return it.str.indexOf("Tarjeta") !== -1; });
-        if (itemRecibido && candidatosTarjeta.length > 0) {
-            var xColumnaRecibido = itemRecibido.transform[4];
-            candidatosTarjeta.sort(function (a, b) {
-                return Math.abs(a.transform[4] - xColumnaRecibido) - Math.abs(b.transform[4] - xColumnaRecibido);
-            });
-            var itemTarjeta = candidatosTarjeta[0];
-            var cw2 = itemTarjeta.width / itemTarjeta.str.length;
-            var ini2 = itemTarjeta.str.indexOf("Tarjeta") + "Tarjeta".length + 1;
-            posicionTarjetaPdf = { x: itemTarjeta.transform[4] + (cw2 * ini2), y: itemTarjeta.transform[5] };
-            console.log('DIAGNÓSTICO Tarjeta → texto: "' + itemTarjeta.str + '" | X inicial: ' + itemTarjeta.transform[4] + ' | Width total: ' + itemTarjeta.width + ' | X calculada para tarjeta: ' + posicionTarjetaPdf.x);
-        } else {
-            posicionTarjetaPdf = null;
-        }
+
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
+
+        await redibujarPreviewConMarcadores();
+
         if (wacom.checkConnected()) dibujarPantallaFirma();
     }
+
     wacom.checkAvailable().then(function (supp) {
         if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
     })
+
     wacom.onHidChange(function (e) {
         if (e == 'connect') {
             document.getElementById('status').className = 'connected';
@@ -380,6 +472,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.getElementById('status').innerText = '● Pad desconectado';
         }
     })
+
     async function prepararPadTrasConectar() {
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma)
         await wacom.setWritingMode(1)
@@ -396,16 +489,19 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('status').innerText = '● Pad conectado';
         document.getElementById('btnConnect').innerText = 'Reconectar';
     }
+
     async function connect() {
         if (await wacom.connect()) {
             await prepararPadTrasConectar();
         }
     }
+
     window.addEventListener('load', async function () {
+        cargarCalibracionGuardada();
         var ok = await wacom.connectSilencioso();
         if (ok) await prepararPadTrasConectar();
     });
-    // --- Pantalla de reposo (sin documento cargado) ---
+
     function dibujarPantallaReposo() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -430,7 +526,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
         empujarImagenAlPad();
     }
-    // --- Pantalla de firma (documento cargado) ---
+
     function dibujarPantallaFirma() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -470,6 +566,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         wacom.setWritingArea(areaTotal);
         empujarImagenAlPad();
     }
+
     function roundRectStroke(x, y, w, h, r, color, lineWidth) {
         context.strokeStyle = color;
         context.lineWidth = lineWidth;
@@ -483,6 +580,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         context.roundRect(x, y, w, h, r);
         context.fill();
     }
+
     async function clearscreen() {
         await wacom.setInking(false)
         document.getElementById('ssvvggFirma').innerHTML = ''
@@ -493,6 +591,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         dibujarPantallaFirma();
         setTimeout(async () => { await wacom.setInking(true) }, 200)
     }
+
     async function empujarImagenAlPad() {
         var imageData = context.getImageData(0, 0, 800, 480)
         const rgb24 = new Uint8Array((imageData.data.length / 4) * 3)
@@ -505,12 +604,14 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
         await wacom.setImage(rgb24)
     }
+
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
     function estaEnZonaTarjeta(y) { return y >= zonaTarjeta.y1; }
     function estaEnBotonReintentar(x, y) {
         return x >= zonaReintentar.x1 && x <= zonaReintentar.x2 && y >= zonaReintentar.y1 && y <= zonaReintentar.y2;
     }
+
     function addpoly() {
         polyFirma = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
         polyFirma.setAttributeNS(null, "style", "fill:none;stroke:" + colaPluma + ";stroke-width:" + makestroke(grosorPluma + 1) + ";")
@@ -519,6 +620,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         polyTarjeta.setAttributeNS(null, "style", "fill:none;stroke:" + colaPluma + ";stroke-width:" + makestroke(grosorPluma + 1) + ";")
         document.getElementById('ssvvggTarjeta').append(polyTarjeta)
     }
+
     function polypoint(esTarjeta, x, y) {
         var svg = esTarjeta ? document.getElementById('ssvvggTarjeta') : document.getElementById('ssvvggFirma');
         var poly = esTarjeta ? polyTarjeta : polyFirma;
@@ -527,7 +629,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         point.y = y
         poly.points.appendItem(point)
     }
+
     var yaSePresionoBoton = false;
+
     async function pointevent(z, x, y, p) {
         if (!documentoListoParaFirmar) return;
         if (z && estaEnBotonReintentar(x, y)) {
@@ -555,6 +659,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             polypoint(esTarjeta, x, y)
         }
     }
+
     function rasterizarSvgComoPng(svgEl) {
         return new Promise(function (resolve) {
             svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -578,33 +683,32 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             img.src = url;
         });
     }
+
     async function confirmarFirma() {
         if (!hayTrazosFirma || !hayTrazosTarjeta) return;
         if (!pdfBytesActual) { alert("Primero carga un documento PDF"); return; }
+
         var btn = document.getElementById('btnConfirmar');
         btn.disabled = true;
         btn.innerText = "Procesando...";
+
         try {
             var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
             var pngTarjeta = await rasterizarSvgComoPng(document.getElementById('ssvvggTarjeta'));
+
             var pdfDoc = await PDFLib.PDFDocument.load(pdfBytesActual);
             var paginaPdfLib = pdfDoc.getPages()[0];
 
             var imgFirma = await pdfDoc.embedPng(pngFirma);
-            var anchoFirma = 130;
-            var altoFirma = 32;
-            var posFirma = posicionFirmaPdf || { x: 350, y: 80 };
-            paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y - 5, width: anchoFirma, height: altoFirma });
+            paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y, width: posFirma.ancho, height: posFirma.alto });
 
             var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
-            var anchoTarjeta = 80;
-            var altoTarjeta = 20;
-            var posTarjeta = posicionTarjetaPdf || { x: 200, y: 80 };
-            paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y - 3, width: anchoTarjeta, height: altoTarjeta });
+            paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y, width: posTarjeta.ancho, height: posTarjeta.alto });
 
             var pdfBytesFinal = await pdfDoc.save();
             var blobFinal = new Blob([pdfBytesFinal], { type: 'application/pdf' });
             var urlFinal = URL.createObjectURL(blobFinal);
+
             var nombreArchivo = (numeroDocumentoDetectado || 'firma_' + Date.now()) + '.pdf';
             var enlace = document.createElement('a');
             enlace.href = urlFinal;
@@ -612,6 +716,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.body.appendChild(enlace);
             enlace.click();
             document.body.removeChild(enlace);
+
             if (carpetaPendientes && entradaArchivoActual) {
                 try {
                     await carpetaPendientes.removeEntry(entradaArchivoActual.name);
@@ -619,21 +724,24 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
                     console.warn("No se pudo eliminar el archivo original:", e);
                 }
             }
+
             pdfBytesActual = null;
             entradaArchivoActual = null;
             numeroDocumentoDetectado = null;
-            posicionFirmaPdf = null;
-            posicionTarjetaPdf = null;
+            paginaActualPdf = null;
             documentoListoParaFirmar = false;
             document.getElementById('previewPdf').style.display = 'none';
             document.getElementById('docNumeroDetectado').style.display = 'none';
             document.getElementById('btnConnect').disabled = true;
+
             document.getElementById('ssvvggFirma').innerHTML = '';
             document.getElementById('ssvvggTarjeta').innerHTML = '';
             hayTrazosFirma = false;
             hayTrazosTarjeta = false;
             dibujarPantallaReposo();
+
             await listarPdfs();
+
             btn.innerText = "Confirmar y guardar PDF firmado";
         } catch (e) {
             console.error(e);
@@ -641,15 +749,18 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             btn.innerText = "Confirmar y guardar PDF firmado";
         }
     }
+
     async function aplicarAjustesAdmin() {
         colaPluma = document.getElementById('adminColorPluma').value;
         grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
     }
+
     async function aplicarBrillo() {
         var valor = document.getElementById('adminBrillo').value;
         await wacom.setBacklight(valor);
     }
+
     async function mostrarInfoDispositivo() {
         var info = await wacom.getTabletInfo();
         var caja = document.getElementById('deviceInfo');
