@@ -84,12 +84,23 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 #previewPdf {
     margin-top: 12px;
     text-align: center;
+    position: relative;
+    display: inline-block;
 }
 #pdfCanvas {
     max-width: 100%;
     border: 1px solid rgb(191,219,254);
     border-radius: 6px;
+    display: block;
 }
+#marcadorFirma, #marcadorTarjeta {
+    position: absolute;
+    border: 2px solid;
+    border-radius: 3px;
+    pointer-events: none;
+}
+#marcadorFirma { border-color: rgb(34,197,94); background: rgba(34,197,94,0.15); }
+#marcadorTarjeta { border-color: rgb(217,119,6); background: rgba(217,119,6,0.15); }
 #docNumeroDetectado {
     margin-top: 10px;
     background: rgb(220,252,231);
@@ -194,6 +205,24 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     color: rgb(88,28,135);
 }
 .adminRow input[type=color], .adminRow input[type=range] { cursor: pointer; }
+.adminRow input[type=number] {
+    width: 70px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid rgb(221,214,254);
+}
+#btnGuardarPosicion {
+    width: 100%;
+    margin-top: 10px;
+    background: rgb(109,40,217);
+    color: #fff;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
 #deviceInfo {
     font-family: monospace;
     font-size: 11px;
@@ -223,8 +252,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         <div id="listaArchivos"></div>
         <div id="previewPdf" style="display:none;">
             <canvas id="pdfCanvas"></canvas>
-            <div id="docNumeroDetectado"></div>
+            <div id="marcadorFirma"></div>
+            <div id="marcadorTarjeta"></div>
         </div>
+        <div id="docNumeroDetectado"></div>
     </div>
 
     <button id="btnConnect" onclick="connect()" disabled>Conectar pad de firma</button>
@@ -248,9 +279,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     <div id="adminPanel">
         <h3>🔧 Panel de administrador</h3>
+
         <div class="adminRow">
             <span>Color de pluma</span>
-            <input id="adminColorPluma" type="color" value="#FFBF00" onchange="aplicarAjustesAdmin()" />
+            <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
         </div>
         <div class="adminRow">
             <span>Grosor de pluma</span>
@@ -260,7 +292,27 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <span>Brillo de pantalla</span>
             <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
         </div>
+
+        <h3 style="margin-top:16px;">📍 Calibración de posición en el PDF</h3>
         <div class="adminRow">
+            <span>Posición X — Firma</span>
+            <input id="posXFirma" type="number" oninput="actualizarMarcadoresPreview()" />
+        </div>
+        <div class="adminRow">
+            <span>Posición Y — Firma</span>
+            <input id="posYFirma" type="number" oninput="actualizarMarcadoresPreview()" />
+        </div>
+        <div class="adminRow">
+            <span>Posición X — Tarjeta</span>
+            <input id="posXTarjeta" type="number" oninput="actualizarMarcadoresPreview()" />
+        </div>
+        <div class="adminRow">
+            <span>Posición Y — Tarjeta</span>
+            <input id="posYTarjeta" type="number" oninput="actualizarMarcadoresPreview()" />
+        </div>
+        <button id="btnGuardarPosicion" onclick="guardarPosicionCalibrada()">💾 Guardar esta posición (permanente)</button>
+
+        <div class="adminRow" style="margin-top:12px;">
             <span>Info del dispositivo</span>
             <button onclick="mostrarInfoDispositivo()" style="padding:4px 10px;border-radius:6px;border:none;background:rgb(109,40,217);color:#fff;font-size:11px;cursor:pointer;">Consultar</button>
         </div>
@@ -286,24 +338,89 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var canvas = document.getElementById('myCanvas')
     var context = myCanvas.getContext("2d")
 
-    var coloFondo = "#0B1F4A";
-    var colaPluma = "#FFBF00";
+    // Diseño profesional: fondo claro, tinta azul tipo bolígrafo
+    var coloFondo = "#FAFAFA";
+    var colaPluma = "#1A3C8C";
     var grosorPluma = 2;
 
-    // Dos zonas dentro de la misma área escribible total
-    var zonaFirma   = { x1: 40,  y1: 40,  x2: 760, y2: 300 };
+    var zonaFirma   = { x1: 40,  y1: 60,  x2: 760, y2: 300 };
     var zonaTarjeta = { x1: 40,  y1: 340, x2: 400, y2: 440 };
-    var areaTotal   = { x1: 40,  y1: 40,  x2: 760, y2: 440 };
+    var areaTotal   = { x1: 40,  y1: 60,  x2: 760, y2: 440 };
+
+    // Zona del botón "Reintentar" tocable en el propio pad
+    var zonaReintentar = { x1: 650, y1: 5, x2: 795, y2: 55 };
 
     var carpetaPendientes = null;
     var entradaArchivoActual = null;
     var pdfBytesActual = null;
     var numeroDocumentoDetectado = null;
-    var posicionFirmaPdf = null;
-    var posicionTarjetaPdf = null;
+    var alturaPaginaPdf = null;
+    var escalaVisualPdf = 1;
+
+    // Posiciones calibradas (por defecto, se sobrescriben con lo guardado o lo detectado)
+    var posFirma = { x: 350, y: 80 };
+    var posTarjeta = { x: 200, y: 80 };
 
     function toggleAdmin() {
         document.getElementById('adminPanel').classList.toggle('visible');
+    }
+
+    function cargarPosicionesGuardadas() {
+        var guardado = localStorage.getItem('posicionesFirmaSAP');
+        if (guardado) {
+            var datos = JSON.parse(guardado);
+            posFirma = datos.firma;
+            posTarjeta = datos.tarjeta;
+        }
+        document.getElementById('posXFirma').value = posFirma.x;
+        document.getElementById('posYFirma').value = posFirma.y;
+        document.getElementById('posXTarjeta').value = posTarjeta.x;
+        document.getElementById('posYTarjeta').value = posTarjeta.y;
+    }
+
+    function guardarPosicionCalibrada() {
+        posFirma = {
+            x: Number(document.getElementById('posXFirma').value),
+            y: Number(document.getElementById('posYFirma').value)
+        };
+        posTarjeta = {
+            x: Number(document.getElementById('posXTarjeta').value),
+            y: Number(document.getElementById('posYTarjeta').value)
+        };
+        localStorage.setItem('posicionesFirmaSAP', JSON.stringify({ firma: posFirma, tarjeta: posTarjeta }));
+        alert('✓ Posición guardada. Se usará automáticamente en todos los próximos documentos.');
+    }
+
+    function actualizarMarcadoresPreview() {
+        var x1 = Number(document.getElementById('posXFirma').value);
+        var y1 = Number(document.getElementById('posYFirma').value);
+        var x2 = Number(document.getElementById('posXTarjeta').value);
+        var y2 = Number(document.getElementById('posYTarjeta').value);
+        posFirma = { x: x1, y: y1 };
+        posTarjeta = { x: x2, y: y2 };
+        dibujarMarcadoresEnPreview();
+    }
+
+    function dibujarMarcadoresEnPreview() {
+        if (!alturaPaginaPdf) return;
+        var canvasPdf = document.getElementById('pdfCanvas');
+        var marcFirma = document.getElementById('marcadorFirma');
+        var marcTarjeta = document.getElementById('marcadorTarjeta');
+
+        var anchoFirmaPdf = 100, altoFirmaPdf = 100 * (480/800);
+        var anchoTarjetaPdf = 60, altoTarjetaPdf = 60 * (480/800);
+
+        marcFirma.style.display = 'block';
+        marcFirma.style.left = (posFirma.x * escalaVisualPdf) + 'px';
+        marcFirma.style.width = (anchoFirmaPdf * escalaVisualPdf) + 'px';
+        marcFirma.style.height = (altoFirmaPdf * escalaVisualPdf) + 'px';
+        marcFirma.style.top = ((alturaPaginaPdf - posFirma.y - altoFirmaPdf) * escalaVisualPdf) + 'px';
+
+        marcTarjeta.style.display = 'block';
+        marcTarjeta.style.left = (posTarjeta.x * escalaVisualPdf) + 'px';
+        marcTarjeta.style.width = (anchoTarjetaPdf * escalaVisualPdf) + 'px';
+        marcTarjeta.style.height = (altoTarjetaPdf * escalaVisualPdf) + 'px';
+        marcTarjeta.style.top = ((alturaPaginaPdf - posTarjeta.y - altoTarjetaPdf) * escalaVisualPdf) + 'px';
     }
 
     // --- Carpeta y carga de PDF ---
@@ -347,6 +464,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         var pagina = await pdf.getPage(1);
 
         var viewport = pagina.getViewport({ scale: 1.3 });
+        escalaVisualPdf = 1.3;
+        alturaPaginaPdf = viewport.height / 1.3; // altura real en puntos PDF
+
         var canvasPdf = document.getElementById('pdfCanvas');
         canvasPdf.width = viewport.width;
         canvasPdf.height = viewport.height;
@@ -372,18 +492,11 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
 
-        function ubicarCampo(textoBuscado) {
-            var item = contenidoTexto.items.find(function (it) { return it.str.indexOf(textoBuscado) !== -1; });
-            if (!item) return null;
-            var charWidth = item.width / item.str.length;
-            var indiceInicio = item.str.indexOf(textoBuscado) + textoBuscado.length + 1;
-            return { x: item.transform[4] + (charWidth * indiceInicio), y: item.transform[5] };
-        }
-        posicionFirmaPdf = ubicarCampo("Recibido por");
-        posicionTarjetaPdf = ubicarCampo("Tarjeta");
-
-        document.getElementById('previewPdf').style.display = 'block';
+        document.getElementById('previewPdf').style.display = 'inline-block';
         document.getElementById('btnConnect').disabled = false;
+
+        // Usa la posición calibrada/guardada (ya cargada en cargarPosicionesGuardadas)
+        dibujarMarcadoresEnPreview();
     }
 
     // --- Conexión al pad ---
@@ -424,8 +537,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
     }
 
-    // Intento de reconexión automática al cargar la página, sin pedir permiso
     window.addEventListener('load', async function () {
+        cargarPosicionesGuardadas();
         var ok = await wacom.connectSilencioso();
         if (ok) await prepararPadTrasConectar();
     });
@@ -434,24 +547,43 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         context.fillStyle = coloFondo;
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        context.strokeStyle = colaPluma;
-        context.lineWidth = 3;
-        context.strokeRect(zonaFirma.x1, zonaFirma.y1, zonaFirma.x2 - zonaFirma.x1, zonaFirma.y2 - zonaFirma.y1);
-        context.strokeRect(zonaTarjeta.x1, zonaTarjeta.y1, zonaTarjeta.x2 - zonaTarjeta.x1, zonaTarjeta.y2 - zonaTarjeta.y1);
-
-        context.fillStyle = "#ffffff";
-        context.font = "22px Arial";
+        // Encabezado de marca
+        context.fillStyle = "#0B1F4A";
+        context.font = "bold 22px Arial";
         context.textAlign = "center";
-        context.fillText("Firme aquí", (zonaFirma.x1 + zonaFirma.x2) / 2, (zonaFirma.y1 + zonaFirma.y2) / 2);
-        context.font = "16px Arial";
-        context.fillText("No. Tarjeta", (zonaTarjeta.x1 + zonaTarjeta.x2) / 2, (zonaTarjeta.y1 + zonaTarjeta.y2) / 2);
+        context.fillText("SISTEMA DE AUTOGESTIÓN", 400, 30);
+
+        // Zona de firma
+        context.strokeStyle = "#94a3b8";
+        context.setLineDash([6, 4]);
+        context.lineWidth = 2;
+        context.strokeRect(zonaFirma.x1, zonaFirma.y1, zonaFirma.x2 - zonaFirma.x1, zonaFirma.y2 - zonaFirma.y1);
+        context.setLineDash([]);
+        context.fillStyle = "#94a3b8";
+        context.font = "18px Arial";
+        context.fillText("Firme aquí", (zonaFirma.x1 + zonaFirma.x2) / 2, zonaFirma.y1 + 24);
+
+        // Zona de tarjeta
+        context.setLineDash([6, 4]);
+        context.strokeRect(zonaTarjeta.x1, zonaTarjeta.y1, zonaTarjeta.x2 - zonaTarjeta.x1, zonaTarjeta.y2 - zonaTarjeta.y1);
+        context.setLineDash([]);
+        context.font = "14px Arial";
+        context.fillText("No. Tarjeta", (zonaTarjeta.x1 + zonaTarjeta.x2) / 2, zonaTarjeta.y1 + 18);
+
+        // Botón "Reintentar" en la esquina del propio pad
+        context.fillStyle = "#dc2626";
+        context.beginPath();
+        context.roundRect(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 6);
+        context.fill();
+        context.fillStyle = "#ffffff";
+        context.font = "bold 14px Arial";
+        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, zonaReintentar.y1 + 30);
 
         empujarImagenAlPad();
     }
 
     async function clearscreen() {
         await wacom.setInking(false)
-        await wacom.clearScreen()
         document.getElementById('ssvvggFirma').innerHTML = ''
         document.getElementById('ssvvggTarjeta').innerHTML = ''
         hayTrazosFirma = false;
@@ -477,8 +609,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
 
-    function estaEnZonaTarjeta(y) {
-        return y >= zonaTarjeta.y1;
+    function estaEnZonaTarjeta(y) { return y >= zonaTarjeta.y1; }
+    function estaEnBotonReintentar(x, y) {
+        return x >= zonaReintentar.x1 && x <= zonaReintentar.x2 && y >= zonaReintentar.y1 && y <= zonaReintentar.y2;
     }
 
     function addpoly() {
@@ -500,7 +633,18 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         poly.points.appendItem(point)
     }
 
+    var yaSePresionoBoton = false;
+
     async function pointevent(z, x, y, p) {
+        if (z && estaEnBotonReintentar(x, y)) {
+            if (!yaSePresionoBoton) {
+                yaSePresionoBoton = true;
+                await clearscreen();
+            }
+            return;
+        }
+        if (!z) yaSePresionoBoton = false;
+
         var esTarjeta = estaEnZonaTarjeta(y);
         if (z != pen_state) {
             if (z) addpoly()
@@ -519,7 +663,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
     }
 
-    // --- Rasterizar cada zona por separado ---
     function rasterizarSvgComoPng(svgEl) {
         return new Promise(function (resolve) {
             svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -562,14 +705,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             var imgFirma = await pdfDoc.embedPng(pngFirma);
             var anchoFirma = 100;
             var altoFirma = anchoFirma * (480 / 800);
-            var posFirma = posicionFirmaPdf || { x: 350, y: 80 };
-            paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y + 2, width: anchoFirma, height: altoFirma });
+            paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y, width: anchoFirma, height: altoFirma });
 
             var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
             var anchoTarjeta = 60;
             var altoTarjeta = anchoTarjeta * (480 / 800);
-            var posTarjeta = posicionTarjetaPdf || { x: 200, y: 80 };
-            paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y + 2, width: anchoTarjeta, height: altoTarjeta });
+            paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y, width: anchoTarjeta, height: altoTarjeta });
 
             var pdfBytesFinal = await pdfDoc.save();
             var blobFinal = new Blob([pdfBytesFinal], { type: 'application/pdf' });
@@ -583,7 +724,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             enlace.click();
             document.body.removeChild(enlace);
 
-            // Eliminar el PDF original de pendientes
             if (carpetaPendientes && entradaArchivoActual) {
                 try {
                     await carpetaPendientes.removeEntry(entradaArchivoActual.name);
@@ -592,13 +732,11 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
                 }
             }
 
-            // Reset completo para el siguiente documento
             pdfBytesActual = null;
             entradaArchivoActual = null;
             numeroDocumentoDetectado = null;
-            posicionFirmaPdf = null;
-            posicionTarjetaPdf = null;
             document.getElementById('previewPdf').style.display = 'none';
+            document.getElementById('docNumeroDetectado').style.display = 'none';
             document.getElementById('btnConnect').disabled = true;
             await clearscreen();
             await listarPdfs();
