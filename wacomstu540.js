@@ -1,16 +1,12 @@
 /*
     WACOM STU-540 WebHID Driver
     ___________________________________________________
-
     Pablo García <pablomorpheo@gmail.com>
     https://github.com/pabloko/Wacom-STU-WebHID
-
 */
 var wacomstu540 = function () {
-
     // Check if WebHID is supported
     if (navigator == null || navigator.hid == null) return null
-
     /**
      * Device configuration, information and capabilities
      */
@@ -32,7 +28,6 @@ var wacomstu540 = function () {
         onPenDataCb: null,
         onHidChangeCb: null,
     }
-
     /**
      * Report ids (See SDK for more info and compatibility matrix, direction, etc...)
      */
@@ -53,14 +48,11 @@ var wacomstu540 = function () {
         penColorAndWidth: 0x2D,
         penDataTiming: 0x34,
     }
-
     // Store internal hidDevice 
     this.device = null
     // Store internal image chunks to resend without reprocess
     this.image = null
-
     // Methods
-
     /**
      * Check is a usb hid from wacom vid+pid is present
      * Note: It seems WebHID needs a positive hid.requestDevice to be allowed to show here and on hid events. do not rely on this for the first connect
@@ -76,16 +68,12 @@ var wacomstu540 = function () {
         }
         return false
     }.bind(this)
-
     /**
-     * Connect to the device
-     * @returns {Boolean} success or failure
+     * Internal shared setup logic used after a device object is obtained,
+     * either via requestDevice() (connect) or getDevices() (connectSilencioso)
+     * @returns {Boolean} success
      */
-    this.connect = async function () {
-        if (this.checkConnected()) return
-        let dev = await navigator.hid.requestDevice({ filters: [{ vendorId: this.config.vid, productId: this.config.pid }] })
-        if (dev[0] == null) return false
-        this.device = dev[0]
+    this._configurarDispositivo = async function () {
         // Open the device
         await this.device.open()
         // Set handler to read input reports (this contains pen data)
@@ -132,7 +120,30 @@ var wacomstu540 = function () {
         this.config.eSerial = this.dataViewString(dv, 1)
         return true
     }.bind(this)
-
+    /**
+     * Connect to the device (shows the browser permission picker)
+     * @returns {Boolean} success or failure
+     */
+    this.connect = async function () {
+        if (this.checkConnected()) return
+        let dev = await navigator.hid.requestDevice({ filters: [{ vendorId: this.config.vid, productId: this.config.pid }] })
+        if (dev[0] == null) return false
+        this.device = dev[0]
+        return await this._configurarDispositivo()
+    }.bind(this)
+    /**
+     * Attempts to reconnect WITHOUT showing the permission picker, using a device
+     * previously authorized by the user on this same browser/PC.
+     * @returns {Boolean} success or failure (false if never authorized before)
+     */
+    this.connectSilencioso = async function () {
+        if (this.checkConnected()) return true
+        let devices = await navigator.hid.getDevices()
+        let dev = devices.find(d => d.vendorId == this.config.vid && d.productId == this.config.pid)
+        if (dev == null) return false
+        this.device = dev
+        return await this._configurarDispositivo()
+    }.bind(this)
     /**
      * Retrives general data from the device
      * @returns {Object} info of the device
@@ -141,7 +152,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         return this.config
     }.bind(this)
-
     /**
      * Set pen color
      * @param {String} color color in '#RRGGBB' format
@@ -153,7 +163,6 @@ var wacomstu540 = function () {
         c.push(parseInt(width)) //Insert width byte, so array now has 4 elements
         await this.sendData(this.command.penColorAndWidth, new Uint8Array(c))
     }.bind(this)
-
     /**
      * Set backlight intensity, can be 0-3. 
      * Note: it seems its not good to call this frequently.
@@ -166,7 +175,6 @@ var wacomstu540 = function () {
         if (dv.getUint8(1) == intensity) return
         await this.sendData(this.command.brightness, new Uint8Array([intensity, 0]))
     }.bind(this)
-
     /**
      * Set background color, must clear screen to take effect
      * Note: it seems its not good to call this frequently
@@ -180,7 +188,6 @@ var wacomstu540 = function () {
         if (dv.getUint8(1) == c[0] && dv.getUint8(2) == c[1] && dv.getUint8(3) == c[2]) return
         await this.sendData(this.command.backgroundColor, new Uint8Array(c))
     }.bind(this)
-
     /**
      * Set writing area of the tablet. 
      * @param {Object} p format {x1:0,x2:0,x1:800,y1:480} where x1,y1=left top and x2,y2=right bottom
@@ -194,7 +201,6 @@ var wacomstu540 = function () {
         pk.view.setUint16(6, p.y2, true)
         await this.sendData(this.command.writingArea, pk.data)
     }.bind(this)
-
     /**
      * Set writing mode
      * @param {Number} mode 0: basic pen, 1: smooth pen with extra timing data
@@ -203,7 +209,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         await this.sendData(this.command.writingMode, new Uint8Array([mode]))
     }.bind(this)
-
     /**
      * Enable or disable inking the screen. This does not stop events.
      * @param {Boolean} enabled Status of inking
@@ -212,7 +217,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         await this.sendData(this.command.inkMode, new Uint8Array([enabled ? 1 : 0]))
     }.bind(this)
-
     /**
      * Clear screen to background color
      */
@@ -220,7 +224,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         await this.sendData(this.command.clearScreen, new Uint8Array([0]))
     }.bind(this)
-
     /**
      * Send a raw image to the pad. 
      * @param {Array} imageData Image must be BGR 24bpp 800x480. If null, it will send last image.
@@ -237,9 +240,7 @@ var wacomstu540 = function () {
         }.bind(this))
         await this.sendData(this.command.writeImageEnd, new Uint8Array([0]))
     }.bind(this)
-
     // Helpers
-
     /**
      * Check if theres a device connected
      * @returns {Boolean} connection status
@@ -247,7 +248,6 @@ var wacomstu540 = function () {
     this.checkConnected = function () {
         return this.device != null && this.device.opened
     }.bind(this)
-
     /**
      * Send direct usb hid feature report (internal usage)
      * @param {Number} reportId ID of the report to read. Use one of this.command
@@ -256,7 +256,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         await this.device.sendFeatureReport(reportId, data)
     }.bind(this)
-
     /**
      * Get a report from the device (internal usage)
      * @param {Number} reportId ID of the report to read. Use one of this.command
@@ -266,7 +265,6 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         return await this.device.receiveFeatureReport(reportId)
     }.bind(this)
-
     /**
      * Return an object containing an array of (len) bytes and a DataView for manipulation
      * (internal usage)
@@ -277,7 +275,6 @@ var wacomstu540 = function () {
         let v = new DataView(p.buffer)
         return { data: p, view: v }
     }
-
     /**
      * Truncates a long array (arr) into smaller arrays of bulkSize 
      * (into an array, last item's length could be less than bulkSize)
@@ -296,7 +293,6 @@ var wacomstu540 = function () {
         }
         return bulks
     }
-
     /**
      * Obtains an ASCII string from DataView
      * @param {DataView} dv DataView to read
@@ -313,9 +309,7 @@ var wacomstu540 = function () {
         }
         return text
     }
-
     // Event handlers
-
     /**
      * Set the data callback for pen events.
      * @param {Function} func Callback function recives an object:
@@ -333,7 +327,6 @@ var wacomstu540 = function () {
     this.onPenData = function (func) {
         this.config.onPenDataCb = func
     }.bind(this)
-
     /**
      * Set the callback for HID connect and disconnect events from devices matching wacom stu
      * @param {Function} func Callback function recives ("connect/disconnect", hidDeviceObject)
@@ -341,7 +334,6 @@ var wacomstu540 = function () {
     this.onHidChange = function (func) {
         this.config.onHidChangeCb = func
     }.bind(this)
-
     // HID events
     navigator.hid.addEventListener("connect", function (e) {
         if (this.config.onHidChangeCb != null && e.device.vendorId == this.config.vid && e.device.productId == this.config.pid)
@@ -351,6 +343,5 @@ var wacomstu540 = function () {
         if (this.config.onHidChangeCb != null && e.device.vendorId == this.config.vid && e.device.productId == this.config.pid)
             this.config.onHidChangeCb('disconnect', e.device)
     }.bind(this))
-
     return this
 }
