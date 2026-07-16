@@ -26,6 +26,31 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 }
 #status.disconnected { color: rgb(220,38,38); }
 #status.connected { color: rgb(22,163,74); }
+
+/* Tabs de modo */
+#modoTabs {
+    display: flex;
+    gap: 8px;
+    margin: 0 24px 16px;
+}
+.modoTab {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(226,232,240);
+    background: #fff;
+    color: rgb(100,116,139);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+.modoTab.active {
+    background: rgb(11,31,74);
+    color: #fff;
+    border-color: rgb(11,31,74);
+}
+
 #documentoSection {
     margin: 0 24px 16px;
     background: rgb(239,246,255);
@@ -34,24 +59,65 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     padding: 16px;
 }
 #documentoSection h3 {
-    margin: 0 0 10px;
+    margin: 0;
     font-size: 13px;
     color: rgb(21,101,192);
     font-weight: 600;
 }
-#btnCarpeta {
+#docSectionHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+#badgePendientes {
+    background: rgb(21,101,192);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+}
+#estadoCarpetaEntradaFila {
+    font-size: 11px;
+    color: rgb(71,85,105);
+    margin-bottom: 8px;
+}
+#filaRefresh {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+#btnRefrescarLista {
     background: rgb(21,101,192);
     color: #fff;
     border: none;
-    padding: 10px 16px;
+    padding: 7px 12px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+#filaRefresh label {
+    font-size: 11px;
+    color: rgb(71,85,105);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+#ultimaActualizacion {
+    font-size: 10px;
+    color: rgb(148,163,184);
+    margin-left: auto;
 }
 #listaArchivos {
-    margin-top: 10px;
+    margin-top: 4px;
     max-height: 160px;
     overflow-y: auto;
 }
@@ -68,6 +134,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     cursor: pointer;
 }
 .archivoItem:hover { background: rgb(239,246,255); }
+.archivoItem.activo { border-color: rgb(21,101,192); background: rgb(239,246,255); }
 .archivoItem button {
     background: rgb(34,197,94);
     color: #fff;
@@ -96,6 +163,28 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     font-weight: 600;
     display: none;
 }
+
+/* Sección Cargo Directo (solo firma) */
+#cargoDirectoSection {
+    margin: 0 24px 16px;
+    background: rgb(250,245,255);
+    border: 1px solid rgb(221,214,254);
+    border-radius: 10px;
+    padding: 16px;
+    display: none;
+}
+#cargoDirectoSection h3 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    color: rgb(109,40,217);
+    font-weight: 600;
+}
+#cargoDirectoSection p {
+    margin: 0;
+    font-size: 12px;
+    color: rgb(88,28,135);
+}
+
 #btnConnect {
     display: block;
     width: calc(100% - 48px);
@@ -135,12 +224,13 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     font-size: 11px;
     color: #64748b;
 }
-#acciones {
+#acciones, #accionesCD {
     display: flex;
     gap: 10px;
     padding: 0 24px 24px;
 }
-#acciones button {
+#accionesCD { display: none; }
+#acciones button, #accionesCD button {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
@@ -149,9 +239,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     font-weight: 600;
     cursor: pointer;
 }
-#btnLimpiar { background: rgb(226,232,240); color: rgb(51,65,85); }
-#btnConfirmar { background: rgb(34,197,94); color: #fff; }
-#btnConfirmar:disabled { background: rgb(203,213,225); cursor: not-allowed; }
+#btnLimpiar, #btnLimpiarCD { background: rgb(226,232,240); color: rgb(51,65,85); }
+#btnConfirmar, #btnConfirmarCD { background: rgb(34,197,94); color: #fff; }
+#btnConfirmar:disabled, #btnConfirmarCD:disabled { background: rgb(203,213,225); cursor: not-allowed; }
 #footer {
     text-align: center;
     padding: 12px;
@@ -189,7 +279,27 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     border-radius: 6px;
     border: 1px solid rgb(221,214,254);
 }
-#btnGuardarCalibracion {
+.btnCarpetaAdmin {
+    background: rgb(109,40,217);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.estadoCarpetaAdmin {
+    font-size: 11px;
+    color: rgb(88,28,135);
+    flex: 1;
+    margin: 0 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#btnGuardarCalibracion, #btnReconectarCarpetas {
     width: 100%;
     margin-top: 10px;
     background: rgb(109,40,217);
@@ -201,6 +311,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     font-weight: 600;
     cursor: pointer;
 }
+#btnReconectarCarpetas { background: rgb(217,119,6); display: none; }
 #deviceInfo {
     font-family: monospace;
     font-size: 11px;
@@ -213,6 +324,34 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     max-height: 120px;
     overflow-y: auto;
 }
+
+/* Toasts */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+    width: min(90vw, 420px);
+}
+.toast {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-success { background: rgb(22,163,74); }
+.toast-error { background: rgb(220,38,38); }
+.toast-info { background: rgb(21,101,192); }
 </style>
 <div id="app">
     <div id="header">
@@ -221,15 +360,34 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         <button onclick="toggleAdmin()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:16px;">⚙️</button>
     </div>
     <div id="status" class="disconnected">● Pad no conectado</div>
+
+    <div id="modoTabs">
+        <div id="tabDocumento" class="modoTab active" onclick="cambiarModo('documento')">📄 Documento SAP</div>
+        <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')">✍️ Solo Firma · Cargo Directo</div>
+    </div>
+
     <div id="documentoSection">
-        <h3>📄 Documento de SAP</h3>
-        <button id="btnCarpeta" onclick="conectarCarpeta()">📁 Conectar carpeta de PDFs pendientes</button>
+        <div id="docSectionHeaderRow">
+            <h3>📄 Documento de SAP <span id="badgePendientes" style="display:none;">0</span></h3>
+        </div>
+        <div id="estadoCarpetaEntradaFila">Carpeta de entrada: <strong id="estadoCarpetaEntradaTexto">no conectada (ve a ⚙️ para configurarla)</strong></div>
+        <div id="filaRefresh">
+            <button id="btnRefrescarLista" onclick="refrescarManual()">🔄 Actualizar</button>
+            <label><input type="checkbox" id="chkAutoRefresh" checked onchange="toggleAutoRefresh()"> Auto-actualizar</label>
+            <span id="ultimaActualizacion"></span>
+        </div>
         <div id="listaArchivos"></div>
         <div id="previewPdf" style="display:none;">
             <canvas id="pdfCanvas"></canvas>
         </div>
         <div id="docNumeroDetectado"></div>
     </div>
+
+    <div id="cargoDirectoSection">
+        <h3>✍️ Firma · Cargo Directo</h3>
+        <p>Solicite la firma de quien recibe los materiales de Cargo Directo. Al confirmar, se guarda solo la imagen de la firma — sin generar ningún documento — para anexarla luego en Power Apps.</p>
+    </div>
+
     <button id="btnConnect" onclick="connect()" disabled>Conectar pad de firma</button>
     <div id="firmaBox">
         <div id="appcont">
@@ -239,15 +397,31 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         </div>
         <div id="etiquetaZonas">
             <span>✍️ Firma</span>
-            <span>🪪 No. Tarjeta</span>
+            <span id="etiquetaZonaTarjeta">🪪 No. Tarjeta</span>
         </div>
     </div>
     <div id="acciones">
         <button id="btnLimpiar" onclick="clearscreen()">Limpiar</button>
         <button id="btnConfirmar" onclick="confirmarFirma()" disabled>Confirmar y guardar PDF firmado</button>
     </div>
+    <div id="accionesCD">
+        <button id="btnLimpiarCD" onclick="clearscreen()">Limpiar</button>
+        <button id="btnConfirmarCD" onclick="confirmarFirmaCD()" disabled>Confirmar y guardar firma</button>
+    </div>
+
     <div id="adminPanel">
-        <h3>🔧 Panel de administrador</h3>
+        <h3>📁 Carpetas de trabajo</h3>
+        <div class="adminRow">
+            <button class="btnCarpetaAdmin" onclick="conectarCarpetaEntrada()">Elegir carpeta de entrada</button>
+            <span class="estadoCarpetaAdmin" id="estadoCarpetaEntrada">No conectada</span>
+        </div>
+        <div class="adminRow">
+            <button class="btnCarpetaAdmin" onclick="conectarCarpetaSalida()">Elegir carpeta de salida</button>
+            <span class="estadoCarpetaAdmin" id="estadoCarpetaSalida">No conectada (se descargará al navegador)</span>
+        </div>
+        <button id="btnReconectarCarpetas" onclick="reconectarCarpetasGuardadas()">🔌 Reconectar carpetas guardadas</button>
+
+        <h3 style="margin-top:16px;">🖊️ Pluma y pantalla</h3>
         <div class="adminRow">
             <span>Color de pluma</span>
             <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
@@ -260,21 +434,17 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <span>Brillo de pantalla</span>
             <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
         </div>
-
         <h3 style="margin-top:16px;">📍 Calibración — Firma</h3>
         <div class="adminRow"><span>Posición X</span><input id="posXFirma" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Posición Y</span><input id="posYFirma" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Ancho</span><input id="anchoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Alto</span><input id="altoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-
         <h3 style="margin-top:16px;">📍 Calibración — No. Tarjeta</h3>
         <div class="adminRow"><span>Posición X</span><input id="posXTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Posición Y</span><input id="posYTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Ancho</span><input id="anchoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
         <div class="adminRow"><span>Alto</span><input id="altoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-
         <button id="btnGuardarCalibracion" onclick="guardarCalibracion()">💾 Guardar esta calibración (permanente)</button>
-
         <div class="adminRow" style="margin-top:12px;">
             <span>Info del dispositivo</span>
             <button onclick="mostrarInfoDispositivo()" style="padding:4px 10px;border-radius:6px;border:none;background:rgb(109,40,217);color:#fff;font-size:11px;cursor:pointer;">Consultar</button>
@@ -283,6 +453,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     </div>
     <div id="footer">Sistema de Autogestión · Wacom STU-540</div>
 </div>
+<div id="toastContainer"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="wacomstu540.js"></script>
@@ -299,27 +471,210 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var context = myCanvas.getContext("2d")
     var colaPluma = "#1A3C8C";
     var grosorPluma = 2;
-    var zonaFirma   = { x1: 50,  y1: 130, x2: 750, y2: 330 };
-    var zonaTarjeta = { x1: 50,  y1: 360, x2: 400, y2: 445 };
-    var areaTotal   = { x1: 50,  y1: 130, x2: 750, y2: 445 };
+
+    // Modo actual: 'documento' (PDF de SAP, firma + no. tarjeta) o 'cargoDirecto' (solo firma)
+    var modoActual = 'documento';
+
+    // Zonas del modo Documento SAP
+    var zonaFirmaDocumento   = { x1: 50,  y1: 130, x2: 750, y2: 330 };
+    var zonaTarjetaDocumento = { x1: 50,  y1: 360, x2: 400, y2: 445 };
+    var areaTotalDocumento   = { x1: 50,  y1: 130, x2: 750, y2: 445 };
+    // Zona del modo Cargo Directo (solo firma, área más grande)
+    var zonaFirmaCD = { x1: 50, y1: 110, x2: 750, y2: 430 };
+    var areaTotalCD = zonaFirmaCD;
+    // Botón físico "Reintentar" (igual en ambos modos)
     var zonaReintentar = { x1: 660, y1: 15, x2: 790, y2: 55 };
-    var carpetaPendientes = null;
+
+    var carpetaPendientes = null;   // carpeta de entrada (PDFs pendientes)
+    var carpetaGuardado = null;     // carpeta de salida (PDFs/firmas ya procesados)
+    var handleEntradaPendienteDeConfirmar = null;
+    var handleSalidaPendienteDeConfirmar = null;
+
     var entradaArchivoActual = null;
     var pdfBytesActual = null;
     var numeroDocumentoDetectado = null;
 
+    var autoRefreshActivo = true;
+    var intervaloAutoRefresh = null;
+
     // Coordenadas calibradas (persisten en localStorage). Se cargan al iniciar.
     var posFirma = { x: 350, y: 80, ancho: 130, alto: 32 };
     var posTarjeta = { x: 200, y: 80, ancho: 80, alto: 20 };
-
     // Referencias para poder re-dibujar la vista previa en vivo mientras se calibra
     var paginaActualPdf = null;
     var viewportActualPdf = null;
     var alturaPaginaPuntos = null;
     var escalaRenderPdf = 1.3;
 
+    // ============ Notificaciones tipo toast (reemplaza alert()) ============
+    function mostrarToast(mensaje, tipo) {
+        var cont = document.getElementById('toastContainer');
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + (tipo || 'info');
+        toast.innerText = mensaje;
+        cont.appendChild(toast);
+        requestAnimationFrame(function () { toast.classList.add('show'); });
+        setTimeout(function () {
+            toast.classList.remove('show');
+            setTimeout(function () { toast.remove(); }, 300);
+        }, 4000);
+    }
+
+    // ============ Persistencia de carpetas (IndexedDB, ya que localStorage no guarda handles) ============
+    function abrirDB() {
+        return new Promise(function (resolve, reject) {
+            var req = indexedDB.open('firmaDigitalDB', 1);
+            req.onupgradeneeded = function () { req.result.createObjectStore('handles'); };
+            req.onsuccess = function () { resolve(req.result); };
+            req.onerror = function () { reject(req.error); };
+        });
+    }
+    async function guardarHandleEnDB(clave, handle) {
+        var db = await abrirDB();
+        return new Promise(function (resolve, reject) {
+            var tx = db.transaction('handles', 'readwrite');
+            tx.objectStore('handles').put(handle, clave);
+            tx.oncomplete = function () { resolve(); };
+            tx.onerror = function () { reject(tx.error); };
+        });
+    }
+    async function obtenerHandleDeDB(clave) {
+        var db = await abrirDB();
+        return new Promise(function (resolve, reject) {
+            var tx = db.transaction('handles', 'readonly');
+            var req = tx.objectStore('handles').get(clave);
+            req.onsuccess = function () { resolve(req.result || null); };
+            req.onerror = function () { reject(req.error); };
+        });
+    }
+    async function verificarPermiso(handle, modo) {
+        var opciones = { mode: modo };
+        try {
+            if ((await handle.queryPermission(opciones)) === 'granted') return true;
+            if ((await handle.requestPermission(opciones)) === 'granted') return true;
+        } catch (e) {
+            console.warn('No se pudo verificar/solicitar permiso:', e);
+        }
+        return false;
+    }
+
+    // ============ Conectar carpetas (entrada / salida) ============
+    async function conectarCarpetaEntrada() {
+        try {
+            var handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            var ok = await verificarPermiso(handle, 'readwrite');
+            if (!ok) { mostrarToast('Permiso de escritura denegado para la carpeta de entrada', 'error'); return; }
+            carpetaPendientes = handle;
+            await guardarHandleEnDB('entrada', handle);
+            actualizarEstadoCarpetas();
+            await listarPdfs();
+            mostrarToast('✓ Carpeta de entrada conectada: ' + handle.name, 'success');
+        } catch (e) {
+            console.log('Selección de carpeta de entrada cancelada', e);
+        }
+    }
+    async function conectarCarpetaSalida() {
+        try {
+            var handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            var ok = await verificarPermiso(handle, 'readwrite');
+            if (!ok) { mostrarToast('Permiso de escritura denegado para la carpeta de salida', 'error'); return; }
+            carpetaGuardado = handle;
+            await guardarHandleEnDB('salida', handle);
+            actualizarEstadoCarpetas();
+            mostrarToast('✓ Carpeta de salida conectada: ' + handle.name, 'success');
+        } catch (e) {
+            console.log('Selección de carpeta de salida cancelada', e);
+        }
+    }
+    async function restaurarCarpetasGuardadas() {
+        try {
+            var entradaGuardada = await obtenerHandleDeDB('entrada');
+            if (entradaGuardada) {
+                var estado = await entradaGuardada.queryPermission({ mode: 'readwrite' });
+                if (estado === 'granted') { carpetaPendientes = entradaGuardada; await listarPdfs(); }
+                else { handleEntradaPendienteDeConfirmar = entradaGuardada; }
+            }
+            var salidaGuardada = await obtenerHandleDeDB('salida');
+            if (salidaGuardada) {
+                var estado2 = await salidaGuardada.queryPermission({ mode: 'readwrite' });
+                if (estado2 === 'granted') { carpetaGuardado = salidaGuardada; }
+                else { handleSalidaPendienteDeConfirmar = salidaGuardada; }
+            }
+        } catch (e) {
+            console.log('No se encontraron carpetas guardadas previamente', e);
+        }
+        actualizarEstadoCarpetas();
+        document.getElementById('btnReconectarCarpetas').style.display =
+            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar) ? 'block' : 'none';
+    }
+    async function reconectarCarpetasGuardadas() {
+        if (handleEntradaPendienteDeConfirmar) {
+            var ok = await verificarPermiso(handleEntradaPendienteDeConfirmar, 'readwrite');
+            if (ok) { carpetaPendientes = handleEntradaPendienteDeConfirmar; handleEntradaPendienteDeConfirmar = null; await listarPdfs(); }
+        }
+        if (handleSalidaPendienteDeConfirmar) {
+            var ok2 = await verificarPermiso(handleSalidaPendienteDeConfirmar, 'readwrite');
+            if (ok2) { carpetaGuardado = handleSalidaPendienteDeConfirmar; handleSalidaPendienteDeConfirmar = null; }
+        }
+        actualizarEstadoCarpetas();
+        document.getElementById('btnReconectarCarpetas').style.display =
+            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar) ? 'block' : 'none';
+        mostrarToast('Carpetas reconectadas', 'success');
+    }
+    function actualizarEstadoCarpetas() {
+        document.getElementById('estadoCarpetaEntrada').innerText = carpetaPendientes ? ('✓ ' + carpetaPendientes.name) : 'No conectada';
+        document.getElementById('estadoCarpetaSalida').innerText = carpetaGuardado ? ('✓ ' + carpetaGuardado.name) : 'No conectada (se descargará al navegador)';
+        document.getElementById('estadoCarpetaEntradaTexto').innerText = carpetaPendientes ? carpetaPendientes.name : 'no conectada (ve a ⚙️ para configurarla)';
+    }
+
+    // ============ Guardar archivo final: en carpeta de salida si está configurada, si no, descarga normal ============
+    async function guardarArchivoFinal(nombreArchivo, bytes, mime) {
+        if (carpetaGuardado) {
+            try {
+                var ok = await verificarPermiso(carpetaGuardado, 'readwrite');
+                if (!ok) throw new Error('Sin permiso de escritura en la carpeta de salida');
+                var fileHandle = await carpetaGuardado.getFileHandle(nombreArchivo, { create: true });
+                var writable = await fileHandle.createWritable();
+                await writable.write(bytes);
+                await writable.close();
+                return true;
+            } catch (e) {
+                console.warn('No se pudo guardar en la carpeta de salida, se descargará en su lugar:', e);
+                mostrarToast('⚠ No se pudo guardar en la carpeta configurada, se descargó al navegador', 'error');
+            }
+        }
+        var blob = new Blob([bytes], { type: mime });
+        var url = URL.createObjectURL(blob);
+        var enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        URL.revokeObjectURL(url);
+        return false;
+    }
+
+    // ============ Refrescar lista de PDFs pendientes (manual + automático) ============
     function toggleAdmin() {
         document.getElementById('adminPanel').classList.toggle('visible');
+    }
+    function toggleAutoRefresh() {
+        autoRefreshActivo = document.getElementById('chkAutoRefresh').checked;
+    }
+    async function refrescarManual() {
+        if (!carpetaPendientes) { mostrarToast('Conecta primero una carpeta de entrada en ⚙️', 'info'); return; }
+        await listarPdfs();
+        mostrarToast('Lista actualizada', 'success');
+    }
+    function iniciarAutoRefresh() {
+        if (intervaloAutoRefresh) clearInterval(intervaloAutoRefresh);
+        intervaloAutoRefresh = setInterval(async function () {
+            if (!autoRefreshActivo) return;
+            if (!carpetaPendientes) return;
+            if (documentoListoParaFirmar && modoActual === 'documento') return; // no refrescar mientras hay un documento cargado para firmar
+            await listarPdfs();
+        }, 6000);
     }
 
     function cargarCalibracionGuardada() {
@@ -338,12 +693,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('anchoTarjetaInput').value = posTarjeta.ancho;
         document.getElementById('altoTarjetaInput').value = posTarjeta.alto;
     }
-
     function guardarCalibracion() {
         localStorage.setItem('calibracionFirmaSAP', JSON.stringify({ firma: posFirma, tarjeta: posTarjeta }));
-        alert('✓ Calibración guardada. Se usará automáticamente en todos los próximos documentos.');
+        mostrarToast('✓ Calibración guardada. Se usará automáticamente en todos los próximos documentos.', 'success');
     }
-
     function recalcularYRedibujar() {
         posFirma = {
             x: Number(document.getElementById('posXFirma').value),
@@ -359,14 +712,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         };
         redibujarPreviewConMarcadores();
     }
-
     // Vuelve a dibujar el PDF y superpone los 2 recuadros EXACTAMENTE donde caerá la imagen real
     async function redibujarPreviewConMarcadores() {
         if (!paginaActualPdf) return;
         var canvasPdf = document.getElementById('pdfCanvas');
         var ctxPdf = canvasPdf.getContext('2d');
         await paginaActualPdf.render({ canvasContext: ctxPdf, viewport: viewportActualPdf }).promise;
-
         function dibujarMarcador(pos, color) {
             var cx = pos.x * escalaRenderPdf;
             var cy = (alturaPaginaPuntos - pos.y - pos.alto) * escalaRenderPdf;
@@ -382,57 +733,46 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         dibujarMarcador(posTarjeta, '#d97706');
     }
 
-    async function conectarCarpeta() {
-        try {
-            carpetaPendientes = await window.showDirectoryPicker();
-            await listarPdfs();
-        } catch (e) {
-            console.log("Selección de carpeta cancelada");
-        }
-    }
-
     async function listarPdfs() {
         var contenedor = document.getElementById('listaArchivos');
-        contenedor.innerHTML = '';
+        var badge = document.getElementById('badgePendientes');
         var archivos = [];
         for await (const entrada of carpetaPendientes.values()) {
             if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
                 archivos.push(entrada);
             }
         }
+        badge.style.display = 'inline-block';
+        badge.innerText = archivos.length;
+        document.getElementById('ultimaActualizacion').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
+        contenedor.innerHTML = '';
         if (archivos.length === 0) {
             contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">No hay PDFs pendientes en esta carpeta</div>';
             return;
         }
         archivos.forEach(function (entrada) {
             var fila = document.createElement('div');
-            fila.className = 'archivoItem';
+            fila.className = 'archivoItem' + (entradaArchivoActual && entradaArchivoActual.name === entrada.name ? ' activo' : '');
             fila.innerHTML = '<span>📄 ' + entrada.name + '</span><button>Cargar</button>';
             fila.querySelector('button').onclick = function () { cargarPdf(entrada); };
             contenedor.appendChild(fila);
         });
     }
-
     async function cargarPdf(entradaArchivo) {
         entradaArchivoActual = entradaArchivo;
         var archivo = await entradaArchivo.getFile();
         pdfBytesActual = await archivo.arrayBuffer();
-
         var pdf = await pdfjsLib.getDocument({ data: pdfBytesActual.slice(0) }).promise;
         var pagina = await pdf.getPage(1);
         paginaActualPdf = pagina;
-
         var viewport = pagina.getViewport({ scale: escalaRenderPdf });
         viewportActualPdf = viewport;
         alturaPaginaPuntos = pagina.getViewport({ scale: 1 }).height;
-
         var canvasPdf = document.getElementById('pdfCanvas');
         canvasPdf.width = viewport.width;
         canvasPdf.height = viewport.height;
-
         var contenidoTexto = await pagina.getTextContent();
         var textoCompleto = contenidoTexto.items.map(function (i) { return i.str; }).join(' ');
-
         var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
         var cajaNumero = document.getElementById('docNumeroDetectado');
         if (coincidencia) {
@@ -448,20 +788,16 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             cajaNumero.style.color = 'rgb(153,27,27)';
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
-
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
-
         await redibujarPreviewConMarcadores();
-
-        if (wacom.checkConnected()) dibujarPantallaFirma();
+        await listarPdfs(); // refresca resaltando el archivo activo
+        if (wacom.checkConnected()) dibujarPantallaSegunModo();
     }
-
     wacom.checkAvailable().then(function (supp) {
         if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
     })
-
     wacom.onHidChange(function (e) {
         if (e == 'connect') {
             document.getElementById('status').className = 'connected';
@@ -472,7 +808,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.getElementById('status').innerText = '● Pad desconectado';
         }
     })
-
     async function prepararPadTrasConectar() {
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma)
         await wacom.setWritingMode(1)
@@ -482,25 +817,61 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         })
         addpoly()
         setTimeout(function () {
-            if (documentoListoParaFirmar) dibujarPantallaFirma();
-            else dibujarPantallaReposo();
+            dibujarPantallaSegunModo();
         }, 150)
         document.getElementById('status').className = 'connected';
         document.getElementById('status').innerText = '● Pad conectado';
         document.getElementById('btnConnect').innerText = 'Reconectar';
     }
-
     async function connect() {
         if (await wacom.connect()) {
             await prepararPadTrasConectar();
         }
     }
-
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
+        await restaurarCarpetasGuardadas();
+        iniciarAutoRefresh();
         var ok = await wacom.connectSilencioso();
         if (ok) await prepararPadTrasConectar();
     });
+
+    // ============ Cambio de modo (Documento SAP <-> Solo Firma Cargo Directo) ============
+    function cambiarModo(nuevoModo) {
+        if (nuevoModo === modoActual) return;
+        if (hayTrazosFirma || hayTrazosTarjeta) {
+            if (!confirm('Hay una firma sin guardar. ¿Cambiar de modo de todas formas? Se perderá.')) return;
+        }
+        modoActual = nuevoModo;
+        document.getElementById('ssvvggFirma').innerHTML = '';
+        document.getElementById('ssvvggTarjeta').innerHTML = '';
+        hayTrazosFirma = false;
+        hayTrazosTarjeta = false;
+        document.getElementById('tabDocumento').classList.toggle('active', modoActual === 'documento');
+        document.getElementById('tabCargoDirecto').classList.toggle('active', modoActual === 'cargoDirecto');
+        document.getElementById('documentoSection').style.display = modoActual === 'documento' ? 'block' : 'none';
+        document.getElementById('cargoDirectoSection').style.display = modoActual === 'cargoDirecto' ? 'block' : 'none';
+        document.getElementById('acciones').style.display = modoActual === 'documento' ? 'flex' : 'none';
+        document.getElementById('accionesCD').style.display = modoActual === 'cargoDirecto' ? 'flex' : 'none';
+        document.getElementById('etiquetaZonaTarjeta').style.display = modoActual === 'documento' ? 'inline' : 'none';
+        document.getElementById('btnConfirmar').disabled = true;
+        document.getElementById('btnConfirmarCD').disabled = true;
+        if (modoActual === 'cargoDirecto') {
+            document.getElementById('btnConnect').disabled = false;
+        } else {
+            document.getElementById('btnConnect').disabled = !documentoListoParaFirmar;
+        }
+        dibujarPantallaSegunModo();
+    }
+    function dibujarPantallaSegunModo() {
+        if (modoActual === 'cargoDirecto') {
+            dibujarPantallaFirmaCD();
+        } else if (documentoListoParaFirmar) {
+            dibujarPantallaFirma();
+        } else {
+            dibujarPantallaReposo();
+        }
+    }
 
     function dibujarPantallaReposo() {
         context.fillStyle = "#F8FAFC";
@@ -526,7 +897,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
         empujarImagenAlPad();
     }
-
     function dibujarPantallaFirma() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -544,29 +914,59 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         context.font = "bold 13px Arial";
         context.textAlign = "center";
         context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
-        roundRectStroke(zonaFirma.x1, zonaFirma.y1, zonaFirma.x2 - zonaFirma.x1, zonaFirma.y2 - zonaFirma.y1, 10, "#CBD5E1", 1);
+        roundRectStroke(zonaFirmaDocumento.x1, zonaFirmaDocumento.y1, zonaFirmaDocumento.x2 - zonaFirmaDocumento.x1, zonaFirmaDocumento.y2 - zonaFirmaDocumento.y1, 10, "#CBD5E1", 1);
         context.fillStyle = "#94A3B8";
         context.font = "13px Arial";
         context.textAlign = "left";
-        context.fillText("FIRME AQUÍ", zonaFirma.x1 + 14, zonaFirma.y1 - 8);
+        context.fillText("FIRME AQUÍ", zonaFirmaDocumento.x1 + 14, zonaFirmaDocumento.y1 - 8);
         context.strokeStyle = "#E2E8F0";
         context.lineWidth = 1;
         context.beginPath();
-        context.moveTo(zonaFirma.x1 + 20, zonaFirma.y2 - 30);
-        context.lineTo(zonaFirma.x2 - 20, zonaFirma.y2 - 30);
+        context.moveTo(zonaFirmaDocumento.x1 + 20, zonaFirmaDocumento.y2 - 30);
+        context.lineTo(zonaFirmaDocumento.x2 - 20, zonaFirmaDocumento.y2 - 30);
         context.stroke();
-        roundRectStroke(zonaTarjeta.x1, zonaTarjeta.y1, zonaTarjeta.x2 - zonaTarjeta.x1, zonaTarjeta.y2 - zonaTarjeta.y1, 10, "#CBD5E1", 1);
+        roundRectStroke(zonaTarjetaDocumento.x1, zonaTarjetaDocumento.y1, zonaTarjetaDocumento.x2 - zonaTarjetaDocumento.x1, zonaTarjetaDocumento.y2 - zonaTarjetaDocumento.y1, 10, "#CBD5E1", 1);
         context.fillStyle = "#94A3B8";
         context.font = "13px Arial";
-        context.fillText("NO. TARJETA", zonaTarjeta.x1 + 14, zonaTarjeta.y1 - 8);
+        context.fillText("NO. TARJETA", zonaTarjetaDocumento.x1 + 14, zonaTarjetaDocumento.y1 - 8);
         context.beginPath();
-        context.moveTo(zonaTarjeta.x1 + 20, zonaTarjeta.y2 - 25);
-        context.lineTo(zonaTarjeta.x2 - 20, zonaTarjeta.y2 - 25);
+        context.moveTo(zonaTarjetaDocumento.x1 + 20, zonaTarjetaDocumento.y2 - 25);
+        context.lineTo(zonaTarjetaDocumento.x2 - 20, zonaTarjetaDocumento.y2 - 25);
         context.stroke();
-        wacom.setWritingArea(areaTotal);
+        wacom.setWritingArea(areaTotalDocumento);
         empujarImagenAlPad();
     }
-
+    function dibujarPantallaFirmaCD() {
+        context.fillStyle = "#F8FAFC";
+        context.fillRect(0, 0, 800, 480);
+        context.fillStyle = "#0B1F4A";
+        context.fillRect(0, 0, 800, 70);
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 20px Arial";
+        context.textAlign = "center";
+        context.fillText("FIRMA · CARGO DIRECTO", 350, 32);
+        context.font = "12px Arial";
+        context.fillStyle = "rgba(255,255,255,0.65)";
+        context.fillText("Entrega de materiales sin reserva SAP", 350, 52);
+        roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 13px Arial";
+        context.textAlign = "center";
+        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
+        roundRectStroke(zonaFirmaCD.x1, zonaFirmaCD.y1, zonaFirmaCD.x2 - zonaFirmaCD.x1, zonaFirmaCD.y2 - zonaFirmaCD.y1, 10, "#CBD5E1", 1);
+        context.fillStyle = "#94A3B8";
+        context.font = "13px Arial";
+        context.textAlign = "left";
+        context.fillText("FIRME AQUÍ", zonaFirmaCD.x1 + 14, zonaFirmaCD.y1 - 8);
+        context.strokeStyle = "#E2E8F0";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(zonaFirmaCD.x1 + 20, zonaFirmaCD.y2 - 40);
+        context.lineTo(zonaFirmaCD.x2 - 20, zonaFirmaCD.y2 - 40);
+        context.stroke();
+        wacom.setWritingArea(areaTotalCD);
+        empujarImagenAlPad();
+    }
     function roundRectStroke(x, y, w, h, r, color, lineWidth) {
         context.strokeStyle = color;
         context.lineWidth = lineWidth;
@@ -580,7 +980,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         context.roundRect(x, y, w, h, r);
         context.fill();
     }
-
     async function clearscreen() {
         await wacom.setInking(false)
         document.getElementById('ssvvggFirma').innerHTML = ''
@@ -588,10 +987,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         hayTrazosFirma = false;
         hayTrazosTarjeta = false;
         document.getElementById('btnConfirmar').disabled = true;
-        dibujarPantallaFirma();
+        document.getElementById('btnConfirmarCD').disabled = true;
+        dibujarPantallaSegunModo();
         setTimeout(async () => { await wacom.setInking(true) }, 200)
     }
-
     async function empujarImagenAlPad() {
         var imageData = context.getImageData(0, 0, 800, 480)
         const rgb24 = new Uint8Array((imageData.data.length / 4) * 3)
@@ -604,14 +1003,15 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
         await wacom.setImage(rgb24)
     }
-
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
-    function estaEnZonaTarjeta(y) { return y >= zonaTarjeta.y1; }
+    function estaEnZonaTarjeta(y) {
+        if (modoActual === 'cargoDirecto') return false;
+        return y >= zonaTarjetaDocumento.y1;
+    }
     function estaEnBotonReintentar(x, y) {
         return x >= zonaReintentar.x1 && x <= zonaReintentar.x2 && y >= zonaReintentar.y1 && y <= zonaReintentar.y2;
     }
-
     function addpoly() {
         polyFirma = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
         polyFirma.setAttributeNS(null, "style", "fill:none;stroke:" + colaPluma + ";stroke-width:" + makestroke(grosorPluma + 1) + ";")
@@ -620,7 +1020,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         polyTarjeta.setAttributeNS(null, "style", "fill:none;stroke:" + colaPluma + ";stroke-width:" + makestroke(grosorPluma + 1) + ";")
         document.getElementById('ssvvggTarjeta').append(polyTarjeta)
     }
-
     function polypoint(esTarjeta, x, y) {
         var svg = esTarjeta ? document.getElementById('ssvvggTarjeta') : document.getElementById('ssvvggFirma');
         var poly = esTarjeta ? polyTarjeta : polyFirma;
@@ -629,11 +1028,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         point.y = y
         poly.points.appendItem(point)
     }
-
     var yaSePresionoBoton = false;
-
     async function pointevent(z, x, y, p) {
-        if (!documentoListoParaFirmar) return;
+        if (modoActual === 'documento' && !documentoListoParaFirmar) return;
         if (z && estaEnBotonReintentar(x, y)) {
             if (!yaSePresionoBoton) {
                 yaSePresionoBoton = true;
@@ -650,7 +1047,11 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
         if (z) {
             if (esTarjeta) { hayTrazosTarjeta = true; } else { hayTrazosFirma = true; }
-            document.getElementById('btnConfirmar').disabled = !(hayTrazosFirma && hayTrazosTarjeta);
+            if (modoActual === 'documento') {
+                document.getElementById('btnConfirmar').disabled = !(hayTrazosFirma && hayTrazosTarjeta);
+            } else {
+                document.getElementById('btnConfirmarCD').disabled = !hayTrazosFirma;
+            }
             if (pressdiff(p, lastPressure) > 0.02) {
                 polypoint(esTarjeta, x, y)
                 lastPressure = p
@@ -659,7 +1060,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             polypoint(esTarjeta, x, y)
         }
     }
-
     function rasterizarSvgComoPng(svgEl) {
         return new Promise(function (resolve) {
             svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -683,48 +1083,36 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             img.src = url;
         });
     }
-
     async function confirmarFirma() {
         if (!hayTrazosFirma || !hayTrazosTarjeta) return;
-        if (!pdfBytesActual) { alert("Primero carga un documento PDF"); return; }
-
+        if (!pdfBytesActual) { mostrarToast("Primero carga un documento PDF", "error"); return; }
         var btn = document.getElementById('btnConfirmar');
         btn.disabled = true;
         btn.innerText = "Procesando...";
-
         try {
             var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
             var pngTarjeta = await rasterizarSvgComoPng(document.getElementById('ssvvggTarjeta'));
-
             var pdfDoc = await PDFLib.PDFDocument.load(pdfBytesActual);
             var paginaPdfLib = pdfDoc.getPages()[0];
-
             var imgFirma = await pdfDoc.embedPng(pngFirma);
             paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y, width: posFirma.ancho, height: posFirma.alto });
-
             var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
             paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y, width: posTarjeta.ancho, height: posTarjeta.alto });
-
             var pdfBytesFinal = await pdfDoc.save();
-            var blobFinal = new Blob([pdfBytesFinal], { type: 'application/pdf' });
-            var urlFinal = URL.createObjectURL(blobFinal);
-
             var nombreArchivo = (numeroDocumentoDetectado || 'firma_' + Date.now()) + '.pdf';
-            var enlace = document.createElement('a');
-            enlace.href = urlFinal;
-            enlace.download = nombreArchivo;
-            document.body.appendChild(enlace);
-            enlace.click();
-            document.body.removeChild(enlace);
+            var guardadoDirecto = await guardarArchivoFinal(nombreArchivo, pdfBytesFinal, 'application/pdf');
 
+            var nombreArchivoOriginal = entradaArchivoActual ? entradaArchivoActual.name : null;
             if (carpetaPendientes && entradaArchivoActual) {
                 try {
+                    var permisoOk = await verificarPermiso(carpetaPendientes, 'readwrite');
+                    if (!permisoOk) throw new Error('Sin permiso de escritura en la carpeta de entrada');
                     await carpetaPendientes.removeEntry(entradaArchivoActual.name);
                 } catch (e) {
                     console.warn("No se pudo eliminar el archivo original:", e);
+                    mostrarToast('⚠ El PDF se firmó pero no se pudo borrar de pendientes. Bórralo manualmente: ' + nombreArchivoOriginal, 'error');
                 }
             }
-
             pdfBytesActual = null;
             entradaArchivoActual = null;
             numeroDocumentoDetectado = null;
@@ -733,34 +1121,54 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.getElementById('previewPdf').style.display = 'none';
             document.getElementById('docNumeroDetectado').style.display = 'none';
             document.getElementById('btnConnect').disabled = true;
-
             document.getElementById('ssvvggFirma').innerHTML = '';
             document.getElementById('ssvvggTarjeta').innerHTML = '';
             hayTrazosFirma = false;
             hayTrazosTarjeta = false;
-            dibujarPantallaReposo();
-
-            await listarPdfs();
-
+            dibujarPantallaSegunModo();
+            if (carpetaPendientes) await listarPdfs();
             btn.innerText = "Confirmar y guardar PDF firmado";
+            mostrarToast(guardadoDirecto ? '✓ PDF firmado y guardado en la carpeta configurada' : '✓ PDF firmado y descargado', 'success');
         } catch (e) {
             console.error(e);
-            alert("Error al generar el PDF: " + e.message);
+            mostrarToast("Error al generar el PDF: " + e.message, "error");
             btn.innerText = "Confirmar y guardar PDF firmado";
         }
     }
-
+    async function confirmarFirmaCD() {
+        if (!hayTrazosFirma) return;
+        var btn = document.getElementById('btnConfirmarCD');
+        btn.disabled = true;
+        btn.innerText = "Procesando...";
+        try {
+            var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
+            var nombreArchivo = 'Firma_CargoDirecto_' + Date.now() + '.png';
+            var guardadoDirecto = await guardarArchivoFinal(nombreArchivo, pngFirma, 'image/png');
+            document.getElementById('ssvvggFirma').innerHTML = '';
+            hayTrazosFirma = false;
+            dibujarPantallaSegunModo();
+            btn.innerText = "Confirmar y guardar firma";
+            mostrarToast(
+                guardadoDirecto
+                    ? '✓ Firma guardada en la carpeta configurada. Anéxala en Power Apps para marcar como recibido.'
+                    : '✓ Firma descargada. Anéxala en Power Apps para marcar como recibido.',
+                'success'
+            );
+        } catch (e) {
+            console.error(e);
+            mostrarToast("Error al generar la firma: " + e.message, "error");
+            btn.innerText = "Confirmar y guardar firma";
+        }
+    }
     async function aplicarAjustesAdmin() {
         colaPluma = document.getElementById('adminColorPluma').value;
         grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
     }
-
     async function aplicarBrillo() {
         var valor = document.getElementById('adminBrillo').value;
         await wacom.setBacklight(valor);
     }
-
     async function mostrarInfoDispositivo() {
         var info = await wacom.getTabletInfo();
         var caja = document.getElementById('deviceInfo');
