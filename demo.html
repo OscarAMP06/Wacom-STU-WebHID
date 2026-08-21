@@ -130,6 +130,49 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 }
 .buscarInput:focus { outline: none; border-color: rgb(21,101,192); }
 
+/* Barra de herramientas de Firmados (fechas + orden) */
+#filaHerramientasFirmados {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+.fechaInputFirmados {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 11px;
+    color: rgb(51,65,85);
+    background: #fff;
+}
+#filaHerramientasFirmados label {
+    font-size: 11px;
+    color: rgb(71,85,105);
+}
+#btnLimpiarFechasFirmados {
+    background: rgb(226,232,240);
+    color: rgb(51,65,85);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#btnOrdenFirmados {
+    margin-left: auto;
+    background: rgb(22,163,74);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
 /* Barra de selección múltiple */
 #barraSeleccionMultiple {
     display: none;
@@ -320,6 +363,13 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 }
 .btnVerDoc {
     background: rgb(21,101,192) !important;
+}
+.fechaFirmadoTexto {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 400;
+    display: block;
+    margin-top: 2px;
 }
 
 /* Modal visor de PDF */
@@ -635,6 +685,14 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <div><button onclick="conectarCarpetaSalida()">Conectar carpeta de salida</button></div>
         </div>
         <input type="text" id="buscarFirmados" class="buscarInput" placeholder="🔍 Buscar por número de documento..." oninput="filtrarFirmados()">
+        <div id="filaHerramientasFirmados">
+            <label for="fechaDesdeFirmados">Desde</label>
+            <input type="date" id="fechaDesdeFirmados" class="fechaInputFirmados" oninput="filtrarFirmados()">
+            <label for="fechaHastaFirmados">Hasta</label>
+            <input type="date" id="fechaHastaFirmados" class="fechaInputFirmados" oninput="filtrarFirmados()">
+            <button id="btnLimpiarFechasFirmados" onclick="limpiarFechasFirmados()">✕ Fechas</button>
+            <button id="btnOrdenFirmados" onclick="alternarOrdenFirmados()">↓ Más recientes</button>
+        </div>
         <div id="listaFirmados"></div>
     </div>
 
@@ -750,9 +808,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     // ============ Caches de listados (para poder filtrar sin volver a leer el disco) ============
     var archivosPendientesCache = [];   // array de FileSystemFileHandle (carpeta de entrada)
-    var archivosFirmadosCache = [];     // array de { entrada, numeroDoc } (carpeta de salida)
-    var listaVisorActual = [];          // subconjunto (filtrado) actualmente mostrado en Firmados; el visor navega sobre esta lista
+    var archivosFirmadosCache = [];     // array de { entrada, numeroDoc, fecha } (carpeta de salida)
+    var listaVisorActual = [];          // subconjunto (filtrado + ordenado) actualmente mostrado en Firmados; el visor navega sobre esta lista
     var indiceVisorActual = -1;
+    var ordenFirmadosAscendente = false; // false = más recientes primero (default)
 
     // Zonas del modo Documento SAP
     var zonaFirmaDocumento   = { x1: 50,  y1: 130, x2: 750, y2: 330 };
@@ -1670,45 +1729,74 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.getElementById('listaFirmados').innerHTML = '<div style="font-size:12px;color:rgb(220,38,38);text-align:center;padding:10px;">Sin permiso para leer la carpeta de salida. Reconéctala en ⚙️.</div>';
             return;
         }
-        var archivos = [];
+        var entradasPdf = [];
         for await (const entrada of carpetaGuardado.values()) {
             if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
-                archivos.push({ entrada: entrada, numeroDoc: entrada.name.replace(/\.pdf$/i, '') });
+                entradasPdf.push(entrada);
             }
         }
-        archivos.sort(function (a, b) { return b.numeroDoc.localeCompare(a.numeroDoc); });
-        archivosFirmadosCache = archivos;
+        // Leemos la fecha real de cada archivo (metadata, no el contenido) en paralelo
+        var infos = await Promise.all(entradasPdf.map(async function (entrada) {
+            var f = await entrada.getFile();
+            return { entrada: entrada, numeroDoc: entrada.name.replace(/\.pdf$/i, ''), fecha: f.lastModified };
+        }));
+        archivosFirmadosCache = infos;
         renderizarListaFirmados();
     }
     function filtrarFirmados() {
+        renderizarListaFirmados();
+    }
+    function limpiarFechasFirmados() {
+        document.getElementById('fechaDesdeFirmados').value = '';
+        document.getElementById('fechaHastaFirmados').value = '';
+        renderizarListaFirmados();
+    }
+    function alternarOrdenFirmados() {
+        ordenFirmadosAscendente = !ordenFirmadosAscendente;
+        document.getElementById('btnOrdenFirmados').innerText = ordenFirmadosAscendente ? '↑ Más antiguos' : '↓ Más recientes';
         renderizarListaFirmados();
     }
     function renderizarListaFirmados() {
         var contenedor = document.getElementById('listaFirmados');
         var badge = document.getElementById('badgeFirmados');
         var textoBusqueda = (document.getElementById('buscarFirmados').value || '').toLowerCase();
+        var desdeVal = document.getElementById('fechaDesdeFirmados').value;
+        var hastaVal = document.getElementById('fechaHastaFirmados').value;
+        var desdeMs = desdeVal ? new Date(desdeVal + 'T00:00:00').getTime() : null;
+        var hastaMs = hastaVal ? new Date(hastaVal + 'T23:59:59').getTime() : null;
+
         var filtrados = archivosFirmadosCache.filter(function (item) {
-            return item.numeroDoc.toLowerCase().indexOf(textoBusqueda) !== -1;
+            if (textoBusqueda && item.numeroDoc.toLowerCase().indexOf(textoBusqueda) === -1) return false;
+            if (desdeMs !== null && item.fecha < desdeMs) return false;
+            if (hastaMs !== null && item.fecha > hastaMs) return false;
+            return true;
+        });
+        filtrados.sort(function (a, b) {
+            return ordenFirmadosAscendente ? (a.fecha - b.fecha) : (b.fecha - a.fecha);
         });
         listaVisorActual = filtrados;
+
         if (carpetaGuardado) {
             badge.style.display = 'inline-block';
-            badge.innerText = archivosFirmadosCache.length;
+            badge.innerText = filtrados.length === archivosFirmadosCache.length
+                ? String(archivosFirmadosCache.length)
+                : (filtrados.length + ' / ' + archivosFirmadosCache.length);
         } else {
             badge.style.display = 'none';
         }
         contenedor.innerHTML = '';
         if (filtrados.length === 0) {
             contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">' +
-                (archivosFirmadosCache.length === 0 ? 'Todavía no hay PDFs firmados en esta carpeta' : 'Sin resultados para tu búsqueda') +
+                (archivosFirmadosCache.length === 0 ? 'Todavía no hay PDFs firmados en esta carpeta' : 'Sin resultados para tu búsqueda/filtro') +
                 '</div>';
             return;
         }
         filtrados.forEach(function (item, idx) {
             var fila = document.createElement('div');
             fila.className = 'archivoItem';
+            var fechaTexto = new Date(item.fecha).toLocaleString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             fila.innerHTML =
-                '<span>📄 ' + item.numeroDoc + '</span>' +
+                '<span>📄 ' + item.numeroDoc + '<span class="fechaFirmadoTexto">' + fechaTexto + '</span></span>' +
                 '<span style="display:flex; gap:6px;">' +
                     '<button class="btnCopiarDoc">📋 Copiar</button>' +
                     '<button class="btnVerDoc">👁️ Ver</button>' +
