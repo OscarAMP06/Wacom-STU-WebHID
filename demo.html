@@ -2,7 +2,7 @@
 * { font-family: 'Segoe UI', sans-serif; box-sizing: border-box; }
 body { background: #F1F5F9; margin: 0; padding: 0; }
 #app {
-    max-width: 700px;
+    width: min(1100px, 96vw);
     background: #fff;
     margin: 30px auto;
     border-radius: 16px;
@@ -89,6 +89,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 #btnRefrescarLista {
     background: rgb(21,101,192);
@@ -116,6 +117,18 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     color: rgb(148,163,184);
     margin-left: auto;
 }
+
+/* Buscadores */
+.buscarInput {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+.buscarInput:focus { outline: none; border-color: rgb(21,101,192); }
 
 /* Barra de selección múltiple */
 #barraSeleccionMultiple {
@@ -184,7 +197,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 
 #listaArchivos {
     margin-top: 4px;
-    max-height: 160px;
+    max-height: 340px;
     overflow-y: auto;
 }
 .archivoItem {
@@ -299,7 +312,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 }
 #listaFirmados {
     margin-top: 4px;
-    max-height: 280px;
+    max-height: 460px;
     overflow-y: auto;
 }
 .btnCopiarDoc {
@@ -326,7 +339,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     border-radius: 12px;
     max-width: 92vw;
     max-height: 90vh;
-    width: 640px;
+    width: 720px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -361,7 +374,18 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     justify-content: center;
     flex: 1;
 }
-#canvasVisorPdf { box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; max-width: 100%; height: auto; }
+#contenedorPaginasVisor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+#contenedorPaginasVisor canvas {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    max-width: 100%;
+    height: auto;
+}
 #modalVisorPdfFooter {
     display: flex;
     align-items: center;
@@ -409,7 +433,7 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
 #appcont {
     position: relative;
     width: 100%;
-    max-width: 620px;
+    max-width: 700px;
     margin: 0 auto;
 }
 canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block; }
@@ -417,7 +441,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 #etiquetaZonas {
     display: flex;
     justify-content: space-between;
-    max-width: 620px;
+    max-width: 700px;
     margin: 6px auto 0;
     font-size: 11px;
     color: #64748b;
@@ -586,6 +610,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <div id="textoInfoModoMultiple"></div>
             <a onclick="cancelarModoMultiple()">Cancelar y volver a la lista</a>
         </div>
+        <input type="text" id="buscarPendientes" class="buscarInput" placeholder="🔍 Buscar por nombre de archivo..." oninput="filtrarPendientes()">
         <div id="listaArchivos"></div>
         <div id="previewPdf" style="display:none;">
             <canvas id="pdfCanvas"></canvas>
@@ -609,6 +634,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             No hay una carpeta de salida conectada.
             <div><button onclick="conectarCarpetaSalida()">Conectar carpeta de salida</button></div>
         </div>
+        <input type="text" id="buscarFirmados" class="buscarInput" placeholder="🔍 Buscar por número de documento..." oninput="filtrarFirmados()">
         <div id="listaFirmados"></div>
     </div>
 
@@ -686,12 +712,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <button onclick="cerrarVisorPdf()">✕</button>
         </div>
         <div id="modalVisorPdfCuerpo">
-            <canvas id="canvasVisorPdf"></canvas>
+            <div id="contenedorPaginasVisor"></div>
         </div>
         <div id="modalVisorPdfFooter">
-            <button id="btnVisorAnterior" onclick="paginaVisorAnterior()">← Anterior</button>
+            <button id="btnVisorAnterior" onclick="documentoVisorAnterior()">← Anterior</button>
             <span id="paginacionVisorPdf"></span>
-            <button id="btnVisorSiguiente" onclick="paginaVisorSiguiente()">Siguiente →</button>
+            <button id="btnVisorSiguiente" onclick="documentoVisorSiguiente()">Siguiente →</button>
         </div>
     </div>
 </div>
@@ -721,6 +747,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var mapaArchivosPorNombre = {};                // nombre de archivo -> FileSystemFileHandle (se actualiza en cada listado)
     var modoMultipleActivo = false;                // true mientras se está firmando para el lote seleccionado
     var documentosParaFirmarMultiple = [];         // nombres de archivo confirmados para el lote actual
+
+    // ============ Caches de listados (para poder filtrar sin volver a leer el disco) ============
+    var archivosPendientesCache = [];   // array de FileSystemFileHandle (carpeta de entrada)
+    var archivosFirmadosCache = [];     // array de { entrada, numeroDoc } (carpeta de salida)
+    var listaVisorActual = [];          // subconjunto (filtrado) actualmente mostrado en Firmados; el visor navega sobre esta lista
+    var indiceVisorActual = -1;
 
     // Zonas del modo Documento SAP
     var zonaFirmaDocumento   = { x1: 50,  y1: 130, x2: 750, y2: 330 };
@@ -752,10 +784,6 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var viewportActualPdf = null;
     var alturaPaginaPuntos = null;
     var escalaRenderPdf = 1.3;
-
-    // ============ Visor de PDFs firmados ============
-    var pdfVisorActual = null;
-    var paginaVisorActual = 1;
 
     // ============ Notificaciones tipo toast (reemplaza alert()) ============
     function mostrarToast(mensaje, tipo) {
@@ -990,13 +1018,11 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     // ============ Listado de PDFs pendientes (con checkboxes para selección múltiple) ============
     async function listarPdfs() {
-        var contenedor = document.getElementById('listaArchivos');
-        var badge = document.getElementById('badgePendientes');
-        var archivos = [];
+        archivosPendientesCache = [];
         mapaArchivosPorNombre = {};
         for await (const entrada of carpetaPendientes.values()) {
             if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
-                archivos.push(entrada);
+                archivosPendientesCache.push(entrada);
                 mapaArchivosPorNombre[entrada.name] = entrada;
             }
         }
@@ -1004,24 +1030,39 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         Array.from(seleccionMultipleActiva).forEach(function (nombre) {
             if (!mapaArchivosPorNombre[nombre]) seleccionMultipleActiva.delete(nombre);
         });
-        badge.style.display = 'inline-block';
-        badge.innerText = archivos.length;
         document.getElementById('ultimaActualizacion').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
+        renderizarListaPendientes();
+    }
+    function filtrarPendientes() {
+        renderizarListaPendientes();
+    }
+    function renderizarListaPendientes() {
+        var contenedor = document.getElementById('listaArchivos');
+        var badge = document.getElementById('badgePendientes');
+        var textoBusqueda = (document.getElementById('buscarPendientes').value || '').toLowerCase();
+        var archivosFiltrados = archivosPendientesCache.filter(function (entrada) {
+            return entrada.name.toLowerCase().indexOf(textoBusqueda) !== -1;
+        });
+        badge.style.display = 'inline-block';
+        badge.innerText = archivosPendientesCache.length;
         contenedor.innerHTML = '';
-        if (archivos.length === 0) {
-            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">No hay PDFs pendientes en esta carpeta</div>';
+        if (archivosFiltrados.length === 0) {
+            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">' +
+                (archivosPendientesCache.length === 0 ? 'No hay PDFs pendientes en esta carpeta' : 'Sin resultados para tu búsqueda') +
+                '</div>';
             actualizarBarraSeleccion();
             return;
         }
         var mostrarCheckbox = !documentoListoParaFirmar && !modoMultipleActivo;
-        archivos.forEach(function (entrada) {
+        archivosFiltrados.forEach(function (entrada) {
             var fila = document.createElement('div');
             fila.className = 'archivoItem' + (entradaArchivoActual && entradaArchivoActual.name === entrada.name ? ' activo' : '');
             var chkHtml = mostrarCheckbox
                 ? '<input type="checkbox" ' + (seleccionMultipleActiva.has(entrada.name) ? 'checked' : '') + '>'
                 : '';
             fila.innerHTML = '<span>' + chkHtml + '📄 ' + entrada.name + '</span><button>Cargar</button>';
-            fila.querySelector('button').onclick = function () { cargarPdf(entrada); };
+            fila.onclick = function () { cargarPdf(entrada); };
+            fila.querySelector('button').onclick = function (ev) { ev.stopPropagation(); cargarPdf(entrada); };
             var inputChk = fila.querySelector('input[type=checkbox]');
             if (inputChk) {
                 inputChk.onclick = function (ev) { ev.stopPropagation(); };
@@ -1616,47 +1657,65 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     // ============ Visor de PDFs firmados ============
     async function listarFirmados() {
-        var contenedor = document.getElementById('listaFirmados');
-        var badge = document.getElementById('badgeFirmados');
         var aviso = document.getElementById('avisoSinCarpetaSalida');
         if (!carpetaGuardado) {
             aviso.style.display = 'block';
-            contenedor.innerHTML = '';
-            badge.style.display = 'none';
+            archivosFirmadosCache = [];
+            renderizarListaFirmados();
             return;
         }
         aviso.style.display = 'none';
         var ok = await verificarPermiso(carpetaGuardado, 'readwrite');
         if (!ok) {
-            contenedor.innerHTML = '<div style="font-size:12px;color:rgb(220,38,38);text-align:center;padding:10px;">Sin permiso para leer la carpeta de salida. Reconéctala en ⚙️.</div>';
+            document.getElementById('listaFirmados').innerHTML = '<div style="font-size:12px;color:rgb(220,38,38);text-align:center;padding:10px;">Sin permiso para leer la carpeta de salida. Reconéctala en ⚙️.</div>';
             return;
         }
         var archivos = [];
         for await (const entrada of carpetaGuardado.values()) {
             if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
-                archivos.push(entrada);
+                archivos.push({ entrada: entrada, numeroDoc: entrada.name.replace(/\.pdf$/i, '') });
             }
         }
-        archivos.sort(function (a, b) { return b.name.localeCompare(a.name); });
-        badge.style.display = 'inline-block';
-        badge.innerText = archivos.length;
+        archivos.sort(function (a, b) { return b.numeroDoc.localeCompare(a.numeroDoc); });
+        archivosFirmadosCache = archivos;
+        renderizarListaFirmados();
+    }
+    function filtrarFirmados() {
+        renderizarListaFirmados();
+    }
+    function renderizarListaFirmados() {
+        var contenedor = document.getElementById('listaFirmados');
+        var badge = document.getElementById('badgeFirmados');
+        var textoBusqueda = (document.getElementById('buscarFirmados').value || '').toLowerCase();
+        var filtrados = archivosFirmadosCache.filter(function (item) {
+            return item.numeroDoc.toLowerCase().indexOf(textoBusqueda) !== -1;
+        });
+        listaVisorActual = filtrados;
+        if (carpetaGuardado) {
+            badge.style.display = 'inline-block';
+            badge.innerText = archivosFirmadosCache.length;
+        } else {
+            badge.style.display = 'none';
+        }
         contenedor.innerHTML = '';
-        if (archivos.length === 0) {
-            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">Todavía no hay PDFs firmados en esta carpeta</div>';
+        if (filtrados.length === 0) {
+            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">' +
+                (archivosFirmadosCache.length === 0 ? 'Todavía no hay PDFs firmados en esta carpeta' : 'Sin resultados para tu búsqueda') +
+                '</div>';
             return;
         }
-        archivos.forEach(function (entrada) {
-            var numeroDoc = entrada.name.replace(/\.pdf$/i, '');
+        filtrados.forEach(function (item, idx) {
             var fila = document.createElement('div');
             fila.className = 'archivoItem';
             fila.innerHTML =
-                '<span>📄 ' + numeroDoc + '</span>' +
+                '<span>📄 ' + item.numeroDoc + '</span>' +
                 '<span style="display:flex; gap:6px;">' +
                     '<button class="btnCopiarDoc">📋 Copiar</button>' +
                     '<button class="btnVerDoc">👁️ Ver</button>' +
                 '</span>';
-            fila.querySelector('.btnCopiarDoc').onclick = function () { copiarNumeroDocumento(numeroDoc); };
-            fila.querySelector('.btnVerDoc').onclick = function () { abrirVisorPdf(entrada, numeroDoc); };
+            fila.onclick = function () { abrirVisorPdf(idx); };
+            fila.querySelector('.btnCopiarDoc').onclick = function (ev) { ev.stopPropagation(); copiarNumeroDocumento(item.numeroDoc); };
+            fila.querySelector('.btnVerDoc').onclick = function (ev) { ev.stopPropagation(); abrirVisorPdf(idx); };
             contenedor.appendChild(fila);
         });
     }
@@ -1675,41 +1734,47 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             mostrarToast('No se pudo copiar automáticamente. Número: ' + numeroDoc, 'error');
         }
     }
-    async function abrirVisorPdf(entrada, numeroDoc) {
+    // El visor navega "Anterior/Siguiente" entre los DOCUMENTOS de la lista actualmente mostrada
+    // (no entre páginas — cada PDF se renderiza completo, con todas sus páginas apiladas).
+    async function abrirVisorPdf(indice) {
         try {
-            var archivo = await entrada.getFile();
+            if (indice < 0 || indice >= listaVisorActual.length) return;
+            indiceVisorActual = indice;
+            var item = listaVisorActual[indice];
+            var archivo = await item.entrada.getFile();
             var bytes = await archivo.arrayBuffer();
-            pdfVisorActual = await pdfjsLib.getDocument({ data: bytes }).promise;
-            paginaVisorActual = 1;
-            document.getElementById('tituloVisorPdf').innerText = 'Documento ' + numeroDoc;
+            var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+            document.getElementById('tituloVisorPdf').innerText = 'Documento ' + item.numeroDoc;
             document.getElementById('modalVisorPdf').classList.add('visible');
-            await renderizarPaginaVisor();
+            document.getElementById('paginacionVisorPdf').innerText = 'Documento ' + (indice + 1) + ' de ' + listaVisorActual.length;
+            document.getElementById('btnVisorAnterior').disabled = indice <= 0;
+            document.getElementById('btnVisorSiguiente').disabled = indice >= listaVisorActual.length - 1;
+            var contenedor = document.getElementById('contenedorPaginasVisor');
+            contenedor.innerHTML = '';
+            for (var p = 1; p <= pdf.numPages; p++) {
+                var pagina = await pdf.getPage(p);
+                var viewport = pagina.getViewport({ scale: 1.4 });
+                var c = document.createElement('canvas');
+                c.width = viewport.width;
+                c.height = viewport.height;
+                var ctx = c.getContext('2d');
+                await pagina.render({ canvasContext: ctx, viewport: viewport }).promise;
+                contenedor.appendChild(c);
+            }
         } catch (e) {
             console.error(e);
             mostrarToast('No se pudo abrir el PDF: ' + e.message, 'error');
         }
     }
-    async function renderizarPaginaVisor() {
-        var pagina = await pdfVisorActual.getPage(paginaVisorActual);
-        var viewport = pagina.getViewport({ scale: 1.4 });
-        var canvasVisor = document.getElementById('canvasVisorPdf');
-        canvasVisor.width = viewport.width;
-        canvasVisor.height = viewport.height;
-        var ctx = canvasVisor.getContext('2d');
-        await pagina.render({ canvasContext: ctx, viewport: viewport }).promise;
-        document.getElementById('paginacionVisorPdf').innerText = 'Página ' + paginaVisorActual + ' de ' + pdfVisorActual.numPages;
-        document.getElementById('btnVisorAnterior').disabled = paginaVisorActual <= 1;
-        document.getElementById('btnVisorSiguiente').disabled = paginaVisorActual >= pdfVisorActual.numPages;
+    function documentoVisorAnterior() {
+        if (indiceVisorActual > 0) abrirVisorPdf(indiceVisorActual - 1);
     }
-    function paginaVisorAnterior() {
-        if (paginaVisorActual > 1) { paginaVisorActual--; renderizarPaginaVisor(); }
-    }
-    function paginaVisorSiguiente() {
-        if (pdfVisorActual && paginaVisorActual < pdfVisorActual.numPages) { paginaVisorActual++; renderizarPaginaVisor(); }
+    function documentoVisorSiguiente() {
+        if (indiceVisorActual < listaVisorActual.length - 1) abrirVisorPdf(indiceVisorActual + 1);
     }
     function cerrarVisorPdf() {
         document.getElementById('modalVisorPdf').classList.remove('visible');
-        pdfVisorActual = null;
+        indiceVisorActual = -1;
     }
 
     async function aplicarAjustesAdmin() {
