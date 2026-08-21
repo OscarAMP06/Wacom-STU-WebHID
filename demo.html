@@ -116,6 +116,72 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     color: rgb(148,163,184);
     margin-left: auto;
 }
+
+/* Barra de selección múltiple */
+#barraSeleccionMultiple {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgb(255,251,235);
+    border: 1px solid rgb(253,224,71);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: rgb(146,64,14);
+}
+#barraSeleccionMultiple.visible { display: flex; }
+#barraSeleccionMultiple button {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#btnFirmarMultiple { background: rgb(21,101,192); color: #fff; }
+#btnCancelarMultiple { background: rgb(226,232,240); color: rgb(51,65,85); }
+.archivoItem input[type=checkbox] { margin-right: 8px; cursor: pointer; }
+
+/* Info de modo múltiple activo (mientras se firma para el lote) */
+#infoModoMultiple {
+    display: none;
+    text-align: center;
+    padding: 12px;
+    background: rgb(239,246,255);
+    border: 1px solid rgb(191,219,254);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+#textoInfoModoMultiple {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(21,101,192);
+    margin-bottom: 4px;
+}
+#infoModoMultiple a {
+    font-size: 11px;
+    color: rgb(220,38,38);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* Progreso de guardado en lote */
+#progresoMultiple {
+    display: none;
+    margin: 0 24px 16px;
+    background: rgb(220,252,231);
+    border: 1px solid rgb(134,239,172);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(22,101,52);
+}
+#progresoMultiple.visible { display: block; }
+
 #listaArchivos {
     margin-top: 4px;
     max-height: 160px;
@@ -184,6 +250,138 @@ body { background: #F1F5F9; margin: 0; padding: 0; }
     font-size: 12px;
     color: rgb(88,28,135);
 }
+
+/* Sección Visor de Firmados */
+#firmadosSection {
+    margin: 0 24px 16px;
+    background: rgb(240,253,244);
+    border: 1px solid rgb(187,247,208);
+    border-radius: 10px;
+    padding: 16px;
+    display: none;
+}
+#firmadosSection h3 {
+    margin: 0;
+    font-size: 13px;
+    color: rgb(22,101,52);
+    font-weight: 600;
+}
+#btnRefrescarFirmados {
+    background: rgb(22,163,74);
+    color: #fff;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#avisoSinCarpetaSalida {
+    display: none;
+    font-size: 12px;
+    color: rgb(146,64,14);
+    background: rgb(255,251,235);
+    border: 1px solid rgb(253,224,71);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+#avisoSinCarpetaSalida button {
+    margin-top: 8px;
+    background: rgb(217,119,6);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#listaFirmados {
+    margin-top: 4px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+.btnCopiarDoc {
+    background: rgb(100,116,139) !important;
+}
+.btnVerDoc {
+    background: rgb(21,101,192) !important;
+}
+
+/* Modal visor de PDF */
+#modalVisorPdf {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15,23,42,0.75);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+#modalVisorPdf.visible { display: flex; }
+#modalVisorPdfContenido {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 92vw;
+    max-height: 90vh;
+    width: 640px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+#modalVisorPdfHeader {
+    background: rgb(11,31,74);
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+#modalVisorPdfHeader button {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+#modalVisorPdfCuerpo {
+    overflow: auto;
+    padding: 16px;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    flex: 1;
+}
+#canvasVisorPdf { box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; max-width: 100%; height: auto; }
+#modalVisorPdfFooter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 10px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+#modalVisorPdfFooter button {
+    background: rgb(21,101,192);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+#modalVisorPdfFooter button:disabled { background: rgb(203,213,225); cursor: not-allowed; }
 
 #btnConnect {
     display: block;
@@ -364,6 +562,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     <div id="modoTabs">
         <div id="tabDocumento" class="modoTab active" onclick="cambiarModo('documento')">📄 Documento SAP</div>
         <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')">✍️ Solo Firma · Cargo Directo</div>
+        <div id="tabFirmados" class="modoTab" onclick="cambiarModo('firmados')">📁 Firmados</div>
     </div>
 
     <div id="documentoSection">
@@ -376,6 +575,17 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <label><input type="checkbox" id="chkAutoRefresh" checked onchange="toggleAutoRefresh()"> Auto-actualizar</label>
             <span id="ultimaActualizacion"></span>
         </div>
+        <div id="barraSeleccionMultiple">
+            <span id="textoSeleccionMultiple">0 documento(s) seleccionado(s)</span>
+            <div style="display:flex; gap:6px;">
+                <button id="btnFirmarMultiple" onclick="iniciarFirmaMultiple()">✍️ Firmar seleccionados</button>
+                <button id="btnCancelarMultiple" onclick="limpiarSeleccionMultiple()">Cancelar</button>
+            </div>
+        </div>
+        <div id="infoModoMultiple">
+            <div id="textoInfoModoMultiple"></div>
+            <a onclick="cancelarModoMultiple()">Cancelar y volver a la lista</a>
+        </div>
         <div id="listaArchivos"></div>
         <div id="previewPdf" style="display:none;">
             <canvas id="pdfCanvas"></canvas>
@@ -383,9 +593,23 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         <div id="docNumeroDetectado"></div>
     </div>
 
+    <div id="progresoMultiple"></div>
+
     <div id="cargoDirectoSection">
         <h3>✍️ Firma · Cargo Directo</h3>
         <p>Solicite la firma de quien recibe los materiales de Cargo Directo. Al confirmar, se guarda solo la imagen de la firma — sin generar ningún documento — para anexarla luego en Power Apps.</p>
+    </div>
+
+    <div id="firmadosSection">
+        <div id="docSectionHeaderRow">
+            <h3>📁 Documentos Firmados <span id="badgeFirmados" style="display:none;">0</span></h3>
+            <button id="btnRefrescarFirmados" onclick="refrescarFirmados()">🔄 Actualizar</button>
+        </div>
+        <div id="avisoSinCarpetaSalida">
+            No hay una carpeta de salida conectada.
+            <div><button onclick="conectarCarpetaSalida()">Conectar carpeta de salida</button></div>
+        </div>
+        <div id="listaFirmados"></div>
     </div>
 
     <button id="btnConnect" onclick="connect()" disabled>Conectar pad de firma</button>
@@ -402,7 +626,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     </div>
     <div id="acciones">
         <button id="btnLimpiar" onclick="clearscreen()">Limpiar</button>
-        <button id="btnConfirmar" onclick="confirmarFirma()" disabled>Confirmar y guardar PDF firmado</button>
+        <button id="btnConfirmar" onclick="manejarConfirmarDocumento()" disabled>Confirmar y guardar PDF firmado</button>
     </div>
     <div id="accionesCD">
         <button id="btnLimpiarCD" onclick="clearscreen()">Limpiar</button>
@@ -455,6 +679,23 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 </div>
 <div id="toastContainer"></div>
 
+<div id="modalVisorPdf">
+    <div id="modalVisorPdfContenido">
+        <div id="modalVisorPdfHeader">
+            <span id="tituloVisorPdf">Documento</span>
+            <button onclick="cerrarVisorPdf()">✕</button>
+        </div>
+        <div id="modalVisorPdfCuerpo">
+            <canvas id="canvasVisorPdf"></canvas>
+        </div>
+        <div id="modalVisorPdfFooter">
+            <button id="btnVisorAnterior" onclick="paginaVisorAnterior()">← Anterior</button>
+            <span id="paginacionVisorPdf"></span>
+            <button id="btnVisorSiguiente" onclick="paginaVisorSiguiente()">Siguiente →</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="wacomstu540.js"></script>
@@ -472,8 +713,14 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var colaPluma = "#1A3C8C";
     var grosorPluma = 2;
 
-    // Modo actual: 'documento' (PDF de SAP, firma + no. tarjeta) o 'cargoDirecto' (solo firma)
+    // Modo actual: 'documento' (PDF de SAP, firma + no. tarjeta), 'cargoDirecto' (solo firma) o 'firmados' (visor)
     var modoActual = 'documento';
+
+    // ============ Firma múltiple (varios documentos, misma persona, una sola firma) ============
+    var seleccionMultipleActiva = new Set();      // nombres de archivo actualmente marcados con checkbox
+    var mapaArchivosPorNombre = {};                // nombre de archivo -> FileSystemFileHandle (se actualiza en cada listado)
+    var modoMultipleActivo = false;                // true mientras se está firmando para el lote seleccionado
+    var documentosParaFirmarMultiple = [];         // nombres de archivo confirmados para el lote actual
 
     // Zonas del modo Documento SAP
     var zonaFirmaDocumento   = { x1: 50,  y1: 130, x2: 750, y2: 330 };
@@ -505,6 +752,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var viewportActualPdf = null;
     var alturaPaginaPuntos = null;
     var escalaRenderPdf = 1.3;
+
+    // ============ Visor de PDFs firmados ============
+    var pdfVisorActual = null;
+    var paginaVisorActual = 1;
 
     // ============ Notificaciones tipo toast (reemplaza alert()) ============
     function mostrarToast(mensaje, tipo) {
@@ -582,6 +833,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             await guardarHandleEnDB('salida', handle);
             actualizarEstadoCarpetas();
             mostrarToast('✓ Carpeta de salida conectada: ' + handle.name, 'success');
+            if (modoActual === 'firmados') await listarFirmados();
         } catch (e) {
             console.log('Selección de carpeta de salida cancelada', e);
         }
@@ -620,6 +872,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('btnReconectarCarpetas').style.display =
             (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar) ? 'block' : 'none';
         mostrarToast('Carpetas reconectadas', 'success');
+        if (modoActual === 'firmados') await listarFirmados();
     }
     function actualizarEstadoCarpetas() {
         document.getElementById('estadoCarpetaEntrada').innerText = carpetaPendientes ? ('✓ ' + carpetaPendientes.name) : 'No conectada';
@@ -673,6 +926,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             if (!autoRefreshActivo) return;
             if (!carpetaPendientes) return;
             if (documentoListoParaFirmar && modoActual === 'documento') return; // no refrescar mientras hay un documento cargado para firmar
+            if (modoMultipleActivo) return; // no refrescar mientras se firma para un lote
+            if (modoActual !== 'documento') return; // no refrescar la lista de pendientes si no se está viendo esa pestaña
             await listarPdfs();
         }, 6000);
     }
@@ -733,31 +988,125 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         dibujarMarcador(posTarjeta, '#d97706');
     }
 
+    // ============ Listado de PDFs pendientes (con checkboxes para selección múltiple) ============
     async function listarPdfs() {
         var contenedor = document.getElementById('listaArchivos');
         var badge = document.getElementById('badgePendientes');
         var archivos = [];
+        mapaArchivosPorNombre = {};
         for await (const entrada of carpetaPendientes.values()) {
             if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
                 archivos.push(entrada);
+                mapaArchivosPorNombre[entrada.name] = entrada;
             }
         }
+        // Si algún archivo seleccionado ya no existe (fue movido/borrado), lo quitamos de la selección
+        Array.from(seleccionMultipleActiva).forEach(function (nombre) {
+            if (!mapaArchivosPorNombre[nombre]) seleccionMultipleActiva.delete(nombre);
+        });
         badge.style.display = 'inline-block';
         badge.innerText = archivos.length;
         document.getElementById('ultimaActualizacion').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
         contenedor.innerHTML = '';
         if (archivos.length === 0) {
             contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">No hay PDFs pendientes en esta carpeta</div>';
+            actualizarBarraSeleccion();
             return;
         }
+        var mostrarCheckbox = !documentoListoParaFirmar && !modoMultipleActivo;
         archivos.forEach(function (entrada) {
             var fila = document.createElement('div');
             fila.className = 'archivoItem' + (entradaArchivoActual && entradaArchivoActual.name === entrada.name ? ' activo' : '');
-            fila.innerHTML = '<span>📄 ' + entrada.name + '</span><button>Cargar</button>';
+            var chkHtml = mostrarCheckbox
+                ? '<input type="checkbox" ' + (seleccionMultipleActiva.has(entrada.name) ? 'checked' : '') + '>'
+                : '';
+            fila.innerHTML = '<span>' + chkHtml + '📄 ' + entrada.name + '</span><button>Cargar</button>';
             fila.querySelector('button').onclick = function () { cargarPdf(entrada); };
+            var inputChk = fila.querySelector('input[type=checkbox]');
+            if (inputChk) {
+                inputChk.onclick = function (ev) { ev.stopPropagation(); };
+                inputChk.onchange = function () {
+                    if (this.checked) seleccionMultipleActiva.add(entrada.name);
+                    else seleccionMultipleActiva.delete(entrada.name);
+                    actualizarBarraSeleccion();
+                };
+            }
             contenedor.appendChild(fila);
         });
+        actualizarBarraSeleccion();
     }
+
+    function actualizarBarraSeleccion() {
+        var barra = document.getElementById('barraSeleccionMultiple');
+        var n = seleccionMultipleActiva.size;
+        if (n >= 1 && !documentoListoParaFirmar && !modoMultipleActivo && modoActual === 'documento') {
+            barra.classList.add('visible');
+            document.getElementById('textoSeleccionMultiple').innerText = n + ' documento(s) seleccionado(s)';
+        } else {
+            barra.classList.remove('visible');
+        }
+    }
+
+    function limpiarSeleccionMultiple() {
+        seleccionMultipleActiva.clear();
+        document.querySelectorAll('#listaArchivos input[type=checkbox]').forEach(function (c) { c.checked = false; });
+        actualizarBarraSeleccion();
+    }
+
+    // ============ Iniciar / cancelar / confirmar firma múltiple ============
+    function iniciarFirmaMultiple() {
+        var n = seleccionMultipleActiva.size;
+        if (n === 0) return;
+        if (n >= 2) {
+            if (!confirm('Vas a firmar ' + n + ' documentos con una sola firma.\n\nConfirma que TODOS pertenecen a la misma persona antes de continuar.\n\n¿Continuar?')) return;
+        }
+        modoMultipleActivo = true;
+        documentosParaFirmarMultiple = Array.from(seleccionMultipleActiva);
+        document.getElementById('filaRefresh').style.display = 'none';
+        document.getElementById('listaArchivos').style.display = 'none';
+        document.getElementById('barraSeleccionMultiple').classList.remove('visible');
+        document.getElementById('previewPdf').style.display = 'none';
+        document.getElementById('docNumeroDetectado').style.display = 'none';
+        document.getElementById('infoModoMultiple').style.display = 'block';
+        document.getElementById('textoInfoModoMultiple').innerText =
+            'Firmando para ' + documentosParaFirmarMultiple.length + ' documento(s): ' + documentosParaFirmarMultiple.join(', ');
+        document.getElementById('btnConnect').disabled = false;
+        hayTrazosFirma = false;
+        hayTrazosTarjeta = false;
+        document.getElementById('btnConfirmar').disabled = true;
+        dibujarPantallaSegunModo();
+    }
+    function cancelarModoMultiple() {
+        if (hayTrazosFirma || hayTrazosTarjeta) {
+            if (!confirm('Hay una firma sin guardar. ¿Cancelar de todas formas? Se perderá.')) return;
+        }
+        finalizarModoMultiple();
+    }
+    function finalizarModoMultiple() {
+        modoMultipleActivo = false;
+        documentosParaFirmarMultiple = [];
+        seleccionMultipleActiva.clear();
+        document.getElementById('ssvvggFirma').innerHTML = '';
+        document.getElementById('ssvvggTarjeta').innerHTML = '';
+        hayTrazosFirma = false;
+        hayTrazosTarjeta = false;
+        document.getElementById('btnConnect').disabled = true;
+        document.getElementById('btnConfirmar').disabled = true;
+        document.getElementById('filaRefresh').style.display = 'flex';
+        document.getElementById('listaArchivos').style.display = 'block';
+        document.getElementById('infoModoMultiple').style.display = 'none';
+        dibujarPantallaSegunModo();
+    }
+
+    function mostrarProgresoMultiple(actual, total, nombreActual) {
+        var caja = document.getElementById('progresoMultiple');
+        caja.classList.add('visible');
+        caja.innerText = 'Guardando ' + actual + ' de ' + total + '... (' + nombreActual + ')';
+    }
+    function ocultarProgresoMultiple() {
+        document.getElementById('progresoMultiple').classList.remove('visible');
+    }
+
     async function cargarPdf(entradaArchivo) {
         entradaArchivoActual = entradaArchivo;
         var archivo = await entradaArchivo.getFile();
@@ -792,7 +1141,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
         await redibujarPreviewConMarcadores();
-        await listarPdfs(); // refresca resaltando el archivo activo
+        await listarPdfs(); // refresca resaltando el archivo activo (y oculta checkboxes/barra)
         if (wacom.checkConnected()) dibujarPantallaSegunModo();
     }
     wacom.checkAvailable().then(function (supp) {
@@ -836,12 +1185,16 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         if (ok) await prepararPadTrasConectar();
     });
 
-    // ============ Cambio de modo (Documento SAP <-> Solo Firma Cargo Directo) ============
+    // ============ Cambio de modo (Documento SAP <-> Solo Firma Cargo Directo <-> Firmados) ============
     function cambiarModo(nuevoModo) {
         if (nuevoModo === modoActual) return;
-        if (hayTrazosFirma || hayTrazosTarjeta) {
+        if (modoMultipleActivo) {
+            if (!confirm('Hay una firma en proceso para varios documentos. ¿Cambiar de modo de todas formas? Se perderá.')) return;
+            finalizarModoMultiple();
+        } else if (hayTrazosFirma || hayTrazosTarjeta) {
             if (!confirm('Hay una firma sin guardar. ¿Cambiar de modo de todas formas? Se perderá.')) return;
         }
+        seleccionMultipleActiva.clear();
         modoActual = nuevoModo;
         document.getElementById('ssvvggFirma').innerHTML = '';
         document.getElementById('ssvvggTarjeta').innerHTML = '';
@@ -849,24 +1202,37 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         hayTrazosTarjeta = false;
         document.getElementById('tabDocumento').classList.toggle('active', modoActual === 'documento');
         document.getElementById('tabCargoDirecto').classList.toggle('active', modoActual === 'cargoDirecto');
+        document.getElementById('tabFirmados').classList.toggle('active', modoActual === 'firmados');
         document.getElementById('documentoSection').style.display = modoActual === 'documento' ? 'block' : 'none';
         document.getElementById('cargoDirectoSection').style.display = modoActual === 'cargoDirecto' ? 'block' : 'none';
+        document.getElementById('firmadosSection').style.display = modoActual === 'firmados' ? 'block' : 'none';
         document.getElementById('acciones').style.display = modoActual === 'documento' ? 'flex' : 'none';
         document.getElementById('accionesCD').style.display = modoActual === 'cargoDirecto' ? 'flex' : 'none';
         document.getElementById('etiquetaZonaTarjeta').style.display = modoActual === 'documento' ? 'inline' : 'none';
         document.getElementById('btnConfirmar').disabled = true;
         document.getElementById('btnConfirmarCD').disabled = true;
-        if (modoActual === 'cargoDirecto') {
-            document.getElementById('btnConnect').disabled = false;
+
+        if (modoActual === 'firmados') {
+            document.getElementById('btnConnect').style.display = 'none';
+            document.getElementById('firmaBox').style.display = 'none';
+            listarFirmados();
         } else {
-            document.getElementById('btnConnect').disabled = !documentoListoParaFirmar;
+            document.getElementById('btnConnect').style.display = 'block';
+            document.getElementById('firmaBox').style.display = 'block';
+            if (modoActual === 'cargoDirecto') {
+                document.getElementById('btnConnect').disabled = false;
+            } else {
+                document.getElementById('btnConnect').disabled = !documentoListoParaFirmar;
+            }
+            dibujarPantallaSegunModo();
         }
-        dibujarPantallaSegunModo();
+        actualizarBarraSeleccion();
     }
     function dibujarPantallaSegunModo() {
+        if (modoActual === 'firmados') return;
         if (modoActual === 'cargoDirecto') {
             dibujarPantallaFirmaCD();
-        } else if (documentoListoParaFirmar) {
+        } else if (documentoListoParaFirmar || modoMultipleActivo) {
             dibujarPantallaFirma();
         } else {
             dibujarPantallaReposo();
@@ -908,7 +1274,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         context.fillText("SISTEMA DE AUTOGESTIÓN", 350, 32);
         context.font = "12px Arial";
         context.fillStyle = "rgba(255,255,255,0.65)";
-        context.fillText("Doc. " + (numeroDocumentoDetectado || "—"), 350, 52);
+        context.fillText(
+            modoMultipleActivo
+                ? ('Lote: ' + documentosParaFirmarMultiple.length + ' documento(s)')
+                : ('Doc. ' + (numeroDocumentoDetectado || "—")),
+            350, 52
+        );
         roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
         context.fillStyle = "#FFFFFF";
         context.font = "bold 13px Arial";
@@ -1030,7 +1401,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     }
     var yaSePresionoBoton = false;
     async function pointevent(z, x, y, p) {
-        if (modoActual === 'documento' && !documentoListoParaFirmar) return;
+        if (modoActual === 'documento' && !documentoListoParaFirmar && !modoMultipleActivo) return;
+        if (modoActual === 'firmados') return;
         if (z && estaEnBotonReintentar(x, y)) {
             if (!yaSePresionoBoton) {
                 yaSePresionoBoton = true;
@@ -1083,6 +1455,16 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             img.src = url;
         });
     }
+
+    // ============ Confirmación: enruta a firma simple o firma múltiple ============
+    function manejarConfirmarDocumento() {
+        if (modoMultipleActivo) {
+            confirmarFirmaMultiple();
+        } else {
+            confirmarFirma();
+        }
+    }
+
     async function confirmarFirma() {
         if (!hayTrazosFirma || !hayTrazosTarjeta) return;
         if (!pdfBytesActual) { mostrarToast("Primero carga un documento PDF", "error"); return; }
@@ -1135,6 +1517,77 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             btn.innerText = "Confirmar y guardar PDF firmado";
         }
     }
+
+    // ============ Confirmar firma múltiple: aplica la misma firma a cada documento seleccionado ============
+    async function confirmarFirmaMultiple() {
+        if (!hayTrazosFirma || !hayTrazosTarjeta) return;
+        var btn = document.getElementById('btnConfirmar');
+        btn.disabled = true;
+        var total = documentosParaFirmarMultiple.length;
+        var exitosos = 0;
+        var fallidos = [];
+        try {
+            var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
+            var pngTarjeta = await rasterizarSvgComoPng(document.getElementById('ssvvggTarjeta'));
+
+            for (var idx = 0; idx < total; idx++) {
+                var nombre = documentosParaFirmarMultiple[idx];
+                mostrarProgresoMultiple(idx + 1, total, nombre);
+                try {
+                    var handle = mapaArchivosPorNombre[nombre];
+                    if (!handle) throw new Error('El archivo ya no está disponible en la carpeta');
+                    var archivo = await handle.getFile();
+                    var bytesArchivo = await archivo.arrayBuffer();
+
+                    var pdf = await pdfjsLib.getDocument({ data: bytesArchivo.slice(0) }).promise;
+                    var pagina = await pdf.getPage(1);
+                    var contenidoTexto = await pagina.getTextContent();
+                    var textoCompleto = contenidoTexto.items.map(function (i) { return i.str; }).join(' ');
+                    var coincidencia = textoCompleto.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
+                    var numeroDoc = coincidencia ? coincidencia[1] : ('sinnumero_' + Date.now() + '_' + idx);
+
+                    var pdfDoc = await PDFLib.PDFDocument.load(bytesArchivo);
+                    var paginaPdfLib = pdfDoc.getPages()[0];
+                    var imgFirma = await pdfDoc.embedPng(pngFirma);
+                    paginaPdfLib.drawImage(imgFirma, { x: posFirma.x, y: posFirma.y, width: posFirma.ancho, height: posFirma.alto });
+                    var imgTarjeta = await pdfDoc.embedPng(pngTarjeta);
+                    paginaPdfLib.drawImage(imgTarjeta, { x: posTarjeta.x, y: posTarjeta.y, width: posTarjeta.ancho, height: posTarjeta.alto });
+                    var pdfBytesFinal = await pdfDoc.save();
+
+                    await guardarArchivoFinal(numeroDoc + '.pdf', pdfBytesFinal, 'application/pdf');
+
+                    if (carpetaPendientes) {
+                        try {
+                            var permisoOk = await verificarPermiso(carpetaPendientes, 'readwrite');
+                            if (permisoOk) await carpetaPendientes.removeEntry(nombre);
+                        } catch (eBorrar) {
+                            console.warn('No se pudo borrar el original ' + nombre, eBorrar);
+                        }
+                    }
+                    exitosos++;
+                } catch (eDoc) {
+                    console.error('Error firmando ' + nombre, eDoc);
+                    fallidos.push(nombre);
+                }
+            }
+
+            ocultarProgresoMultiple();
+            finalizarModoMultiple();
+            if (carpetaPendientes) await listarPdfs();
+
+            if (fallidos.length === 0) {
+                mostrarToast('✓ ' + exitosos + ' documento(s) firmados y guardados correctamente', 'success');
+            } else {
+                mostrarToast('⚠ ' + exitosos + ' firmados. Fallaron: ' + fallidos.join(', '), 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            ocultarProgresoMultiple();
+            mostrarToast("Error al procesar la firma múltiple: " + e.message, "error");
+            btn.disabled = false;
+        }
+    }
+
     async function confirmarFirmaCD() {
         if (!hayTrazosFirma) return;
         var btn = document.getElementById('btnConfirmarCD');
@@ -1160,6 +1613,105 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             btn.innerText = "Confirmar y guardar firma";
         }
     }
+
+    // ============ Visor de PDFs firmados ============
+    async function listarFirmados() {
+        var contenedor = document.getElementById('listaFirmados');
+        var badge = document.getElementById('badgeFirmados');
+        var aviso = document.getElementById('avisoSinCarpetaSalida');
+        if (!carpetaGuardado) {
+            aviso.style.display = 'block';
+            contenedor.innerHTML = '';
+            badge.style.display = 'none';
+            return;
+        }
+        aviso.style.display = 'none';
+        var ok = await verificarPermiso(carpetaGuardado, 'readwrite');
+        if (!ok) {
+            contenedor.innerHTML = '<div style="font-size:12px;color:rgb(220,38,38);text-align:center;padding:10px;">Sin permiso para leer la carpeta de salida. Reconéctala en ⚙️.</div>';
+            return;
+        }
+        var archivos = [];
+        for await (const entrada of carpetaGuardado.values()) {
+            if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
+                archivos.push(entrada);
+            }
+        }
+        archivos.sort(function (a, b) { return b.name.localeCompare(a.name); });
+        badge.style.display = 'inline-block';
+        badge.innerText = archivos.length;
+        contenedor.innerHTML = '';
+        if (archivos.length === 0) {
+            contenedor.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">Todavía no hay PDFs firmados en esta carpeta</div>';
+            return;
+        }
+        archivos.forEach(function (entrada) {
+            var numeroDoc = entrada.name.replace(/\.pdf$/i, '');
+            var fila = document.createElement('div');
+            fila.className = 'archivoItem';
+            fila.innerHTML =
+                '<span>📄 ' + numeroDoc + '</span>' +
+                '<span style="display:flex; gap:6px;">' +
+                    '<button class="btnCopiarDoc">📋 Copiar</button>' +
+                    '<button class="btnVerDoc">👁️ Ver</button>' +
+                '</span>';
+            fila.querySelector('.btnCopiarDoc').onclick = function () { copiarNumeroDocumento(numeroDoc); };
+            fila.querySelector('.btnVerDoc').onclick = function () { abrirVisorPdf(entrada, numeroDoc); };
+            contenedor.appendChild(fila);
+        });
+    }
+    async function refrescarFirmados() {
+        await listarFirmados();
+        mostrarToast('Lista de firmados actualizada', 'success');
+    }
+    function copiarNumeroDocumento(numeroDoc) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(numeroDoc).then(function () {
+                mostrarToast('✓ Número copiado: ' + numeroDoc, 'success');
+            }).catch(function () {
+                mostrarToast('No se pudo copiar automáticamente. Número: ' + numeroDoc, 'error');
+            });
+        } else {
+            mostrarToast('No se pudo copiar automáticamente. Número: ' + numeroDoc, 'error');
+        }
+    }
+    async function abrirVisorPdf(entrada, numeroDoc) {
+        try {
+            var archivo = await entrada.getFile();
+            var bytes = await archivo.arrayBuffer();
+            pdfVisorActual = await pdfjsLib.getDocument({ data: bytes }).promise;
+            paginaVisorActual = 1;
+            document.getElementById('tituloVisorPdf').innerText = 'Documento ' + numeroDoc;
+            document.getElementById('modalVisorPdf').classList.add('visible');
+            await renderizarPaginaVisor();
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo abrir el PDF: ' + e.message, 'error');
+        }
+    }
+    async function renderizarPaginaVisor() {
+        var pagina = await pdfVisorActual.getPage(paginaVisorActual);
+        var viewport = pagina.getViewport({ scale: 1.4 });
+        var canvasVisor = document.getElementById('canvasVisorPdf');
+        canvasVisor.width = viewport.width;
+        canvasVisor.height = viewport.height;
+        var ctx = canvasVisor.getContext('2d');
+        await pagina.render({ canvasContext: ctx, viewport: viewport }).promise;
+        document.getElementById('paginacionVisorPdf').innerText = 'Página ' + paginaVisorActual + ' de ' + pdfVisorActual.numPages;
+        document.getElementById('btnVisorAnterior').disabled = paginaVisorActual <= 1;
+        document.getElementById('btnVisorSiguiente').disabled = paginaVisorActual >= pdfVisorActual.numPages;
+    }
+    function paginaVisorAnterior() {
+        if (paginaVisorActual > 1) { paginaVisorActual--; renderizarPaginaVisor(); }
+    }
+    function paginaVisorSiguiente() {
+        if (pdfVisorActual && paginaVisorActual < pdfVisorActual.numPages) { paginaVisorActual++; renderizarPaginaVisor(); }
+    }
+    function cerrarVisorPdf() {
+        document.getElementById('modalVisorPdf').classList.remove('visible');
+        pdfVisorActual = null;
+    }
+
     async function aplicarAjustesAdmin() {
         colaPluma = document.getElementById('adminColorPluma').value;
         grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
