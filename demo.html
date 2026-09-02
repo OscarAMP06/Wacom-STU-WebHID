@@ -2611,11 +2611,29 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             var resumen = (r.articulos || []).map(function (a) { return a.nombre; }).join(', ');
             fila.innerHTML =
                 '<span>' + r.numero + ' · ' + r.nombre + ' (' + r.tarjeta + ')<span class="detalleHistorialMS">' + resumen + ' · ' + fechaTexto + '</span></span>' +
-                '<span style="display:flex;gap:6px;"><button style="background:rgb(217,119,6);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">👁️ Ver</button></span>';
+                '<span style="display:flex;gap:6px;">' +
+                    '<button style="background:rgb(217,119,6);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">👁️ Ver</button>' +
+                    '<button class="btnEliminarArticulo" title="Eliminar registro" style="width:auto;padding:4px 8px;">🗑</button>' +
+                '</span>';
             fila.onclick = function () { abrirVisorMateriales(idx); };
             fila.querySelector('button').onclick = function (ev) { ev.stopPropagation(); abrirVisorMateriales(idx); };
+            var btnEliminar = fila.querySelectorAll('button')[1];
+            btnEliminar.onclick = function (ev) { ev.stopPropagation(); eliminarRegistroHistorialMateriales(idx); };
             cont.appendChild(fila);
         });
+    }
+    async function eliminarRegistroHistorialMateriales(indiceEnListaFiltrada) {
+        var item = listaVisorMateriales[indiceEnListaFiltrada];
+        if (!item) return;
+        if (!confirm('¿Eliminar el registro ' + item.numero + ' (' + item.nombre + ') del historial?\n\nEsto solo borra el registro del control — si el PDF ya se guardó en la carpeta, tendrías que borrarlo manualmente allí.')) return;
+        var indiceReal = historialMateriales.findIndex(function (r) { return r.numero === item.numero && r.fecha === item.fecha; });
+        if (indiceReal === -1) return;
+        historialMateriales.splice(indiceReal, 1);
+        await guardarHistorialMateriales();
+        recalcularSiguienteNumeroMateriales();
+        actualizarBadgeNumeroMS();
+        renderizarHistorialMateriales();
+        mostrarToast('Registro ' + item.numero + ' eliminado del historial', 'success');
     }
     function exportarHistorialMaterialesCSV() {
         if (historialMateriales.length === 0) { mostrarToast('No hay entregas registradas todavía', 'info'); return; }
