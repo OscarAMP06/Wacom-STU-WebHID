@@ -2205,6 +2205,34 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         contextoVisorPdf = 'firmados';
     }
 
+    // ============ Guardar en la carpeta de materiales (dedicada, distinta a la de salida) ============
+    async function guardarArchivoEnCarpetaMateriales(nombreArchivo, bytes, mime) {
+        if (carpetaMateriales) {
+            try {
+                var ok = await verificarPermiso(carpetaMateriales, 'readwrite');
+                if (!ok) throw new Error('Sin permiso de escritura en la carpeta de materiales');
+                var fileHandle = await carpetaMateriales.getFileHandle(nombreArchivo, { create: true });
+                var writable = await fileHandle.createWritable();
+                await writable.write(bytes);
+                await writable.close();
+                return true;
+            } catch (e) {
+                console.warn('No se pudo guardar en la carpeta de materiales, se descargará en su lugar:', e);
+                mostrarToast('⚠ No se pudo guardar en la carpeta configurada, se descargó al navegador', 'error');
+            }
+        }
+        var blob = new Blob([bytes], { type: mime });
+        var url = URL.createObjectURL(blob);
+        var enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        URL.revokeObjectURL(url);
+        return false;
+    }
+
     // ============ Catálogo de materiales de seguridad (editable en Admin) ============
     function catalogoMaterialesDefault() {
         return [
@@ -2460,7 +2488,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
             var numero = formatearNumeroMateriales(siguienteNumeroMateriales);
             var pdfBytesFinal = await generarPdfConduceMateriales(numero, articulosSeleccionadosMateriales, pngFirma);
-            var guardadoDirecto = await guardarArchivoFinal(numero + '.pdf', pdfBytesFinal, 'application/pdf');
+            var guardadoDirecto = await guardarArchivoEnCarpetaMateriales(numero + '.pdf', pdfBytesFinal, 'application/pdf');
 
             historialMateriales.push({
                 numero: numero,
