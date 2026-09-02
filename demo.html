@@ -496,13 +496,14 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     font-size: 11px;
     color: #64748b;
 }
-#acciones, #accionesCD {
+#acciones, #accionesCD, #accionesMS {
     display: flex;
     gap: 10px;
     padding: 0 24px 24px;
 }
 #accionesCD { display: none; }
-#acciones button, #accionesCD button {
+#accionesMS { display: none; }
+#acciones button, #accionesCD button, #accionesMS button {
     flex: 1;
     padding: 12px;
     border-radius: 8px;
@@ -511,9 +512,207 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     font-weight: 600;
     cursor: pointer;
 }
-#btnLimpiar, #btnLimpiarCD { background: rgb(226,232,240); color: rgb(51,65,85); }
-#btnConfirmar, #btnConfirmarCD { background: rgb(34,197,94); color: #fff; }
-#btnConfirmar:disabled, #btnConfirmarCD:disabled { background: rgb(203,213,225); cursor: not-allowed; }
+#btnLimpiar, #btnLimpiarCD, #btnLimpiarMS { background: rgb(226,232,240); color: rgb(51,65,85); }
+#btnConfirmar, #btnConfirmarCD, #btnConfirmarMS { background: rgb(34,197,94); color: #fff; }
+#btnConfirmar:disabled, #btnConfirmarCD:disabled, #btnConfirmarMS:disabled { background: rgb(203,213,225); cursor: not-allowed; }
+
+/* Sección Materiales de Seguridad */
+#materialesSection {
+    margin: 0 24px 16px;
+    background: rgb(255,251,235);
+    border: 1px solid rgb(253,224,71);
+    border-radius: 10px;
+    padding: 16px;
+    display: none;
+}
+#materialesSection h3 {
+    margin: 0;
+    font-size: 13px;
+    color: rgb(146,64,14);
+    font-weight: 600;
+}
+.filaEmpleadoMS {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.filaEmpleadoMS input {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+}
+.tituloListaMS {
+    font-size: 11px;
+    color: rgb(100,116,139);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+.articuloMSRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid rgb(226,232,240);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+.articuloMSRow.reposicionAlerta {
+    background: rgb(254,242,242);
+    border-color: rgb(254,202,202);
+}
+.articuloMSRow select {
+    padding: 5px 6px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 11px;
+}
+.articuloMSRow input[type=number] {
+    width: 56px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 11px;
+    text-align: center;
+}
+.nombreArticuloMS { flex: 1; font-weight: 600; color: rgb(30,41,59); }
+.avisoReposicionMS { font-size: 10px; color: rgb(153,27,27); font-weight: 600; white-space: nowrap; }
+#btnAgregarArticuloCatalogo {
+    text-align: center;
+    padding: 6px;
+    font-size: 11px;
+    color: rgb(11,31,74);
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+#btnGenerarFirmarMS {
+    width: 100%;
+    background: rgb(11,31,74);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+#infoModoMateriales {
+    display: none;
+    text-align: center;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid rgb(253,224,71);
+    border-radius: 8px;
+}
+#textoInfoModoMateriales {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(146,64,14);
+    margin-bottom: 4px;
+}
+#infoModoMateriales a {
+    font-size: 11px;
+    color: rgb(220,38,38);
+    cursor: pointer;
+    text-decoration: none;
+}
+#historialMSSection {
+    margin-top: 16px;
+    border-top: 1px solid rgb(253,224,71);
+    padding-top: 14px;
+}
+#btnExportarHistorialMS {
+    background: rgb(22,163,74);
+    color: #fff;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.filaHistorialMS {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid rgb(226,232,240);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.filaHistorialMS:hover { background: rgb(255,251,235); }
+.detalleHistorialMS { font-size: 10px; color: #94a3b8; font-weight: 400; display: block; margin-top: 2px; }
+#avisoSinCarpetaMateriales {
+    display: none;
+    font-size: 12px;
+    color: rgb(146,64,14);
+    background: #fff;
+    border: 1px solid rgb(253,224,71);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+#avisoSinCarpetaMateriales button {
+    margin-top: 8px;
+    background: rgb(217,119,6);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.catalogoMSRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgb(226,232,240);
+    flex-wrap: wrap;
+}
+.catalogoMSRow input[type=text] {
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid rgb(221,214,254);
+    font-size: 11px;
+}
+.catalogoMSRow input[type=number] {
+    width: 55px;
+    padding: 5px 6px;
+    border-radius: 6px;
+    border: 1px solid rgb(221,214,254);
+    font-size: 11px;
+}
+.catalogoMSRow label {
+    font-size: 11px;
+    color: rgb(88,28,135);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.btnEliminarArticulo {
+    background: rgb(220,38,38);
+    color: #fff;
+    border: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+}
+@media (max-width: 640px) {
+    #modoTabs { flex-wrap: wrap; }
+    .modoTab { flex: 1 1 45%; }
+}
 #footer {
     text-align: center;
     padding: 12px;
@@ -636,6 +835,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     <div id="modoTabs">
         <div id="tabDocumento" class="modoTab active" onclick="cambiarModo('documento')">📄 Documento SAP</div>
         <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')">✍️ Solo Firma · Cargo Directo</div>
+        <div id="tabMateriales" class="modoTab" onclick="cambiarModo('materiales')">🦺 Materiales Seguridad</div>
         <div id="tabFirmados" class="modoTab" onclick="cambiarModo('firmados')">📁 Firmados</div>
     </div>
 
@@ -673,6 +873,42 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     <div id="cargoDirectoSection">
         <h3>✍️ Firma · Cargo Directo</h3>
         <p>Solicite la firma de quien recibe los materiales de Cargo Directo. Al confirmar, se guarda solo la imagen de la firma — sin generar ningún documento — para anexarla luego en Power Apps.</p>
+    </div>
+
+    <div id="materialesSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3>🦺 Despacho de materiales de seguridad <span id="msNumeroActual" class="badgePendientes" style="display:inline-block;">MS-0001</span></h3>
+        </div>
+        <div style="font-size:11px;color:rgb(146,64,14);margin-bottom:8px;">Carpeta de materiales: <strong id="estadoCarpetaMaterialesTexto">no conectada (ve a ⚙️ para configurarla)</strong></div>
+        <div id="avisoSinCarpetaMateriales">
+            No hay una carpeta conectada para materiales de seguridad. Se puede seguir usando — los conduces se descargarán al navegador y el historial queda solo en este navegador — pero se recomienda conectar una carpeta para mantener todo centralizado.
+            <div><button onclick="conectarCarpetaMateriales()">Conectar carpeta de materiales</button></div>
+        </div>
+
+        <div id="formularioMS">
+            <div class="filaEmpleadoMS">
+                <input type="text" id="msNombreEmpleado" placeholder="Nombre del empleado" style="flex:2;">
+                <input type="text" id="msTarjetaEmpleado" placeholder="No. de tarjeta" style="flex:1;" onblur="verificarReposicionMateriales()">
+            </div>
+            <div class="tituloListaMS">Artículos a entregar</div>
+            <div id="listaArticulosMS"></div>
+            <div id="btnAgregarArticuloCatalogo" onclick="toggleAdmin()">⚙️ Editar catálogo de artículos en Admin</div>
+            <button id="btnGenerarFirmarMS" onclick="iniciarFirmaMateriales()">Generar conduce y firmar</button>
+        </div>
+
+        <div id="infoModoMateriales">
+            <div id="textoInfoModoMateriales"></div>
+            <a onclick="cancelarFirmaMateriales()">Cancelar y volver al formulario</a>
+        </div>
+
+        <div id="historialMSSection">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <h3 style="margin:0;font-size:13px;color:rgb(146,64,14);font-weight:600;">📋 Control general — historial de entregas <span id="badgeHistorialMS" class="badgePendientes" style="display:none;">0</span></h3>
+                <button id="btnExportarHistorialMS" onclick="exportarHistorialMaterialesCSV()">⬇️ Exportar CSV</button>
+            </div>
+            <input type="text" id="buscarHistorialMS" class="buscarInput" placeholder="🔍 Buscar por nombre o No. de tarjeta..." oninput="renderizarHistorialMateriales()">
+            <div id="listaHistorialMS"></div>
+        </div>
     </div>
 
     <div id="firmadosSection">
@@ -716,6 +952,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         <button id="btnLimpiarCD" onclick="clearscreen()">Limpiar</button>
         <button id="btnConfirmarCD" onclick="confirmarFirmaCD()" disabled>Confirmar y guardar firma</button>
     </div>
+    <div id="accionesMS">
+        <button id="btnLimpiarMS" onclick="clearscreen()">Limpiar</button>
+        <button id="btnConfirmarMS" onclick="confirmarFirmaMS()" disabled>Confirmar y guardar firma</button>
+    </div>
 
     <div id="adminPanel">
         <h3>📁 Carpetas de trabajo</h3>
@@ -727,7 +967,15 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             <button class="btnCarpetaAdmin" onclick="conectarCarpetaSalida()">Elegir carpeta de salida</button>
             <span class="estadoCarpetaAdmin" id="estadoCarpetaSalida">No conectada (se descargará al navegador)</span>
         </div>
+        <div class="adminRow">
+            <button class="btnCarpetaAdmin" onclick="conectarCarpetaMateriales()">Elegir carpeta de materiales</button>
+            <span class="estadoCarpetaAdmin" id="estadoCarpetaMateriales">No conectada</span>
+        </div>
         <button id="btnReconectarCarpetas" onclick="reconectarCarpetasGuardadas()">🔌 Reconectar carpetas guardadas</button>
+
+        <h3 style="margin-top:16px;">🦺 Catálogo de materiales de seguridad</h3>
+        <div id="listaCatalogoAdminMS"></div>
+        <button class="btnCarpetaAdmin" style="width:100%;margin-top:6px;" onclick="agregarArticuloCatalogo()">+ Agregar artículo</button>
 
         <h3 style="margin-top:16px;">🖊️ Pluma y pantalla</h3>
         <div class="adminRow">
@@ -825,8 +1073,20 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
 
     var carpetaPendientes = null;   // carpeta de entrada (PDFs pendientes)
     var carpetaGuardado = null;     // carpeta de salida (PDFs/firmas ya procesados)
+    var carpetaMateriales = null;   // carpeta de salida de conduces de materiales de seguridad
     var handleEntradaPendienteDeConfirmar = null;
     var handleSalidaPendienteDeConfirmar = null;
+    var handleMaterialesPendienteDeConfirmar = null;
+
+    // ============ Materiales de Seguridad (EPP) ============
+    var catalogoMateriales = [];            // catálogo editable: [{nombre, tieneTalla, tallas, diasVidaUtil}]
+    var historialMateriales = [];           // [{numero, fecha, nombre, tarjeta, articulos:[{nombre,cantidad,talla}]}]
+    var siguienteNumeroMateriales = 1;
+    var materialesListoParaFirmar = false;
+    var articulosSeleccionadosMateriales = null;
+    var listaVisorMateriales = [];
+    var indiceVisorMateriales = -1;
+    var contextoVisorPdf = 'firmados';      // 'firmados' | 'materiales' — qué lista navega el modal visor
 
     var entradaArchivoActual = null;
     var pdfBytesActual = null;
@@ -939,12 +1199,18 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
                 if (estado2 === 'granted') { carpetaGuardado = salidaGuardada; }
                 else { handleSalidaPendienteDeConfirmar = salidaGuardada; }
             }
+            var materialesGuardada = await obtenerHandleDeDB('materiales');
+            if (materialesGuardada) {
+                var estado3 = await materialesGuardada.queryPermission({ mode: 'readwrite' });
+                if (estado3 === 'granted') { carpetaMateriales = materialesGuardada; }
+                else { handleMaterialesPendienteDeConfirmar = materialesGuardada; }
+            }
         } catch (e) {
             console.log('No se encontraron carpetas guardadas previamente', e);
         }
         actualizarEstadoCarpetas();
         document.getElementById('btnReconectarCarpetas').style.display =
-            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar) ? 'block' : 'none';
+            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar || handleMaterialesPendienteDeConfirmar) ? 'block' : 'none';
     }
     async function reconectarCarpetasGuardadas() {
         if (handleEntradaPendienteDeConfirmar) {
@@ -955,16 +1221,25 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             var ok2 = await verificarPermiso(handleSalidaPendienteDeConfirmar, 'readwrite');
             if (ok2) { carpetaGuardado = handleSalidaPendienteDeConfirmar; handleSalidaPendienteDeConfirmar = null; }
         }
+        if (handleMaterialesPendienteDeConfirmar) {
+            var ok3 = await verificarPermiso(handleMaterialesPendienteDeConfirmar, 'readwrite');
+            if (ok3) { carpetaMateriales = handleMaterialesPendienteDeConfirmar; handleMaterialesPendienteDeConfirmar = null; await cargarHistorialMateriales(); }
+        }
         actualizarEstadoCarpetas();
         document.getElementById('btnReconectarCarpetas').style.display =
-            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar) ? 'block' : 'none';
+            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar || handleMaterialesPendienteDeConfirmar) ? 'block' : 'none';
         mostrarToast('Carpetas reconectadas', 'success');
         if (modoActual === 'firmados') await listarFirmados();
     }
     function actualizarEstadoCarpetas() {
         document.getElementById('estadoCarpetaEntrada').innerText = carpetaPendientes ? ('✓ ' + carpetaPendientes.name) : 'No conectada';
         document.getElementById('estadoCarpetaSalida').innerText = carpetaGuardado ? ('✓ ' + carpetaGuardado.name) : 'No conectada (se descargará al navegador)';
+        document.getElementById('estadoCarpetaMateriales').innerText = carpetaMateriales ? ('✓ ' + carpetaMateriales.name) : 'No conectada';
         document.getElementById('estadoCarpetaEntradaTexto').innerText = carpetaPendientes ? carpetaPendientes.name : 'no conectada (ve a ⚙️ para configurarla)';
+        var estadoMatTexto = document.getElementById('estadoCarpetaMaterialesTexto');
+        if (estadoMatTexto) estadoMatTexto.innerText = carpetaMateriales ? carpetaMateriales.name : 'no conectada (ve a ⚙️ para configurarla)';
+        var avisoMat = document.getElementById('avisoSinCarpetaMateriales');
+        if (avisoMat) avisoMat.style.display = carpetaMateriales ? 'none' : 'block';
     }
 
     // ============ Guardar archivo final: en carpeta de salida si está configurada, si no, descarga normal ============
@@ -1280,6 +1555,9 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
         await restaurarCarpetasGuardadas();
+        cargarCatalogoMateriales();
+        renderizarAdminCatalogoMateriales();
+        await cargarHistorialMateriales();
         iniciarAutoRefresh();
         var ok = await wacom.connectSilencioso();
         if (ok) await prepararPadTrasConectar();
@@ -1294,6 +1572,12 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         } else if (hayTrazosFirma || hayTrazosTarjeta) {
             if (!confirm('Hay una firma sin guardar. ¿Cambiar de modo de todas formas? Se perderá.')) return;
         }
+        if (modoActual === 'materiales' && materialesListoParaFirmar) {
+            materialesListoParaFirmar = false;
+            articulosSeleccionadosMateriales = null;
+            document.getElementById('formularioMS').style.display = 'block';
+            document.getElementById('infoModoMateriales').style.display = 'none';
+        }
         seleccionMultipleActiva.clear();
         modoActual = nuevoModo;
         document.getElementById('ssvvggFirma').innerHTML = '';
@@ -1302,15 +1586,19 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         hayTrazosTarjeta = false;
         document.getElementById('tabDocumento').classList.toggle('active', modoActual === 'documento');
         document.getElementById('tabCargoDirecto').classList.toggle('active', modoActual === 'cargoDirecto');
+        document.getElementById('tabMateriales').classList.toggle('active', modoActual === 'materiales');
         document.getElementById('tabFirmados').classList.toggle('active', modoActual === 'firmados');
         document.getElementById('documentoSection').style.display = modoActual === 'documento' ? 'block' : 'none';
         document.getElementById('cargoDirectoSection').style.display = modoActual === 'cargoDirecto' ? 'block' : 'none';
+        document.getElementById('materialesSection').style.display = modoActual === 'materiales' ? 'block' : 'none';
         document.getElementById('firmadosSection').style.display = modoActual === 'firmados' ? 'block' : 'none';
         document.getElementById('acciones').style.display = modoActual === 'documento' ? 'flex' : 'none';
         document.getElementById('accionesCD').style.display = modoActual === 'cargoDirecto' ? 'flex' : 'none';
+        document.getElementById('accionesMS').style.display = modoActual === 'materiales' ? 'flex' : 'none';
         document.getElementById('etiquetaZonaTarjeta').style.display = modoActual === 'documento' ? 'inline' : 'none';
         document.getElementById('btnConfirmar').disabled = true;
         document.getElementById('btnConfirmarCD').disabled = true;
+        document.getElementById('btnConfirmarMS').disabled = true;
 
         if (modoActual === 'firmados') {
             document.getElementById('btnConnect').style.display = 'none';
@@ -1321,6 +1609,10 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             document.getElementById('firmaBox').style.display = 'block';
             if (modoActual === 'cargoDirecto') {
                 document.getElementById('btnConnect').disabled = false;
+            } else if (modoActual === 'materiales') {
+                document.getElementById('btnConnect').disabled = !materialesListoParaFirmar;
+                renderizarFormularioMateriales();
+                cargarHistorialMateriales();
             } else {
                 document.getElementById('btnConnect').disabled = !documentoListoParaFirmar;
             }
@@ -1332,6 +1624,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         if (modoActual === 'firmados') return;
         if (modoActual === 'cargoDirecto') {
             dibujarPantallaFirmaCD();
+        } else if (modoActual === 'materiales') {
+            if (materialesListoParaFirmar) dibujarPantallaFirmaMS(); else dibujarPantallaReposo();
         } else if (documentoListoParaFirmar || modoMultipleActivo) {
             dibujarPantallaFirma();
         } else {
@@ -1438,6 +1732,37 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         wacom.setWritingArea(areaTotalCD);
         empujarImagenAlPad();
     }
+    function dibujarPantallaFirmaMS() {
+        context.fillStyle = "#F8FAFC";
+        context.fillRect(0, 0, 800, 480);
+        context.fillStyle = "#0B1F4A";
+        context.fillRect(0, 0, 800, 70);
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 20px Arial";
+        context.textAlign = "center";
+        context.fillText("MATERIALES DE SEGURIDAD", 350, 32);
+        context.font = "12px Arial";
+        context.fillStyle = "rgba(255,255,255,0.65)";
+        context.fillText(formatearNumeroMateriales(siguienteNumeroMateriales), 350, 52);
+        roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 13px Arial";
+        context.textAlign = "center";
+        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
+        roundRectStroke(zonaFirmaCD.x1, zonaFirmaCD.y1, zonaFirmaCD.x2 - zonaFirmaCD.x1, zonaFirmaCD.y2 - zonaFirmaCD.y1, 10, "#CBD5E1", 1);
+        context.fillStyle = "#94A3B8";
+        context.font = "13px Arial";
+        context.textAlign = "left";
+        context.fillText("FIRME AQUÍ", zonaFirmaCD.x1 + 14, zonaFirmaCD.y1 - 8);
+        context.strokeStyle = "#E2E8F0";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(zonaFirmaCD.x1 + 20, zonaFirmaCD.y2 - 40);
+        context.lineTo(zonaFirmaCD.x2 - 20, zonaFirmaCD.y2 - 40);
+        context.stroke();
+        wacom.setWritingArea(areaTotalCD);
+        empujarImagenAlPad();
+    }
     function roundRectStroke(x, y, w, h, r, color, lineWidth) {
         context.strokeStyle = color;
         context.lineWidth = lineWidth;
@@ -1459,6 +1784,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         hayTrazosTarjeta = false;
         document.getElementById('btnConfirmar').disabled = true;
         document.getElementById('btnConfirmarCD').disabled = true;
+        document.getElementById('btnConfirmarMS').disabled = true;
         dibujarPantallaSegunModo();
         setTimeout(async () => { await wacom.setInking(true) }, 200)
     }
@@ -1477,7 +1803,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
     function estaEnZonaTarjeta(y) {
-        if (modoActual === 'cargoDirecto') return false;
+        if (modoActual === 'cargoDirecto' || modoActual === 'materiales') return false;
         return y >= zonaTarjetaDocumento.y1;
     }
     function estaEnBotonReintentar(x, y) {
@@ -1502,6 +1828,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     var yaSePresionoBoton = false;
     async function pointevent(z, x, y, p) {
         if (modoActual === 'documento' && !documentoListoParaFirmar && !modoMultipleActivo) return;
+        if (modoActual === 'materiales' && !materialesListoParaFirmar) return;
         if (modoActual === 'firmados') return;
         if (z && estaEnBotonReintentar(x, y)) {
             if (!yaSePresionoBoton) {
@@ -1521,6 +1848,8 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
             if (esTarjeta) { hayTrazosTarjeta = true; } else { hayTrazosFirma = true; }
             if (modoActual === 'documento') {
                 document.getElementById('btnConfirmar').disabled = !(hayTrazosFirma && hayTrazosTarjeta);
+            } else if (modoActual === 'materiales') {
+                document.getElementById('btnConfirmarMS').disabled = !hayTrazosFirma;
             } else {
                 document.getElementById('btnConfirmarCD').disabled = !hayTrazosFirma;
             }
@@ -1827,6 +2156,7 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
     async function abrirVisorPdf(indice) {
         try {
             if (indice < 0 || indice >= listaVisorActual.length) return;
+            contextoVisorPdf = 'firmados';
             indiceVisorActual = indice;
             var item = listaVisorActual[indice];
             var archivo = await item.entrada.getFile();
@@ -1855,14 +2185,464 @@ canvas#myCanvas { border-radius: 6px; width: 100%; height: auto; display: block;
         }
     }
     function documentoVisorAnterior() {
+        if (contextoVisorPdf === 'materiales') {
+            if (indiceVisorMateriales > 0) abrirVisorMateriales(indiceVisorMateriales - 1);
+            return;
+        }
         if (indiceVisorActual > 0) abrirVisorPdf(indiceVisorActual - 1);
     }
     function documentoVisorSiguiente() {
+        if (contextoVisorPdf === 'materiales') {
+            if (indiceVisorMateriales < listaVisorMateriales.length - 1) abrirVisorMateriales(indiceVisorMateriales + 1);
+            return;
+        }
         if (indiceVisorActual < listaVisorActual.length - 1) abrirVisorPdf(indiceVisorActual + 1);
     }
     function cerrarVisorPdf() {
         document.getElementById('modalVisorPdf').classList.remove('visible');
         indiceVisorActual = -1;
+        indiceVisorMateriales = -1;
+        contextoVisorPdf = 'firmados';
+    }
+
+    // ============ Catálogo de materiales de seguridad (editable en Admin) ============
+    function catalogoMaterialesDefault() {
+        return [
+            { nombre: 'Casco de seguridad', tieneTalla: false, tallas: '', diasVidaUtil: 180 },
+            { nombre: 'Lentes de seguridad', tieneTalla: false, tallas: '', diasVidaUtil: 180 },
+            { nombre: 'Guantes de seguridad', tieneTalla: false, tallas: '', diasVidaUtil: 90 },
+            { nombre: 'Mascarilla', tieneTalla: false, tallas: '', diasVidaUtil: 30 },
+            { nombre: 'Faja de seguridad', tieneTalla: true, tallas: 'S,M,L,XL', diasVidaUtil: 365 },
+            { nombre: 'Botas de seguridad', tieneTalla: true, tallas: '38,39,40,41,42,43,44,45', diasVidaUtil: 365 },
+            { nombre: 'Protectores auditivos', tieneTalla: false, tallas: '', diasVidaUtil: 180 }
+        ];
+    }
+    function cargarCatalogoMateriales() {
+        var guardado = localStorage.getItem('catalogoMaterialesSeguridad');
+        catalogoMateriales = guardado ? JSON.parse(guardado) : catalogoMaterialesDefault();
+        if (!guardado) guardarCatalogoMateriales();
+    }
+    function guardarCatalogoMateriales() {
+        localStorage.setItem('catalogoMaterialesSeguridad', JSON.stringify(catalogoMateriales));
+    }
+    function agregarArticuloCatalogo() {
+        catalogoMateriales.push({ nombre: 'Nuevo artículo', tieneTalla: false, tallas: '', diasVidaUtil: 180 });
+        guardarCatalogoMateriales();
+        renderizarAdminCatalogoMateriales();
+        renderizarFormularioMateriales();
+    }
+    function eliminarArticuloCatalogo(indice) {
+        if (!confirm('¿Eliminar "' + catalogoMateriales[indice].nombre + '" del catálogo?')) return;
+        catalogoMateriales.splice(indice, 1);
+        guardarCatalogoMateriales();
+        renderizarAdminCatalogoMateriales();
+        renderizarFormularioMateriales();
+    }
+    function actualizarArticuloCatalogo(indice, campo, valor) {
+        if (campo === 'diasVidaUtil') catalogoMateriales[indice][campo] = Number(valor) || 0;
+        else catalogoMateriales[indice][campo] = valor;
+        guardarCatalogoMateriales();
+        if (campo === 'tieneTalla') renderizarAdminCatalogoMateriales();
+        renderizarFormularioMateriales();
+    }
+    function renderizarAdminCatalogoMateriales() {
+        var cont = document.getElementById('listaCatalogoAdminMS');
+        if (!cont) return;
+        cont.innerHTML = '';
+        catalogoMateriales.forEach(function (art, i) {
+            var fila = document.createElement('div');
+            fila.className = 'catalogoMSRow';
+            fila.innerHTML =
+                '<input type="text" value="' + art.nombre.replace(/"/g, '&quot;') + '" style="flex:1;min-width:120px;" onchange="actualizarArticuloCatalogo(' + i + ',\'nombre\',this.value)">' +
+                '<label><input type="checkbox" ' + (art.tieneTalla ? 'checked' : '') + ' onchange="actualizarArticuloCatalogo(' + i + ',\'tieneTalla\',this.checked)"> Talla</label>' +
+                (art.tieneTalla ? '<input type="text" value="' + (art.tallas || '').replace(/"/g, '&quot;') + '" placeholder="S,M,L,XL" style="width:110px;" onchange="actualizarArticuloCatalogo(' + i + ',\'tallas\',this.value)">' : '') +
+                '<input type="number" value="' + art.diasVidaUtil + '" title="Días para alerta de reposición" onchange="actualizarArticuloCatalogo(' + i + ',\'diasVidaUtil\',this.value)">' +
+                '<span style="font-size:9px;color:rgb(148,163,184);">días</span>' +
+                '<button class="btnEliminarArticulo" onclick="eliminarArticuloCatalogo(' + i + ')">✕</button>';
+            cont.appendChild(fila);
+        });
+    }
+
+    // ============ Carpeta de materiales de seguridad ============
+    async function conectarCarpetaMateriales() {
+        try {
+            var handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            var ok = await verificarPermiso(handle, 'readwrite');
+            if (!ok) { mostrarToast('Permiso de escritura denegado para la carpeta de materiales', 'error'); return; }
+            carpetaMateriales = handle;
+            await guardarHandleEnDB('materiales', handle);
+            actualizarEstadoCarpetas();
+            await cargarHistorialMateriales();
+            mostrarToast('✓ Carpeta de materiales conectada: ' + handle.name, 'success');
+        } catch (e) {
+            console.log('Selección de carpeta de materiales cancelada', e);
+        }
+    }
+
+    // ============ Historial (control general) ============
+    async function cargarHistorialMateriales() {
+        var local = localStorage.getItem('historialMaterialesSeguridad');
+        historialMateriales = local ? JSON.parse(local) : [];
+        if (carpetaMateriales) {
+            try {
+                var ok = await verificarPermiso(carpetaMateriales, 'readwrite');
+                if (ok) {
+                    var fh = await carpetaMateriales.getFileHandle('_historial_materiales.json');
+                    var archivo = await fh.getFile();
+                    var texto = await archivo.text();
+                    historialMateriales = JSON.parse(texto);
+                    localStorage.setItem('historialMaterialesSeguridad', JSON.stringify(historialMateriales));
+                }
+            } catch (e) {
+                console.log('Todavía no hay historial en la carpeta de materiales (se creará al firmar el primer conduce)', e);
+            }
+        }
+        recalcularSiguienteNumeroMateriales();
+        renderizarHistorialMateriales();
+        actualizarBadgeNumeroMS();
+    }
+    async function guardarHistorialMateriales() {
+        localStorage.setItem('historialMaterialesSeguridad', JSON.stringify(historialMateriales));
+        if (carpetaMateriales) {
+            try {
+                var ok = await verificarPermiso(carpetaMateriales, 'readwrite');
+                if (!ok) throw new Error('Sin permiso de escritura');
+                var fh = await carpetaMateriales.getFileHandle('_historial_materiales.json', { create: true });
+                var writable = await fh.createWritable();
+                await writable.write(JSON.stringify(historialMateriales, null, 2));
+                await writable.close();
+            } catch (e) {
+                console.warn('No se pudo guardar el historial en la carpeta, queda respaldado en este navegador:', e);
+                mostrarToast('⚠ El historial no se pudo guardar en la carpeta compartida (queda guardado en este navegador)', 'error');
+            }
+        }
+    }
+    function recalcularSiguienteNumeroMateriales() {
+        var max = 0;
+        historialMateriales.forEach(function (r) {
+            var n = parseInt(String(r.numero).replace('MS-', ''), 10);
+            if (!isNaN(n) && n > max) max = n;
+        });
+        siguienteNumeroMateriales = max + 1;
+    }
+    function formatearNumeroMateriales(n) {
+        return 'MS-' + String(n).padStart(4, '0');
+    }
+    function actualizarBadgeNumeroMS() {
+        var el = document.getElementById('msNumeroActual');
+        if (el) el.innerText = formatearNumeroMateriales(siguienteNumeroMateriales);
+    }
+
+    // ============ Formulario dinámico de despacho ============
+    function renderizarFormularioMateriales() {
+        var cont = document.getElementById('listaArticulosMS');
+        if (!cont) return;
+        cont.innerHTML = '';
+        catalogoMateriales.forEach(function (art, i) {
+            var fila = document.createElement('div');
+            fila.className = 'articuloMSRow';
+            fila.dataset.indice = i;
+            var opcionesTallas = '';
+            if (art.tieneTalla) {
+                (art.tallas || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean).forEach(function (t) {
+                    opcionesTallas += '<option value="' + t + '">' + t + '</option>';
+                });
+            }
+            fila.innerHTML =
+                '<input type="checkbox" class="msChkArticulo">' +
+                '<span class="nombreArticuloMS">' + art.nombre + '</span>' +
+                (art.tieneTalla ? '<select class="msTallaArticulo"><option value="">Talla</option>' + opcionesTallas + '</select>' : '') +
+                '<input type="number" class="msCantidadArticulo" min="1" value="1" style="display:none;">' +
+                '<span class="avisoReposicionMS" style="display:none;"></span>';
+            var chk = fila.querySelector('.msChkArticulo');
+            var cantidadInput = fila.querySelector('.msCantidadArticulo');
+            chk.onchange = function () { cantidadInput.style.display = this.checked ? 'inline-block' : 'none'; };
+            cont.appendChild(fila);
+        });
+        verificarReposicionMateriales();
+    }
+    function verificarReposicionMateriales() {
+        var tarjetaInput = document.getElementById('msTarjetaEmpleado');
+        if (!tarjetaInput) return;
+        var tarjeta = (tarjetaInput.value || '').trim().toLowerCase();
+        var filas = document.querySelectorAll('#listaArticulosMS .articuloMSRow');
+        filas.forEach(function (fila) {
+            var i = Number(fila.dataset.indice);
+            var art = catalogoMateriales[i];
+            var aviso = fila.querySelector('.avisoReposicionMS');
+            fila.classList.remove('reposicionAlerta');
+            aviso.style.display = 'none';
+            if (!tarjeta || !art) return;
+            var registros = historialMateriales.filter(function (r) {
+                return (r.tarjeta || '').trim().toLowerCase() === tarjeta &&
+                    (r.articulos || []).some(function (a) { return a.nombre === art.nombre; });
+            });
+            if (registros.length === 0) return;
+            var ultimaFecha = Math.max.apply(null, registros.map(function (r) { return r.fecha; }));
+            var diasTranscurridos = Math.floor((Date.now() - ultimaFecha) / 86400000);
+            if (diasTranscurridos < art.diasVidaUtil) {
+                fila.classList.add('reposicionAlerta');
+                aviso.style.display = 'inline';
+                aviso.innerText = '⚠ entregado hace ' + diasTranscurridos + ' día(s)';
+            }
+        });
+    }
+    function validarFormularioMateriales() {
+        var nombre = document.getElementById('msNombreEmpleado').value.trim();
+        var tarjeta = document.getElementById('msTarjetaEmpleado').value.trim();
+        if (!nombre) { mostrarToast('Escribe el nombre del empleado', 'error'); return null; }
+        if (!tarjeta) { mostrarToast('Escribe el número de tarjeta del empleado', 'error'); return null; }
+        var articulos = [];
+        var filas = document.querySelectorAll('#listaArticulosMS .articuloMSRow');
+        var conError = false;
+        filas.forEach(function (fila) {
+            if (conError) return;
+            var i = Number(fila.dataset.indice);
+            var art = catalogoMateriales[i];
+            var chk = fila.querySelector('.msChkArticulo');
+            if (!chk.checked) return;
+            var tallaSelect = fila.querySelector('.msTallaArticulo');
+            if (art.tieneTalla && (!tallaSelect || !tallaSelect.value)) {
+                mostrarToast('Selecciona la talla de "' + art.nombre + '"', 'error');
+                conError = true;
+                return;
+            }
+            var cantidadInput = fila.querySelector('.msCantidadArticulo');
+            var cantidad = Number(cantidadInput.value) || 0;
+            if (cantidad <= 0) {
+                mostrarToast('Cantidad inválida en "' + art.nombre + '"', 'error');
+                conError = true;
+                return;
+            }
+            articulos.push({ nombre: art.nombre, cantidad: cantidad, talla: art.tieneTalla ? tallaSelect.value : '' });
+        });
+        if (conError) return null;
+        if (articulos.length === 0) { mostrarToast('Selecciona al menos un artículo a entregar', 'error'); return null; }
+        return { nombre: nombre, tarjeta: tarjeta, articulos: articulos };
+    }
+
+    // ============ Flujo de firma del conduce ============
+    function iniciarFirmaMateriales() {
+        var datos = validarFormularioMateriales();
+        if (!datos) return;
+        articulosSeleccionadosMateriales = datos;
+        document.getElementById('formularioMS').style.display = 'none';
+        document.getElementById('infoModoMateriales').style.display = 'block';
+        document.getElementById('textoInfoModoMateriales').innerText =
+            formatearNumeroMateriales(siguienteNumeroMateriales) + ' — ' + datos.nombre + ' (' + datos.tarjeta + '): ' +
+            datos.articulos.map(function (a) { return a.nombre + (a.talla ? ' (' + a.talla + ')' : '') + ' x' + a.cantidad; }).join(', ');
+        materialesListoParaFirmar = true;
+        document.getElementById('btnConnect').disabled = false;
+        hayTrazosFirma = false;
+        document.getElementById('btnConfirmarMS').disabled = true;
+        dibujarPantallaSegunModo();
+    }
+    function cancelarFirmaMateriales() {
+        if (hayTrazosFirma) {
+            if (!confirm('Hay una firma sin guardar. ¿Cancelar de todas formas? Se perderá.')) return;
+        }
+        materialesListoParaFirmar = false;
+        articulosSeleccionadosMateriales = null;
+        document.getElementById('formularioMS').style.display = 'block';
+        document.getElementById('infoModoMateriales').style.display = 'none';
+        document.getElementById('ssvvggFirma').innerHTML = '';
+        hayTrazosFirma = false;
+        document.getElementById('btnConnect').disabled = true;
+        dibujarPantallaSegunModo();
+    }
+
+    async function confirmarFirmaMS() {
+        if (!hayTrazosFirma) return;
+        var btn = document.getElementById('btnConfirmarMS');
+        btn.disabled = true;
+        btn.innerText = "Procesando...";
+        try {
+            var pngFirma = await rasterizarSvgComoPng(document.getElementById('ssvvggFirma'));
+            var numero = formatearNumeroMateriales(siguienteNumeroMateriales);
+            var pdfBytesFinal = await generarPdfConduceMateriales(numero, articulosSeleccionadosMateriales, pngFirma);
+            var guardadoDirecto = await guardarArchivoFinal(numero + '.pdf', pdfBytesFinal, 'application/pdf');
+
+            historialMateriales.push({
+                numero: numero,
+                fecha: Date.now(),
+                nombre: articulosSeleccionadosMateriales.nombre,
+                tarjeta: articulosSeleccionadosMateriales.tarjeta,
+                articulos: articulosSeleccionadosMateriales.articulos
+            });
+            await guardarHistorialMateriales();
+            recalcularSiguienteNumeroMateriales();
+            actualizarBadgeNumeroMS();
+            renderizarHistorialMateriales();
+
+            document.getElementById('msNombreEmpleado').value = '';
+            document.getElementById('msTarjetaEmpleado').value = '';
+            renderizarFormularioMateriales();
+            materialesListoParaFirmar = false;
+            articulosSeleccionadosMateriales = null;
+            document.getElementById('formularioMS').style.display = 'block';
+            document.getElementById('infoModoMateriales').style.display = 'none';
+            document.getElementById('ssvvggFirma').innerHTML = '';
+            hayTrazosFirma = false;
+            document.getElementById('btnConnect').disabled = true;
+            dibujarPantallaSegunModo();
+            btn.innerText = "Confirmar y guardar firma";
+            mostrarToast(guardadoDirecto ? ('✓ Conduce ' + numero + ' firmado y guardado') : ('✓ Conduce ' + numero + ' firmado y descargado'), 'success');
+        } catch (e) {
+            console.error(e);
+            mostrarToast("Error al generar el conduce: " + e.message, "error");
+            btn.innerText = "Confirmar y guardar firma";
+            btn.disabled = false;
+        }
+    }
+
+    // ============ Generación del conduce en PDF (desde cero, con pdf-lib) ============
+    async function generarPdfConduceMateriales(numero, datos, pngFirmaBytes) {
+        var pdfDoc = await PDFLib.PDFDocument.create();
+        var pagina = pdfDoc.addPage([612, 792]);
+        var fuente = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        var fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        var azulOscuro = PDFLib.rgb(11 / 255, 31 / 255, 74 / 255);
+        var grisTexto = PDFLib.rgb(0.3, 0.34, 0.4);
+        var grisClaro = PDFLib.rgb(0.95, 0.96, 0.98);
+        var blanco = PDFLib.rgb(1, 1, 1);
+
+        function textoDerecha(texto, xDerecha, y, fontUsado, size, color) {
+            var ancho = fontUsado.widthOfTextAtSize(texto, size);
+            pagina.drawText(texto, { x: xDerecha - ancho, y: y, size: size, font: fontUsado, color: color });
+        }
+
+        pagina.drawRectangle({ x: 0, y: 792 - 70, width: 612, height: 70, color: azulOscuro });
+        pagina.drawText('TALLER AUTOMOTRIZ CLARO', { x: 50, y: 792 - 32, size: 16, font: fuenteBold, color: blanco });
+        pagina.drawText('Conduce de materiales de seguridad', { x: 50, y: 792 - 50, size: 10, font: fuente, color: PDFLib.rgb(0.8, 0.85, 0.95) });
+        textoDerecha(numero, 562, 792 - 32, fuenteBold, 14, blanco);
+        var fechaTexto = new Date().toLocaleString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        textoDerecha(fechaTexto, 562, 792 - 48, fuente, 9, PDFLib.rgb(0.8, 0.85, 0.95));
+
+        var y = 792 - 100;
+        pagina.drawText('Nombre:', { x: 50, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        pagina.drawText(datos.nombre, { x: 110, y: y, size: 10, font: fuente, color: grisTexto });
+        pagina.drawText('No. Tarjeta:', { x: 320, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        pagina.drawText(datos.tarjeta, { x: 390, y: y, size: 10, font: fuente, color: grisTexto });
+
+        y -= 24;
+        pagina.drawLine({ start: { x: 50, y: y }, end: { x: 562, y: y }, thickness: 0.5, color: PDFLib.rgb(0.85, 0.87, 0.9) });
+
+        y -= 22;
+        pagina.drawText('Artículo', { x: 50, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        pagina.drawText('Cantidad', { x: 380, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        pagina.drawText('Talla', { x: 470, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        y -= 6;
+        pagina.drawLine({ start: { x: 50, y: y }, end: { x: 562, y: y }, thickness: 0.75, color: azulOscuro });
+
+        datos.articulos.forEach(function (art, idx) {
+            y -= 22;
+            if (idx % 2 === 0) {
+                pagina.drawRectangle({ x: 50, y: y - 5, width: 512, height: 18, color: grisClaro });
+            }
+            pagina.drawText(art.nombre, { x: 55, y: y, size: 10, font: fuente, color: grisTexto });
+            pagina.drawText(String(art.cantidad), { x: 380, y: y, size: 10, font: fuente, color: grisTexto });
+            pagina.drawText(art.talla || '—', { x: 470, y: y, size: 10, font: fuente, color: grisTexto });
+        });
+
+        y -= 50;
+        pagina.drawText('Firma de quien recibe:', { x: 50, y: y, size: 10, font: fuenteBold, color: grisTexto });
+        y -= 10;
+        var cajaAncho = 240, cajaAlto = 144;
+        pagina.drawRectangle({ x: 50, y: y - cajaAlto, width: cajaAncho, height: cajaAlto, borderWidth: 1, borderColor: PDFLib.rgb(0.8, 0.83, 0.87), color: blanco });
+        var imgFirma = await pdfDoc.embedPng(pngFirmaBytes);
+        pagina.drawImage(imgFirma, { x: 50, y: y - cajaAlto, width: cajaAncho, height: cajaAlto });
+
+        pagina.drawText('Documento generado por el Sistema de Autogestión · Almacén · Taller Automotriz Claro', { x: 50, y: 30, size: 8, font: fuente, color: PDFLib.rgb(0.6, 0.63, 0.68) });
+
+        return await pdfDoc.save();
+    }
+
+    // ============ Control general — historial de entregas ============
+    function renderizarHistorialMateriales() {
+        var cont = document.getElementById('listaHistorialMS');
+        var badge = document.getElementById('badgeHistorialMS');
+        if (!cont) return;
+        var buscarEl = document.getElementById('buscarHistorialMS');
+        var texto = (buscarEl && buscarEl.value || '').toLowerCase();
+        var filtrados = historialMateriales.filter(function (r) {
+            return !texto || (r.nombre || '').toLowerCase().indexOf(texto) !== -1 || (r.tarjeta || '').toLowerCase().indexOf(texto) !== -1;
+        }).sort(function (a, b) { return b.fecha - a.fecha; });
+        listaVisorMateriales = filtrados;
+        badge.style.display = 'inline-block';
+        badge.innerText = filtrados.length === historialMateriales.length ? String(historialMateriales.length) : (filtrados.length + ' / ' + historialMateriales.length);
+        cont.innerHTML = '';
+        if (filtrados.length === 0) {
+            cont.innerHTML = '<div style="font-size:12px;color:#64748b;text-align:center;padding:10px;">' +
+                (historialMateriales.length === 0 ? 'Todavía no se han registrado entregas' : 'Sin resultados para tu búsqueda') + '</div>';
+            return;
+        }
+        filtrados.forEach(function (r, idx) {
+            var fila = document.createElement('div');
+            fila.className = 'filaHistorialMS';
+            var fechaTexto = new Date(r.fecha).toLocaleString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            var resumen = (r.articulos || []).map(function (a) { return a.nombre; }).join(', ');
+            fila.innerHTML =
+                '<span>' + r.numero + ' · ' + r.nombre + ' (' + r.tarjeta + ')<span class="detalleHistorialMS">' + resumen + ' · ' + fechaTexto + '</span></span>' +
+                '<span style="display:flex;gap:6px;"><button style="background:rgb(217,119,6);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;">👁️ Ver</button></span>';
+            fila.onclick = function () { abrirVisorMateriales(idx); };
+            fila.querySelector('button').onclick = function (ev) { ev.stopPropagation(); abrirVisorMateriales(idx); };
+            cont.appendChild(fila);
+        });
+    }
+    function exportarHistorialMaterialesCSV() {
+        if (historialMateriales.length === 0) { mostrarToast('No hay entregas registradas todavía', 'info'); return; }
+        var filas = [['Numero', 'Fecha', 'Nombre', 'Tarjeta', 'Articulos']];
+        historialMateriales.slice().sort(function (a, b) { return b.fecha - a.fecha; }).forEach(function (r) {
+            var fecha = new Date(r.fecha).toLocaleString('es-DO');
+            var articulos = (r.articulos || []).map(function (a) { return a.nombre + (a.talla ? ' (' + a.talla + ')' : '') + ' x' + a.cantidad; }).join(' | ');
+            filas.push([r.numero, fecha, r.nombre, r.tarjeta, articulos]);
+        });
+        var csv = filas.map(function (fila) {
+            return fila.map(function (campo) { return '"' + String(campo).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\n');
+        var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var enlace = document.createElement('a');
+        enlace.href = url;
+        enlace.download = 'historial_materiales_seguridad.csv';
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
+        URL.revokeObjectURL(url);
+    }
+
+    async function abrirVisorMateriales(indice) {
+        try {
+            if (indice < 0 || indice >= listaVisorMateriales.length) return;
+            if (!carpetaMateriales) { mostrarToast('Conecta la carpeta de materiales en ⚙️ para poder ver el PDF', 'info'); return; }
+            contextoVisorPdf = 'materiales';
+            indiceVisorMateriales = indice;
+            var item = listaVisorMateriales[indice];
+            var handle = await carpetaMateriales.getFileHandle(item.numero + '.pdf');
+            var archivo = await handle.getFile();
+            var bytes = await archivo.arrayBuffer();
+            var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+            document.getElementById('tituloVisorPdf').innerText = item.numero + ' · ' + item.nombre;
+            document.getElementById('modalVisorPdf').classList.add('visible');
+            document.getElementById('paginacionVisorPdf').innerText = 'Registro ' + (indice + 1) + ' de ' + listaVisorMateriales.length;
+            document.getElementById('btnVisorAnterior').disabled = indice <= 0;
+            document.getElementById('btnVisorSiguiente').disabled = indice >= listaVisorMateriales.length - 1;
+            var contenedor = document.getElementById('contenedorPaginasVisor');
+            contenedor.innerHTML = '';
+            for (var p = 1; p <= pdf.numPages; p++) {
+                var pagina = await pdf.getPage(p);
+                var viewport = pagina.getViewport({ scale: 1.4 });
+                var c = document.createElement('canvas');
+                c.width = viewport.width;
+                c.height = viewport.height;
+                var ctx = c.getContext('2d');
+                await pagina.render({ canvasContext: ctx, viewport: viewport }).promise;
+                contenedor.appendChild(c);
+            }
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo abrir el conduce: ' + e.message, 'error');
+        }
     }
 
     async function aplicarAjustesAdmin() {
