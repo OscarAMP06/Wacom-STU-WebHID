@@ -885,6 +885,259 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
     #modalVisorPdfContenido { border-radius: 0; height: 100%; }
     #acciones button, #accionesCD button, #accionesMS button { padding: 13px 12px; }
 }
+
+/* =====================================================================
+   MÓDULO "FIRMAR PDF" (editor libre de firma)
+   ===================================================================== */
+body[data-modo="editor"] #layout { grid-template-columns: minmax(0, 1fr); }
+body[data-modo="editor"] #panelFirma { display: none; }
+#editorSection { display: none; padding: 0; overflow: visible; }
+
+/* Estado vacío: zona para soltar archivos */
+#editorVacio {
+    margin: 20px;
+    padding: 56px 24px;
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--r-lg);
+    background: var(--surface-2);
+    text-align: center;
+    transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+#editorVacio.arrastrando { border-color: var(--primary); background: var(--primary-soft); }
+.vacioIco {
+    width: 64px; height: 64px; margin: 0 auto 16px;
+    border-radius: 18px; display: grid; place-items: center;
+    background: var(--primary-soft); color: var(--primary);
+}
+.vacioIco .icon { width: 30px; height: 30px; }
+#editorVacio h3 { margin: 0 0 6px; font-size: 19px; font-weight: 600; justify-content: center; }
+#editorVacio p { margin: 0 auto 20px; max-width: 520px; color: var(--muted); font-size: 14px; }
+#editorVacio .pista { margin-top: 12px; font-size: 12.5px; color: var(--subtle); }
+.caracteristicas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 26px; }
+.caracteristicas span {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: var(--r-full);
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text-2);
+}
+
+/* Barra de herramientas */
+#editorTrabajo { display: none; }
+#editorTrabajo.visible { display: block; }
+#editorBarra {
+    position: sticky; top: 62px; z-index: 25;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 14px;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.archivoInfo { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 200px; }
+.archivoInfo .textoFila b { font-size: 14px; }
+.archivoInfo .textoFila small { font-size: 12px; color: var(--muted); }
+.grupoBarra { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); }
+.grupoBarra .btn { border: none; padding: 6px 9px; }
+#zoomTexto { min-width: 48px; text-align: center; font-size: 12.5px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.exito { background: var(--success); border-color: var(--success); color: #fff; box-shadow: 0 6px 16px -8px rgba(21,128,61,.7); }
+.btn.exito:hover { background: #166534; border-color: #166534; color: #fff; }
+
+/* Cuerpo: lateral + páginas */
+#editorCuerpo { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 70vh; }
+#editorLateral {
+    padding: 16px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 0 0 0 var(--r-lg);
+}
+.latBloque + .latBloque { margin-top: 20px; }
+.latTitulo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.latAyuda { margin: 8px 0 0; font-size: 12px; color: var(--subtle); }
+
+.btnPad {
+    width: 100%;
+    display: flex; align-items: flex-start; gap: 12px; text-align: left;
+    padding: 12px;
+    border-radius: var(--r-md);
+    border: 1px solid #C7D7FE;
+    background: linear-gradient(135deg, #F5F8FF, #E9F0FF);
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.btnPad:hover { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+.btnPad .ico { width: 36px; height: 36px; flex: none; border-radius: 10px; display: grid; place-items: center; background: var(--primary); color: #fff; }
+.btnPad b { display: block; font-size: 13.5px; color: var(--text); }
+.btnPad small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+#listaMisFirmas { display: grid; gap: 8px; }
+.firmaCard {
+    position: relative;
+    height: 74px;
+    display: grid; place-items: center;
+    padding: 8px 30px 8px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: #fff;
+    cursor: grab;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease), transform .1s var(--ease);
+}
+.firmaCard:hover { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+.firmaCard:active { cursor: grabbing; transform: scale(.98); }
+.firmaCard img { max-width: 100%; max-height: 56px; pointer-events: none; }
+.firmaCard .accionesCard { position: absolute; top: 4px; right: 4px; display: flex; flex-direction: column; gap: 2px; }
+.firmaCard .accionesCard button {
+    width: 24px; height: 24px; display: grid; place-items: center;
+    border: none; border-radius: 6px; background: transparent; color: var(--subtle);
+}
+.firmaCard .accionesCard button:hover { background: var(--surface-3); color: var(--text); }
+.firmaCard .accionesCard button.pred { color: #D97706; }
+.firmaCard .accionesCard button.borrar:hover { background: var(--danger-soft); color: var(--danger); }
+.firmasVacio { padding: 14px; text-align: center; font-size: 12.5px; color: var(--muted); border: 1px dashed var(--border-strong); border-radius: var(--r-md); }
+.filaBotonesLat { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.filaBotonesLat .btn { width: 100%; }
+.inputOculto { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* Área de páginas */
+#editorPaginas {
+    display: flex; flex-direction: column; align-items: center; gap: 22px;
+    padding: 24px;
+    background: var(--surface-3);
+    border-radius: 0 0 var(--r-lg) 0;
+    overflow-x: auto;
+}
+.paginaEditor {
+    position: relative; flex: none;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(15,23,42,.12), 0 12px 32px -12px rgba(15,23,42,.28);
+}
+.paginaEditor canvas { display: block; width: 100%; height: 100%; }
+.paginaEditor.soltar { outline: 3px solid var(--primary); outline-offset: 3px; }
+.capaElementos { position: absolute; inset: 0; }
+.etiquetaPagina {
+    position: absolute; left: 0; top: -20px;
+    font-size: 11.5px; font-weight: 500; color: var(--muted);
+}
+
+/* Elementos colocados (firmas, textos, zonas) */
+.elem {
+    position: absolute;
+    touch-action: none;
+    cursor: move;
+    user-select: none;
+    outline: 1px dashed transparent;
+    outline-offset: 2px;
+}
+.elem:hover { outline-color: rgba(29,78,216,.55); }
+.elem.sel { outline: 2px solid var(--primary); z-index: 5; }
+.elem.arrastrando { z-index: 50; opacity: .9; }
+.elem img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.elem .h {
+    position: absolute; width: 14px; height: 14px; display: none;
+    background: #fff; border: 2px solid var(--primary); border-radius: 4px;
+    touch-action: none;
+}
+.elem.sel .h { display: block; }
+.h.nw { left: -9px; top: -9px; cursor: nwse-resize; }
+.h.ne { right: -9px; top: -9px; cursor: nesw-resize; }
+.h.sw { left: -9px; bottom: -9px; cursor: nesw-resize; }
+.h.se { right: -9px; bottom: -9px; cursor: nwse-resize; }
+.elemBarra {
+    position: absolute; left: 50%; bottom: calc(100% + 12px);
+    transform: translateX(-50%);
+    display: none; gap: 2px;
+    padding: 4px;
+    background: #0F172A;
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    white-space: nowrap;
+    cursor: default;
+}
+.elem.sel .elemBarra { display: flex; }
+.elem.cercaArriba .elemBarra { bottom: auto; top: calc(100% + 12px); }
+.elemBarra button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border: none; border-radius: 7px;
+    background: transparent; color: #E2E8F0; font-size: 12.5px; font-weight: 500;
+}
+.elemBarra button:hover { background: rgba(255,255,255,.12); color: #fff; }
+.elemBarra button.primario { background: var(--primary); color: #fff; }
+.elemBarra button.primario:hover { background: #2563EB; }
+.elemBarra button.peligro:hover { background: rgba(239,68,68,.25); color: #FCA5A5; }
+.elemTexto {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.2;
+    color: #0F172A;
+    white-space: pre;
+}
+.elemTexto .txt { display: block; min-width: 1ch; outline: none; }
+.elemTexto.editando { cursor: text; outline: 2px solid var(--primary); background: rgba(255,255,255,.85); }
+.elemTexto.editando .txt { user-select: text; }
+.elemZona {
+    border: 2px dashed var(--primary);
+    background: rgba(29,78,216,.07);
+    display: grid; place-items: center;
+    color: var(--primary);
+    font-size: 12px; font-weight: 600; text-align: center;
+    outline: none !important;
+}
+.elemZona.sel { background: rgba(29,78,216,.12); }
+
+/* Modal de captura de firma */
+#modalCaptura {
+    display: none;
+    position: fixed; inset: 0; z-index: 90;
+    padding: 20px;
+    background: rgba(15,23,42,.6);
+    backdrop-filter: blur(3px);
+    align-items: center; justify-content: center;
+}
+#modalCaptura.visible { display: flex; animation: aparecer .15s var(--ease); }
+.capturaCaja {
+    width: min(860px, 100%);
+    max-height: 100%; overflow: auto;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+}
+.capturaHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 12px; }
+.capturaHead h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.capturaHead p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+#capturaAvisoPad {
+    display: none; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    margin: 0 20px 12px; padding: 10px 12px;
+    border-radius: var(--r-sm);
+    background: var(--warning-soft); border: 1px solid #FCD9A8;
+    font-size: 13px; color: #7C2D12;
+}
+#capturaAvisoPad.visible { display: flex; }
+#capturaEstadoPad { display: none; margin: 0 20px 12px; font-size: 12.5px; color: var(--success); font-weight: 500; }
+#capturaEstadoPad.visible { display: flex; align-items: center; gap: 6px; }
+.capturaLienzo {
+    margin: 0 20px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: #fff;
+}
+#capturaCanvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+.capturaPie { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 14px 20px 18px; }
+.capturaPie .botones { display: flex; gap: 8px; margin-left: auto; }
+
+@media (max-width: 900px) {
+    #editorCuerpo { grid-template-columns: minmax(0, 1fr); }
+    #editorLateral { border-right: none; border-bottom: 1px solid var(--border); border-radius: 0; }
+    #listaMisFirmas { grid-auto-flow: column; grid-auto-columns: 160px; overflow-x: auto; padding-bottom: 4px; }
+    .latBloque.bloqueAgregar .filaBotonesLat { grid-template-columns: repeat(3, 1fr); }
+    #editorPaginas { border-radius: 0 0 var(--r-lg) var(--r-lg); padding: 24px 12px; }
+}
+@media (max-width: 640px) {
+    #editorBarra { top: 58px; }
+    #editorVacio { margin: 12px; padding: 36px 16px; }
+    .archivoInfo { flex-basis: 100%; }
+    #btnGuardarEditor { flex: 1; }
+    #modalCaptura { padding: 0; }
+    .capturaCaja { border-radius: 0; height: 100%; }
+}
 </style>
 </head>
 <body data-modo="documento">
@@ -920,6 +1173,7 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
 
     <nav id="modoTabs" role="tablist">
         <div id="tabDocumento" class="modoTab active" onclick="cambiarModo('documento')" role="tab"><svg class="icon"><use href="#i-doc"/></svg>Documento SAP</div>
+        <div id="tabEditor" class="modoTab" onclick="cambiarModo('editor')" role="tab"><svg class="icon"><use href="#i-firma"/></svg>Firmar PDF</div>
         <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')" role="tab"><svg class="icon"><use href="#i-pluma"/></svg>Cargo Directo</div>
         <div id="tabMateriales" class="modoTab" onclick="cambiarModo('materiales')" role="tab"><svg class="icon"><use href="#i-escudo"/></svg>Materiales Seguridad</div>
         <div id="tabFirmados" class="modoTab" onclick="cambiarModo('firmados')" role="tab"><svg class="icon"><use href="#i-carpeta"/></svg>Firmados</div>
@@ -1086,6 +1340,70 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
                 </div>
                 <div id="listaFirmados"></div>
             </div>
+
+            <!-- ================= Módulo: Firmar PDF (editor libre) ================= -->
+            <div id="editorSection">
+                <div id="editorVacio">
+                    <div class="vacioIco"><svg class="icon"><use href="#i-doc"/></svg></div>
+                    <h3>Firma cualquier PDF</h3>
+                    <p>Abre un conduce o factura escaneada, coloca tu firma donde quieras, ajusta el tamaño y guárdalo firmado. También puedes firmar en el pad viendo el documento en su pantalla.</p>
+                    <button class="btn primario" onclick="document.getElementById('editorArchivoInput').click()"><svg class="icon sm"><use href="#i-carpeta"/></svg>Elegir archivo</button>
+                    <input type="file" id="editorArchivoInput" class="inputOculto" accept="application/pdf,.pdf,image/png,image/jpeg,image/webp" onchange="if (this.files[0]) abrirArchivoEditor(this.files[0]); this.value='';">
+                    <div class="pista">o arrástralo aquí · PDF, JPG o PNG</div>
+                    <div class="caracteristicas">
+                        <span><svg class="icon sm"><use href="#i-pluma"/></svg>Arrastra y redimensiona tu firma</span>
+                        <span><svg class="icon sm"><use href="#i-firma"/></svg>Firmas guardadas</span>
+                        <span><svg class="icon sm"><use href="#i-usb"/></svg>Ver el documento en el pad</span>
+                        <span><svg class="icon sm"><use href="#i-lista"/></svg>Texto y fecha</span>
+                    </div>
+                </div>
+
+                <div id="editorTrabajo">
+                    <div id="editorBarra">
+                        <div class="archivoInfo">
+                            <span class="icoDoc"></span>
+                            <span class="textoFila"><b id="editorNombreArchivo">documento.pdf</b><small id="editorInfoArchivo">—</small></span>
+                        </div>
+                        <div class="grupoBarra" title="Zoom">
+                            <button class="btn sm" onclick="cambiarZoomEditor(-1)" aria-label="Alejar">−</button>
+                            <span id="zoomTexto">100%</span>
+                            <button class="btn sm" onclick="cambiarZoomEditor(1)" aria-label="Acercar">+</button>
+                            <button class="btn sm" onclick="cambiarZoomEditor(0)" title="Ajustar al ancho">Ajustar</button>
+                        </div>
+                        <button class="btn sm" id="btnDeshacerEditor" onclick="deshacerEditor()" title="Deshacer (Ctrl+Z)" disabled><svg class="icon sm" style="transform:scaleX(-1)"><use href="#i-refresh"/></svg>Deshacer</button>
+                        <button class="btn sm fantasma" onclick="cerrarDocumentoEditor()">Cerrar</button>
+                        <button class="btn exito" id="btnGuardarEditor" onclick="guardarPdfEditor()"><svg class="icon sm"><use href="#i-descarga"/></svg>Guardar PDF firmado</button>
+                    </div>
+                    <div id="editorCuerpo">
+                        <aside id="editorLateral">
+                            <div class="latBloque">
+                                <button class="btnPad" onclick="agregarZonaPadEditor()">
+                                    <span class="ico"><svg class="icon"><use href="#i-usb"/></svg></span>
+                                    <span><b>Firmar sobre el documento</b><small>Coloca el recuadro donde va la firma y fírmala en el pad viendo el documento.</small></span>
+                                </button>
+                            </div>
+                            <div class="latBloque">
+                                <div class="latTitulo">Mis firmas</div>
+                                <div id="listaMisFirmas"></div>
+                                <div class="filaBotonesLat">
+                                    <button class="btn sm" onclick="abrirCapturaEditor('libre')"><svg class="icon sm"><use href="#i-pluma"/></svg>Nueva</button>
+                                    <button class="btn sm" onclick="document.getElementById('firmaImagenInput').click()"><svg class="icon sm"><use href="#i-descarga"/></svg>Subir</button>
+                                </div>
+                                <input type="file" id="firmaImagenInput" class="inputOculto" accept="image/png,image/jpeg,image/webp" onchange="if (this.files[0]) subirImagenFirma(this.files[0]); this.value='';">
+                                <p class="latAyuda">Arrastra una firma a la página, o tócala para colocarla en la página visible.</p>
+                            </div>
+                            <div class="latBloque bloqueAgregar">
+                                <div class="latTitulo">Agregar</div>
+                                <div class="filaBotonesLat">
+                                    <button class="btn sm" onclick="agregarTextoEditor('Texto')">Aa Texto</button>
+                                    <button class="btn sm" onclick="agregarTextoEditor(fechaHoyTexto())">Fecha</button>
+                                </div>
+                            </div>
+                        </aside>
+                        <div id="editorPaginas"></div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- ================= Columna del pad ================= -->
@@ -1202,6 +1520,34 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
             <button id="btnVisorAnterior" onclick="documentoVisorAnterior()">← Anterior</button>
             <span id="paginacionVisorPdf"></span>
             <button id="btnVisorSiguiente" onclick="documentoVisorSiguiente()">Siguiente →</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= Modal: capturar firma (pad o mouse) ================= -->
+<div id="modalCaptura" role="dialog" aria-modal="true" aria-labelledby="capturaTitulo">
+    <div class="capturaCaja">
+        <div class="capturaHead">
+            <div>
+                <h2 id="capturaTitulo">Nueva firma</h2>
+                <p id="capturaSub">Firma en el pad, o dibuja aquí con el mouse o el dedo.</p>
+            </div>
+            <button class="btnEliminarArticulo" onclick="cerrarCapturaEditor()" aria-label="Cerrar"><svg class="icon sm"><use href="#i-x"/></svg></button>
+        </div>
+        <div id="capturaAvisoPad">
+            <span>El pad no está conectado. Puedes dibujar la firma con el mouse o conectarlo.</span>
+            <button class="btn sm" onclick="conectarPadDesdeCaptura()"><svg class="icon sm"><use href="#i-usb"/></svg>Conectar pad</button>
+        </div>
+        <div id="capturaEstadoPad"><svg class="icon sm"><use href="#i-usb"/></svg>Pad conectado: también puedes usar los botones BORRAR y LISTO del pad.</div>
+        <div class="capturaLienzo"><canvas id="capturaCanvas" width="800" height="420"></canvas></div>
+        <div class="capturaPie">
+            <label class="checkRecordar" style="margin:0;"><input type="checkbox" id="capturaGuardar" checked> Guardar en Mis firmas</label>
+            <div class="botones">
+                <button class="btn" onclick="limpiarCapturaEditor()">Borrar</button>
+                <button class="btn fantasma" onclick="cerrarCapturaEditor()">Cancelar</button>
+                <button class="btn primario" id="btnUsarCaptura" onclick="usarCapturaEditor()" disabled>Usar firma</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1774,6 +2120,8 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
         document.getElementById('tabCargoDirecto').classList.toggle('active', modoActual === 'cargoDirecto');
         document.getElementById('tabMateriales').classList.toggle('active', modoActual === 'materiales');
         document.getElementById('tabFirmados').classList.toggle('active', modoActual === 'firmados');
+        document.getElementById('tabEditor').classList.toggle('active', modoActual === 'editor');
+        document.getElementById('editorSection').style.display = modoActual === 'editor' ? 'block' : 'none';
         document.getElementById('documentoSection').style.display = modoActual === 'documento' ? 'block' : 'none';
         document.getElementById('cargoDirectoSection').style.display = modoActual === 'cargoDirecto' ? 'block' : 'none';
         document.getElementById('materialesSection').style.display = modoActual === 'materiales' ? 'block' : 'none';
@@ -1790,6 +2138,10 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
             document.getElementById('btnConnect').style.display = 'none';
             document.getElementById('firmaBox').style.display = 'none';
             listarFirmados();
+        } else if (modoActual === 'editor') {
+            // Firmar PDF: el pad se usa desde el modal de captura (columna del pad oculta)
+            dibujarPantallaSegunModo();
+            if (editor.pdf) setTimeout(renderizarPaginasEditor, 0);
         } else {
             document.getElementById('btnConnect').style.display = 'block';
             document.getElementById('firmaBox').style.display = 'block';
@@ -1807,6 +2159,8 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
         actualizarBarraSeleccion();
     }
     function dibujarPantallaSegunModo() {
+        if (capturaEditor) { dibujarPantallaCapturaEditor(); return; }   // captura del módulo Firmar PDF
+        if (modoActual === 'editor') { dibujarPantallaReposoEditor(); return; }
         if (modoActual === 'firmados') return;
         if (modoActual === 'cargoDirecto') {
             dibujarPantallaFirmaCD();
@@ -2013,6 +2367,8 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
     }
     var yaSePresionoBoton = false;
     async function pointevent(z, x, y, p) {
+        if (capturaEditor) { manejarPenEditor(z, x, y, p); return; }     // módulo Firmar PDF
+        if (modoActual === 'editor') return;
         if (modoActual === 'documento' && !documentoListoParaFirmar && !modoMultipleActivo) return;
         if (modoActual === 'materiales' && !materialesListoParaFirmar) return;
         if (modoActual === 'firmados') return;
@@ -3164,6 +3520,933 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
         caja.style.display = 'block';
         caja.innerText = JSON.stringify(info, null, 2);
     }
+
+    // =====================================================================
+    // MÓDULO "FIRMAR PDF" — editor libre de firma digital
+    // ---------------------------------------------------------------------
+    // - Abre cualquier PDF (o imagen escaneada, que se convierte a PDF).
+    // - Muestra todas las páginas (pdf.js) con zoom.
+    // - Elementos colocables: firma (imagen), texto/fecha y "zona de pad".
+    //   Su posición se guarda como FRACCIÓN de la página (0..1), así el zoom
+    //   no afecta y la exportación es exacta.
+    // - "Mis firmas": firmas reutilizables en localStorage ('misFirmasEditor').
+    // - Captura: modal con lienzo que recibe trazos del pad Wacom o del mouse.
+    //   En modo "documento" el pad muestra el recorte real de la página.
+    // - Exporta con pdf-lib estampando sobre el PDF original (respeta /Rotate).
+    // =====================================================================
+    var CLAVE_MIS_FIRMAS = 'misFirmasEditor';
+    var PAD_BARRA = 60;                                       // alto de la barra superior en el pad
+    var ZONA_PAD_BORRAR = { x1: 450, y1: 10, x2: 612, y2: 50 };
+    var ZONA_PAD_LISTO  = { x1: 628, y1: 10, x2: 790, y2: 50 };
+    var ASPECTO_ZONA_PAD = 800 / (480 - PAD_BARRA);           // el recuadro tiene la forma del área de firma del pad
+
+    var editor = {
+        nombre: '', bytes: null, pdf: null,
+        paginas: [],           // [{pdfPage, wPts, hPts, wrap, canvas, capa, tarea}]
+        zoom: 1, pxPerPt: 1, tokenRender: 0,
+        elementos: [],         // [{id, tipo:'firma'|'texto'|'zona', pagina, fx, fy, fw, fh, src, texto, fs}]
+        seleccionado: null,
+        historial: [],
+        sinGuardar: false
+    };
+    var capturaEditor = null;      // { tipo:'libre'|'documento', zonaId, trazos:[[{x,y,p}]], fondo:canvas|null }
+    var trazoPadActual = null, trazoMouseActual = null, botonPadEditorPresionado = false;
+
+    // ---------- utilidades ----------
+    function idNuevo() { return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    function limitar(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function fechaHoyTexto() {
+        var d = new Date();
+        return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+    }
+    function cargarImagen(src) {
+        return new Promise(function (ok, mal) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = mal; i.src = src; });
+    }
+    function dataUrlABytes(dataUrl) {
+        var b64 = dataUrl.split(',')[1], bin = atob(b64), arr = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return arr;
+    }
+    // Recorta un canvas a la caja de sus píxeles visibles (con margen)
+    function recortarCanvas(c, margen) {
+        var ctx = c.getContext('2d'), d = ctx.getImageData(0, 0, c.width, c.height).data;
+        var x1 = c.width, y1 = c.height, x2 = -1, y2 = -1;
+        for (var y = 0; y < c.height; y++) for (var x = 0; x < c.width; x++) {
+            if (d[(y * c.width + x) * 4 + 3] > 8) { if (x < x1) x1 = x; if (x > x2) x2 = x; if (y < y1) y1 = y; if (y > y2) y2 = y; }
+        }
+        if (x2 < 0) return null;
+        x1 = Math.max(0, x1 - margen); y1 = Math.max(0, y1 - margen);
+        x2 = Math.min(c.width - 1, x2 + margen); y2 = Math.min(c.height - 1, y2 + margen);
+        var r = document.createElement('canvas');
+        r.width = x2 - x1 + 1; r.height = y2 - y1 + 1;
+        r.getContext('2d').drawImage(c, x1, y1, r.width, r.height, 0, 0, r.width, r.height);
+        return r;
+    }
+
+    // =================== Mis firmas (localStorage) ===================
+    function leerMisFirmas() {
+        try { return JSON.parse(localStorage.getItem(CLAVE_MIS_FIRMAS) || '[]'); } catch (e) { return []; }
+    }
+    function guardarMisFirmas(lista) {
+        try { localStorage.setItem(CLAVE_MIS_FIRMAS, JSON.stringify(lista)); return true; }
+        catch (e) { mostrarToast('No se pudo guardar la firma en este navegador (almacenamiento lleno)', 'error'); return false; }
+    }
+    function agregarAMisFirmas(dataUrl, ancho, alto) {
+        var lista = leerMisFirmas();
+        var nueva = { id: idNuevo(), dataUrl: dataUrl, ancho: ancho, alto: alto, fecha: Date.now(), predeterminada: lista.length === 0 };
+        lista.unshift(nueva);
+        if (lista.length > 12) lista = lista.slice(0, 12);
+        if (guardarMisFirmas(lista)) renderizarMisFirmas();
+        return nueva;
+    }
+    function renderizarMisFirmas() {
+        var cont = document.getElementById('listaMisFirmas');
+        if (!cont) return;
+        var lista = leerMisFirmas().sort(function (a, b) { return (b.predeterminada ? 1 : 0) - (a.predeterminada ? 1 : 0); });
+        cont.innerHTML = '';
+        if (lista.length === 0) {
+            cont.innerHTML = '<div class="firmasVacio">Aún no tienes firmas guardadas. Crea una con <b>Nueva</b>.</div>';
+            return;
+        }
+        lista.forEach(function (f) {
+            var card = document.createElement('div');
+            card.className = 'firmaCard';
+            card.draggable = true;
+            card.title = 'Arrastra a la página o toca para colocar';
+            card.innerHTML = '<img alt="Firma guardada">' +
+                '<div class="accionesCard">' +
+                    '<button class="' + (f.predeterminada ? 'pred' : '') + '" title="' + (f.predeterminada ? 'Firma predeterminada' : 'Marcar como predeterminada') + '">' + (f.predeterminada ? '★' : '☆') + '</button>' +
+                    '<button class="borrar" title="Eliminar firma"><svg class="icon sm"><use href="#i-x"/></svg></button>' +
+                '</div>';
+            card.querySelector('img').src = f.dataUrl;
+            card.onclick = function () { colocarFirmaGuardada(f); };
+            card.ondragstart = function (ev) {
+                ev.dataTransfer.setData('text/firma-id', f.id);
+                ev.dataTransfer.effectAllowed = 'copy';
+            };
+            var btns = card.querySelectorAll('.accionesCard button');
+            btns[0].onclick = function (ev) {
+                ev.stopPropagation();
+                var l = leerMisFirmas();
+                l.forEach(function (x) { x.predeterminada = x.id === f.id; });
+                guardarMisFirmas(l); renderizarMisFirmas();
+            };
+            btns[1].onclick = function (ev) {
+                ev.stopPropagation();
+                if (!confirm('¿Eliminar esta firma guardada?')) return;
+                var l = leerMisFirmas().filter(function (x) { return x.id !== f.id; });
+                if (l.length && !l.some(function (x) { return x.predeterminada; })) l[0].predeterminada = true;
+                guardarMisFirmas(l); renderizarMisFirmas();
+            };
+            cont.appendChild(card);
+        });
+    }
+    // Sube una imagen de firma: el fondo claro se vuelve transparente y se recorta
+    async function subirImagenFirma(file) {
+        try {
+            var url = URL.createObjectURL(file);
+            var img = await cargarImagen(url);
+            URL.revokeObjectURL(url);
+            var escala = Math.min(1, 1200 / img.width);
+            var c = document.createElement('canvas');
+            c.width = Math.round(img.width * escala); c.height = Math.round(img.height * escala);
+            var ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            var datos = ctx.getImageData(0, 0, c.width, c.height), d = datos.data;
+            for (var i = 0; i < d.length; i += 4) {
+                var lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                if (lum > 225) d[i + 3] = 0;                                   // fondo blanco -> transparente
+                else if (lum > 170) d[i + 3] = Math.round(d[i + 3] * (225 - lum) / 55); // borde suave
+            }
+            ctx.putImageData(datos, 0, 0);
+            var r = recortarCanvas(c, 6);
+            if (!r) { mostrarToast('No se encontró una firma en la imagen', 'error'); return; }
+            agregarAMisFirmas(r.toDataURL('image/png'), r.width, r.height);
+            mostrarToast('✓ Firma agregada a Mis firmas', 'success');
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo leer la imagen', 'error');
+        }
+    }
+
+    // =================== Abrir documento ===================
+    async function imagenAPdfBytes(file) {
+        var url = URL.createObjectURL(file);
+        var img = await cargarImagen(url);
+        URL.revokeObjectURL(url);
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+        var jpgBytes = dataUrlABytes(c.toDataURL('image/jpeg', 0.92));
+        var doc = await PDFLib.PDFDocument.create();
+        var jpg = await doc.embedJpg(jpgBytes);
+        var ancho = 612, alto = 612 * c.height / c.width;              // ancho carta, alto proporcional
+        doc.addPage([ancho, alto]).drawImage(jpg, { x: 0, y: 0, width: ancho, height: alto });
+        return new Uint8Array(await doc.save());
+    }
+    async function abrirArchivoEditor(file) {
+        if (editor.sinGuardar && !confirm('Hay cambios sin guardar en el documento abierto. ¿Abrir otro de todas formas?')) return;
+        try {
+            var esPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+            var esImg = /^image\//.test(file.type);
+            if (!esPdf && !esImg) { mostrarToast('Formato no soportado. Usa PDF, JPG o PNG.', 'error'); return; }
+            mostrarToast('Abriendo ' + file.name + '…', 'info');
+            var bytes = esPdf ? new Uint8Array(await file.arrayBuffer()) : await imagenAPdfBytes(file);
+            var pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+            editor.nombre = file.name.replace(/\.(pdf|png|jpe?g|webp)$/i, '');
+            editor.bytes = bytes;
+            editor.pdf = pdf;
+            editor.elementos = [];
+            editor.historial = [];
+            editor.seleccionado = null;
+            editor.sinGuardar = false;
+            editor.zoom = 1;
+            await construirPaginasEditor();
+            document.getElementById('editorVacio').style.display = 'none';
+            document.getElementById('editorTrabajo').classList.add('visible');
+            document.getElementById('editorNombreArchivo').textContent = file.name;
+            document.getElementById('editorInfoArchivo').textContent = pdf.numPages + (pdf.numPages === 1 ? ' página' : ' páginas') + (esImg ? ' · imagen convertida a PDF' : '');
+            actualizarBotonesEditor();
+            await renderizarPaginasEditor();
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo abrir el archivo: ' + e.message, 'error');
+        }
+    }
+    function cerrarDocumentoEditor() {
+        if (editor.sinGuardar && !confirm('Hay cambios sin guardar. ¿Cerrar el documento de todas formas?')) return;
+        editor.tokenRender++;
+        editor.paginas.forEach(function (p) { if (p.tarea) try { p.tarea.cancel(); } catch (e) { } });
+        editor.pdf = null; editor.bytes = null; editor.paginas = []; editor.elementos = [];
+        editor.historial = []; editor.seleccionado = null; editor.sinGuardar = false;
+        document.getElementById('editorPaginas').innerHTML = '';
+        document.getElementById('editorTrabajo').classList.remove('visible');
+        document.getElementById('editorVacio').style.display = '';
+    }
+    async function construirPaginasEditor() {
+        var cont = document.getElementById('editorPaginas');
+        cont.innerHTML = '';
+        editor.paginas = [];
+        for (var i = 0; i < editor.pdf.numPages; i++) {
+            var pdfPage = await editor.pdf.getPage(i + 1);
+            var vp = pdfPage.getViewport({ scale: 1 });
+            var wrap = document.createElement('div');
+            wrap.className = 'paginaEditor';
+            wrap.dataset.pagina = i;
+            wrap.innerHTML = (editor.pdf.numPages > 1 ? '<span class="etiquetaPagina">Página ' + (i + 1) + ' de ' + editor.pdf.numPages + '</span>' : '') +
+                '<canvas></canvas><div class="capaElementos"></div>';
+            prepararSoltarEnPagina(wrap, i);
+            wrap.addEventListener('pointerdown', function (ev) { if (ev.target.closest('.elem') === null) seleccionarElemento(null); });
+            cont.appendChild(wrap);
+            editor.paginas.push({ pdfPage: pdfPage, wPts: vp.width, hPts: vp.height, wrap: wrap, canvas: wrap.querySelector('canvas'), capa: wrap.querySelector('.capaElementos'), tarea: null });
+        }
+    }
+    async function renderizarPaginasEditor() {
+        if (!editor.pdf) return;
+        var token = ++editor.tokenRender;
+        var cont = document.getElementById('editorPaginas');
+        var anchoDisp = Math.max(240, cont.clientWidth - 48);
+        var maxW = Math.max.apply(null, editor.paginas.map(function (p) { return p.wPts; }));
+        editor.pxPerPt = Math.min(anchoDisp / maxW, 1.6) * editor.zoom;
+        document.getElementById('zoomTexto').textContent = Math.round(editor.zoom * 100) + '%';
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        editor.paginas.forEach(function (p) {
+            p.wrap.style.width = (p.wPts * editor.pxPerPt) + 'px';
+            p.wrap.style.height = (p.hPts * editor.pxPerPt) + 'px';
+            p.wrap.style.setProperty('--ppt', editor.pxPerPt);
+        });
+        renderizarElementosEditor();
+        for (var i = 0; i < editor.paginas.length; i++) {
+            if (token !== editor.tokenRender) return;
+            var p = editor.paginas[i];
+            if (p.tarea) { try { p.tarea.cancel(); } catch (e) { } }
+            var vp = p.pdfPage.getViewport({ scale: editor.pxPerPt * dpr });
+            var off = document.createElement('canvas');                   // render fuera de pantalla: sin parpadeo al hacer zoom
+            off.width = Math.floor(vp.width); off.height = Math.floor(vp.height);
+            p.tarea = p.pdfPage.render({ canvasContext: off.getContext('2d'), viewport: vp });
+            try { await p.tarea.promise; } catch (e) { continue; }
+            if (token !== editor.tokenRender) return;
+            p.canvas.width = off.width; p.canvas.height = off.height;
+            p.canvas.getContext('2d').drawImage(off, 0, 0);
+        }
+    }
+    function cambiarZoomEditor(dir) {
+        var pasos = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+        if (dir === 0) editor.zoom = 1;
+        else {
+            var i = pasos.findIndex(function (z) { return z >= editor.zoom - 0.001; });
+            if (i === -1) i = pasos.length - 1;
+            editor.zoom = pasos[limitar(i + dir, 0, pasos.length - 1)];
+        }
+        renderizarPaginasEditor();
+    }
+    var timerResizeEditor = null;
+    window.addEventListener('resize', function () {
+        if (modoActual !== 'editor' || !editor.pdf) return;
+        clearTimeout(timerResizeEditor);
+        timerResizeEditor = setTimeout(renderizarPaginasEditor, 200);
+    });
+    // Página que más ocupa la pantalla (para colocar ahí lo que se agregue)
+    function paginaVisibleEditor() {
+        var mejor = 0, mejorArea = -1, vh = window.innerHeight;
+        editor.paginas.forEach(function (p, i) {
+            var r = p.wrap.getBoundingClientRect();
+            var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+            if (visible > mejorArea) { mejorArea = visible; mejor = i; }
+        });
+        return mejor;
+    }
+    // Centro vertical de la parte visible de la página (fracción)
+    function centroVisibleEditor(i) {
+        var r = editor.paginas[i].wrap.getBoundingClientRect();
+        var top = Math.max(r.top, 120), bottom = Math.min(r.bottom, window.innerHeight);
+        var cy = bottom > top ? ((top + bottom) / 2 - r.top) / r.height : 0.5;
+        return { fx: 0.5, fy: limitar(cy, 0.1, 0.9) };
+    }
+
+    // =================== Historial (deshacer) ===================
+    function guardarHistorialEditor() {
+        editor.historial.push(JSON.stringify(editor.elementos));
+        if (editor.historial.length > 60) editor.historial.shift();
+        editor.sinGuardar = true;
+        actualizarBotonesEditor();
+    }
+    function deshacerEditor() {
+        if (!editor.historial.length) return;
+        editor.elementos = JSON.parse(editor.historial.pop());
+        editor.seleccionado = null;
+        editor.sinGuardar = true;
+        renderizarElementosEditor();
+        actualizarBotonesEditor();
+    }
+    function actualizarBotonesEditor() {
+        var b = document.getElementById('btnDeshacerEditor');
+        if (b) b.disabled = editor.historial.length === 0;
+    }
+    window.addEventListener('beforeunload', function (ev) {
+        if (editor.sinGuardar) { ev.preventDefault(); ev.returnValue = ''; }
+    });
+
+    // =================== Agregar elementos ===================
+    function tamanoFirmaPts(ancho, alto) {
+        var w = 150, h = w * alto / ancho;
+        if (h > 75) { h = 75; w = h * ancho / alto; }
+        return { w: w, h: h };
+    }
+    async function colocarFirmaEnPagina(src, ancho, alto, i, cx, cy) {
+        var p = editor.paginas[i];
+        var t = tamanoFirmaPts(ancho, alto);
+        var fw = t.w / p.wPts, fh = t.h / p.hPts;
+        guardarHistorialEditor();
+        var el = { id: idNuevo(), tipo: 'firma', pagina: i, fw: fw, fh: fh, src: src,
+            fx: limitar(cx - fw / 2, 0, 1 - fw), fy: limitar(cy - fh / 2, 0, 1 - fh) };
+        editor.elementos.push(el);
+        editor.seleccionado = el.id;
+        renderizarElementosEditor();
+    }
+    function colocarFirmaGuardada(f) {
+        if (!editor.pdf) return;
+        var i = paginaVisibleEditor(), c = centroVisibleEditor(i);
+        colocarFirmaEnPagina(f.dataUrl, f.ancho, f.alto, i, c.fx, c.fy);
+        mostrarToast('Firma colocada en la página ' + (i + 1) + '. Arrástrala a su lugar.', 'info');
+    }
+    function agregarTextoEditor(texto) {
+        if (!editor.pdf) return;
+        var i = paginaVisibleEditor(), c = centroVisibleEditor(i), p = editor.paginas[i];
+        var fs = 12;
+        guardarHistorialEditor();
+        var el = { id: idNuevo(), tipo: 'texto', pagina: i, texto: texto, fs: fs,
+            fx: limitar(c.fx - (texto.length * fs * 0.28) / p.wPts, 0, 0.9), fy: limitar(c.fy, 0, 0.95) };
+        editor.elementos.push(el);
+        editor.seleccionado = el.id;
+        renderizarElementosEditor();
+        if (texto === 'Texto') setTimeout(function () { editarTextoElemento(el.id); }, 30);
+    }
+    function agregarZonaPadEditor() {
+        if (!editor.pdf) return;
+        var i = paginaVisibleEditor(), c = centroVisibleEditor(i), p = editor.paginas[i];
+        var wPt = Math.min(200, p.wPts * 0.45), hPt = wPt / ASPECTO_ZONA_PAD;
+        var fw = wPt / p.wPts, fh = hPt / p.hPts;
+        guardarHistorialEditor();
+        var el = { id: idNuevo(), tipo: 'zona', pagina: i, fw: fw, fh: fh,
+            fx: limitar(c.fx - fw / 2, 0, 1 - fw), fy: limitar(c.fy - fh / 2, 0, 1 - fh) };
+        editor.elementos.push(el);
+        editor.seleccionado = el.id;
+        renderizarElementosEditor();
+        mostrarToast('Mueve y ajusta el recuadro donde va la firma, luego pulsa "Firmar en el pad"', 'info');
+    }
+    function duplicarEnTodasLasPaginas(id) {
+        var el = buscarElemento(id);
+        if (!el || editor.paginas.length < 2) return;
+        guardarHistorialEditor();
+        editor.paginas.forEach(function (p, i) {
+            if (i === el.pagina) return;
+            var copia = JSON.parse(JSON.stringify(el));
+            copia.id = idNuevo(); copia.pagina = i;
+            // conserva el tamaño real en puntos aunque las páginas midan distinto
+            var src = editor.paginas[el.pagina];
+            if (copia.fw) { copia.fw = el.fw * src.wPts / p.wPts; copia.fh = el.fh * src.hPts / p.hPts; }
+            copia.fx = limitar(el.fx, 0, 1 - (copia.fw || 0.05));
+            copia.fy = limitar(el.fy, 0, 1 - (copia.fh || 0.03));
+            editor.elementos.push(copia);
+        });
+        renderizarElementosEditor();
+        mostrarToast('Copiado en las ' + editor.paginas.length + ' páginas', 'success');
+    }
+    function eliminarElemento(id) {
+        guardarHistorialEditor();
+        editor.elementos = editor.elementos.filter(function (e) { return e.id !== id; });
+        if (editor.seleccionado === id) editor.seleccionado = null;
+        renderizarElementosEditor();
+    }
+    function buscarElemento(id) { return editor.elementos.filter(function (e) { return e.id === id; })[0] || null; }
+
+    // Soltar firmas arrastradas desde "Mis firmas"
+    function prepararSoltarEnPagina(wrap, i) {
+        wrap.addEventListener('dragover', function (ev) {
+            if (ev.dataTransfer.types.indexOf('text/firma-id') === -1) return;
+            ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; wrap.classList.add('soltar');
+        });
+        wrap.addEventListener('dragleave', function () { wrap.classList.remove('soltar'); });
+        wrap.addEventListener('drop', function (ev) {
+            wrap.classList.remove('soltar');
+            var id = ev.dataTransfer.getData('text/firma-id');
+            if (!id) return;
+            ev.preventDefault();
+            var f = leerMisFirmas().filter(function (x) { return x.id === id; })[0];
+            if (!f) return;
+            var r = wrap.getBoundingClientRect();
+            colocarFirmaEnPagina(f.dataUrl, f.ancho, f.alto, i, (ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height);
+        });
+    }
+
+    // =================== Render de elementos + interacción ===================
+    function renderizarElementosEditor() {
+        editor.paginas.forEach(function (p) { p.capa.innerHTML = ''; });
+        editor.elementos.forEach(function (el) {
+            var p = editor.paginas[el.pagina];
+            if (!p) return;
+            var d = document.createElement('div');
+            d.className = 'elem ' + (el.tipo === 'texto' ? 'elemTexto' : el.tipo === 'zona' ? 'elemZona' : 'elemFirma') + (el.id === editor.seleccionado ? ' sel' : '');
+            d.dataset.id = el.id;
+            d.style.left = (el.fx * 100) + '%';
+            d.style.top = (el.fy * 100) + '%';
+            if (el.tipo === 'texto') {
+                d.style.fontSize = 'calc(var(--ppt) * ' + el.fs + 'px)';
+                var span = document.createElement('span');
+                span.className = 'txt';
+                span.textContent = el.texto;
+                d.appendChild(span);
+            } else {
+                d.style.width = (el.fw * 100) + '%';
+                d.style.height = (el.fh * 100) + '%';
+                if (el.tipo === 'firma') { var img = document.createElement('img'); img.src = el.src; img.alt = 'Firma'; d.appendChild(img); }
+                else d.innerHTML = '<span>Área de firma<br>en el pad</span>';
+            }
+            if (el.fy < 0.08) d.classList.add('cercaArriba');
+            ['nw', 'ne', 'sw', 'se'].forEach(function (h) {
+                var hd = document.createElement('span'); hd.className = 'h ' + h; hd.dataset.h = h; d.appendChild(hd);
+            });
+            d.appendChild(crearBarraElemento(el));
+            d.addEventListener('pointerdown', function (ev) { iniciarArrastreElemento(ev, el.id); });
+            d.addEventListener('dblclick', function () { if (el.tipo === 'texto') editarTextoElemento(el.id); else if (el.tipo === 'zona') abrirCapturaEditor('documento', el.id); });
+            p.capa.appendChild(d);
+        });
+    }
+    function crearBarraElemento(el) {
+        var barra = document.createElement('div');
+        barra.className = 'elemBarra';
+        function boton(html, clase, accion) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = clase || ''; b.innerHTML = html;
+            b.addEventListener('pointerdown', function (ev) { ev.stopPropagation(); });
+            b.onclick = function (ev) { ev.stopPropagation(); accion(); };
+            barra.appendChild(b);
+        }
+        if (el.tipo === 'zona') boton('<svg class="icon sm"><use href="#i-pluma"/></svg>Firmar en el pad', 'primario', function () { abrirCapturaEditor('documento', el.id); });
+        if (el.tipo === 'texto') boton('Editar', '', function () { editarTextoElemento(el.id); });
+        if (el.tipo !== 'zona' && editor.paginas.length > 1) boton('Todas las páginas', '', function () { duplicarEnTodasLasPaginas(el.id); });
+        boton('<svg class="icon sm"><use href="#i-x"/></svg>Quitar', 'peligro', function () { eliminarElemento(el.id); });
+        return barra;
+    }
+    function seleccionarElemento(id) {
+        if (editor.seleccionado === id) return;
+        editor.seleccionado = id;
+        document.querySelectorAll('#editorPaginas .elem').forEach(function (d) { d.classList.toggle('sel', d.dataset.id === id); });
+    }
+    function iniciarArrastreElemento(ev, id) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        var d = ev.currentTarget, el = buscarElemento(id);
+        if (!el || d.classList.contains('editando')) return;
+        ev.preventDefault(); ev.stopPropagation();
+        seleccionarElemento(id);
+        var manija = ev.target.dataset ? ev.target.dataset.h : null;
+        var p = editor.paginas[el.pagina];
+        var rp = p.wrap.getBoundingClientRect(), re = d.getBoundingClientRect();
+        var ini = { x: ev.clientX, y: ev.clientY, fx: el.fx, fy: el.fy, fw: el.fw, fh: el.fh, fs: el.fs,
+            wPx: re.width, hPx: re.height, offX: ev.clientX - re.left, offY: ev.clientY - re.top };
+        var movido = false, snapshot = JSON.stringify(editor.elementos);
+        d.setPointerCapture(ev.pointerId);
+        d.classList.add('arrastrando');
+
+        function mover(e) {
+            var dx = e.clientX - ini.x, dy = e.clientY - ini.y;
+            if (!movido && Math.abs(dx) + Math.abs(dy) < 3) return;
+            movido = true;
+            if (!manija) {
+                // mover (puede salirse visualmente para pasar a otra página)
+                d.style.left = ((ini.fx + dx / rp.width) * 100) + '%';
+                d.style.top = ((ini.fy + dy / rp.height) * 100) + '%';
+                return;
+            }
+            // redimensionar manteniendo proporción, anclado a la esquina opuesta
+            var sx = manija.indexOf('e') !== -1 ? 1 : -1, sy = manija.indexOf('s') !== -1 ? 1 : -1;
+            var f = ((ini.wPx + sx * dx) / ini.wPx + (ini.hPx + sy * dy) / ini.hPx) / 2;
+            var minF = 18 / Math.min(ini.wPx, ini.hPx);
+            var maxF = Math.min(rp.width / ini.wPx, rp.height / ini.hPx);
+            f = limitar(f, minF, maxF);
+            var nw = ini.wPx * f, nh = ini.hPx * f;
+            var left = sx === 1 ? ini.fx * rp.width : ini.fx * rp.width + ini.wPx - nw;
+            var top = sy === 1 ? ini.fy * rp.height : ini.fy * rp.height + ini.hPx - nh;
+            d.style.left = (left / rp.width * 100) + '%';
+            d.style.top = (top / rp.height * 100) + '%';
+            if (el.tipo === 'texto') d.style.fontSize = 'calc(var(--ppt) * ' + (ini.fs * f) + 'px)';
+            else { d.style.width = (nw / rp.width * 100) + '%'; d.style.height = (nh / rp.height * 100) + '%'; }
+            d.dataset.factor = f;
+        }
+        function soltar(e) {
+            d.removeEventListener('pointermove', mover);
+            d.removeEventListener('pointerup', soltar);
+            d.removeEventListener('pointercancel', soltar);
+            d.classList.remove('arrastrando');
+            if (!movido) return;
+            editor.historial.push(snapshot);
+            if (editor.historial.length > 60) editor.historial.shift();
+            editor.sinGuardar = true;
+            if (manija) {
+                var f = Number(d.dataset.factor) || 1;
+                if (el.tipo === 'texto') el.fs = limitar(ini.fs * f, 5, 96);
+                else { el.fw = ini.fw * f; el.fh = ini.fh * f; }
+                el.fx = parseFloat(d.style.left) / 100;
+                el.fy = parseFloat(d.style.top) / 100;
+            } else {
+                // ¿se soltó sobre otra página?
+                var destino = el.pagina;
+                editor.paginas.forEach(function (pg, i) {
+                    var r = pg.wrap.getBoundingClientRect();
+                    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) destino = i;
+                });
+                var rd = editor.paginas[destino].wrap.getBoundingClientRect();
+                var wF = ini.wPx / rd.width, hF = ini.hPx / rd.height;
+                if (destino !== el.pagina && el.tipo !== 'texto') {      // conserva el tamaño real al cambiar de página
+                    var po = editor.paginas[el.pagina], pd = editor.paginas[destino];
+                    el.fw = el.fw * po.wPts / pd.wPts; el.fh = el.fh * po.hPts / pd.hPts;
+                    wF = el.fw; hF = el.fh;
+                }
+                el.pagina = destino;
+                el.fx = limitar((e.clientX - ini.offX - rd.left) / rd.width, 0, Math.max(0, 1 - wF));
+                el.fy = limitar((e.clientY - ini.offY - rd.top) / rd.height, 0, Math.max(0, 1 - hF));
+            }
+            actualizarBotonesEditor();
+            renderizarElementosEditor();
+        }
+        d.addEventListener('pointermove', mover);
+        d.addEventListener('pointerup', soltar);
+        d.addEventListener('pointercancel', soltar);
+    }
+    function editarTextoElemento(id) {
+        var d = document.querySelector('#editorPaginas .elem[data-id="' + id + '"]');
+        var el = buscarElemento(id);
+        if (!d || !el) return;
+        seleccionarElemento(id);
+        var span = d.querySelector('.txt');
+        d.classList.add('editando');
+        span.contentEditable = 'true';
+        span.focus();
+        var rango = document.createRange(); rango.selectNodeContents(span);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(rango);
+        span.onkeydown = function (ev) {
+            if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); span.blur(); }
+            if (ev.key === 'Escape') { span.textContent = el.texto; span.blur(); }
+            ev.stopPropagation();
+        };
+        span.onblur = function () {
+            span.contentEditable = 'false';
+            d.classList.remove('editando');
+            var nuevo = span.innerText.replace(/\s+$/, '');
+            if (!nuevo.trim()) { eliminarElemento(id); return; }
+            if (nuevo !== el.texto) { guardarHistorialEditor(); el.texto = nuevo; }
+            renderizarElementosEditor();
+        };
+    }
+    // Atajos de teclado del editor
+    document.addEventListener('keydown', function (ev) {
+        if (modoActual !== 'editor' || !editor.pdf || capturaEditor) return;
+        var t = ev.target;
+        if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+        if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); deshacerEditor(); return; }
+        var el = buscarElemento(editor.seleccionado);
+        if (!el) return;
+        if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); eliminarElemento(el.id); return; }
+        if (ev.key === 'Escape') { seleccionarElemento(null); return; }
+        var flechas = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key];
+        if (flechas) {
+            ev.preventDefault();
+            var p = editor.paginas[el.pagina], paso = ev.shiftKey ? 10 : 1;
+            guardarHistorialEditor();
+            el.fx = limitar(el.fx + flechas[0] * paso / p.wPts, 0, 1 - (el.fw || 0.02));
+            el.fy = limitar(el.fy + flechas[1] * paso / p.hPts, 0, 1 - (el.fh || 0.02));
+            renderizarElementosEditor();
+        }
+    });
+
+    // =================== Captura de firma (pad + mouse) ===================
+    function anchoTrazo(p) { return (grosorPluma + 1) * (0.55 + (p == null ? 0.5 : p) * 0.9); }
+    // Dibuja los trazos (coordenadas del pad 800x480) en un contexto, con escala y desplazamiento
+    function dibujarTrazos(ctx, trazos, escala, offY) {
+        ctx.save();
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.strokeStyle = colaPluma; ctx.fillStyle = colaPluma;
+        trazos.forEach(function (t) {
+            if (t.length === 1) {
+                ctx.beginPath(); ctx.arc(t[0].x * escala, (t[0].y - offY) * escala, anchoTrazo(t[0].p) * escala / 2, 0, Math.PI * 2); ctx.fill();
+                return;
+            }
+            for (var i = 1; i < t.length; i++) dibujarSegmento(ctx, t[i - 1], t[i], escala, offY);
+        });
+        ctx.restore();
+    }
+    function dibujarSegmento(ctx, a, b, escala, offY) {
+        ctx.lineCap = 'round'; ctx.strokeStyle = colaPluma;
+        ctx.lineWidth = anchoTrazo((a.p + b.p) / 2) * escala;
+        ctx.beginPath();
+        ctx.moveTo(a.x * escala, (a.y - offY) * escala);
+        ctx.lineTo(b.x * escala, (b.y - offY) * escala);
+        ctx.stroke();
+    }
+    function dibujarFondoCaptura(ctx, ancho, alto) {
+        // ancho/alto = área de firma (800 x 420)
+        if (capturaEditor && capturaEditor.fondo) {
+            ctx.drawImage(capturaEditor.fondo, 0, 0, ancho, alto);
+            return;
+        }
+        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, ancho, alto);
+        ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(60, alto - 90); ctx.lineTo(ancho - 60, alto - 90); ctx.stroke();
+        ctx.fillStyle = '#94A3B8'; ctx.font = '22px Arial'; ctx.textAlign = 'left';
+        ctx.fillText('✕', 64, alto - 100);
+        ctx.font = '14px Arial'; ctx.fillStyle = '#B6C2D2';
+        ctx.fillText('FIRME AQUÍ', 60, 34);
+    }
+    function redibujarModalCaptura() {
+        var c = document.getElementById('capturaCanvas'), ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+        dibujarFondoCaptura(ctx, 800, 420);
+        if (capturaEditor) dibujarTrazos(ctx, capturaEditor.trazos, 1, PAD_BARRA);
+        document.getElementById('btnUsarCaptura').disabled = !capturaEditor || capturaEditor.trazos.length === 0;
+    }
+    // Pantalla del pad durante la captura
+    function dibujarPantallaCapturaEditor() {
+        context.fillStyle = '#FFFFFF'; context.fillRect(0, 0, 800, 480);
+        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, PAD_BARRA);
+        context.textAlign = 'left';
+        context.fillStyle = '#FFFFFF'; context.font = 'bold 18px Arial';
+        context.fillText(capturaEditor && capturaEditor.tipo === 'documento' ? 'FIRME SOBRE EL DOCUMENTO' : 'FIRMA DIGITAL', 20, 28);
+        context.font = '12px Arial'; context.fillStyle = 'rgba(255,255,255,0.65)';
+        context.fillText(editor.nombre ? editor.nombre.slice(0, 40) : 'Firma nueva', 20, 47);
+        roundRectFill(ZONA_PAD_BORRAR.x1, ZONA_PAD_BORRAR.y1, ZONA_PAD_BORRAR.x2 - ZONA_PAD_BORRAR.x1, ZONA_PAD_BORRAR.y2 - ZONA_PAD_BORRAR.y1, 8, '#475569');
+        roundRectFill(ZONA_PAD_LISTO.x1, ZONA_PAD_LISTO.y1, ZONA_PAD_LISTO.x2 - ZONA_PAD_LISTO.x1, ZONA_PAD_LISTO.y2 - ZONA_PAD_LISTO.y1, 8, '#15803D');
+        context.fillStyle = '#FFFFFF'; context.font = 'bold 14px Arial'; context.textAlign = 'center';
+        context.fillText('BORRAR', (ZONA_PAD_BORRAR.x1 + ZONA_PAD_BORRAR.x2) / 2, 35);
+        context.fillText('LISTO ✓', (ZONA_PAD_LISTO.x1 + ZONA_PAD_LISTO.x2) / 2, 35);
+        context.save();
+        context.translate(0, PAD_BARRA);
+        dibujarFondoCaptura(context, 800, 480 - PAD_BARRA);
+        context.restore();
+        if (capturaEditor && capturaEditor.tipo === 'documento') {
+            context.strokeStyle = 'rgba(29,78,216,0.55)'; context.lineWidth = 2; context.setLineDash([8, 6]);
+            context.strokeRect(1, PAD_BARRA + 1, 798, 480 - PAD_BARRA - 2);
+            context.setLineDash([]);
+        }
+        try { wacom.setWritingArea({ x1: 0, y1: PAD_BARRA, x2: 800, y2: 480 }); } catch (e) { }
+        empujarImagenAlPad();
+    }
+    function dibujarPantallaReposoEditor() {
+        context.fillStyle = '#F8FAFC'; context.fillRect(0, 0, 800, 480);
+        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, 90);
+        context.fillStyle = '#FFFFFF'; context.font = 'bold 26px Arial'; context.textAlign = 'center';
+        context.fillText('FIRMAR PDF', 400, 45);
+        context.font = '14px Arial'; context.fillStyle = 'rgba(255,255,255,0.65)';
+        context.fillText('Taller Automotriz · Claro', 400, 68);
+        context.font = '20px Arial'; context.fillStyle = '#64748B';
+        context.fillText(editor.pdf ? ('Documento abierto: ' + editor.nombre.slice(0, 38)) : 'Abre un documento en la computadora', 400, 250);
+        context.font = '15px Arial'; context.fillStyle = '#94A3B8';
+        context.fillText('Pulsa "Firmar sobre el documento" o "Nueva" para firmar aquí', 400, 285);
+        try { wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 }); } catch (e) { }
+        empujarImagenAlPad();
+    }
+    // Recorte de la página (bajo la zona) para mostrarlo en el pad
+    async function renderizarRecorteZona(el) {
+        var p = editor.paginas[el.pagina];
+        var dwPts = el.fw * p.wPts;
+        var escala = 800 / dwPts;
+        var vp = p.pdfPage.getViewport({ scale: escala });
+        var off = document.createElement('canvas');
+        off.width = Math.ceil(vp.width); off.height = Math.ceil(vp.height);
+        var octx = off.getContext('2d');
+        octx.fillStyle = '#fff'; octx.fillRect(0, 0, off.width, off.height);
+        await p.pdfPage.render({ canvasContext: octx, viewport: vp }).promise;
+        // incluye firmas/textos ya colocados para que se vean en el pad
+        for (var k = 0; k < editor.elementos.length; k++) {
+            var o = editor.elementos[k];
+            if (o.pagina !== el.pagina || o.id === el.id || o.tipo === 'zona') continue;
+            if (o.tipo === 'firma') {
+                var im = await cargarImagen(o.src);
+                octx.drawImage(im, o.fx * off.width, o.fy * off.height, o.fw * off.width, o.fh * off.height);
+            } else if (o.tipo === 'texto') {
+                var fsPx = o.fs * escala;
+                octx.fillStyle = '#0F172A'; octx.font = fsPx + 'px Arial'; octx.textAlign = 'left';
+                octx.fillText(o.texto.split('\n')[0], o.fx * off.width, o.fy * off.height + fsPx * 0.947);
+            }
+        }
+        var recorte = document.createElement('canvas');
+        recorte.width = 800; recorte.height = 480 - PAD_BARRA;
+        var rctx = recorte.getContext('2d');
+        rctx.fillStyle = '#fff'; rctx.fillRect(0, 0, 800, recorte.height);
+        rctx.drawImage(off, el.fx * off.width, el.fy * off.height, 800, recorte.height, 0, 0, 800, recorte.height);
+        rctx.fillStyle = 'rgba(255,255,255,0.12)'; rctx.fillRect(0, 0, 800, recorte.height);   // aclara un poco para que resalte la tinta
+        return recorte;
+    }
+    async function abrirCapturaEditor(tipo, zonaId) {
+        capturaEditor = { tipo: tipo, zonaId: zonaId || null, trazos: [], fondo: null };
+        trazoPadActual = null; trazoMouseActual = null;
+        if (tipo === 'documento') {
+            var el = buscarElemento(zonaId);
+            if (!el) { capturaEditor = null; return; }
+            try { capturaEditor.fondo = await renderizarRecorteZona(el); }
+            catch (e) { console.error(e); }
+        }
+        document.getElementById('capturaTitulo').textContent = tipo === 'documento' ? 'Firmar sobre el documento' : 'Nueva firma';
+        document.getElementById('capturaSub').textContent = tipo === 'documento'
+            ? 'El pad muestra esta parte del documento. Firma encima; al terminar pulsa LISTO en el pad o "Colocar firma".'
+            : 'Firma en el pad, o dibuja aquí con el mouse o el dedo.';
+        document.getElementById('btnUsarCaptura').textContent = tipo === 'documento' ? 'Colocar firma' : 'Usar firma';
+        document.getElementById('capturaGuardar').checked = tipo === 'libre';
+        actualizarAvisoPadCaptura();
+        document.getElementById('modalCaptura').classList.add('visible');
+        redibujarModalCaptura();
+        if (wacom.checkConnected()) {
+            try { await wacom.setInking(false); } catch (e) { }
+            dibujarPantallaCapturaEditor();
+            setTimeout(function () { try { wacom.setInking(true); } catch (e) { } }, 200);
+        }
+    }
+    function actualizarAvisoPadCaptura() {
+        var conectado = false;
+        try { conectado = wacom.checkConnected(); } catch (e) { }
+        document.getElementById('capturaAvisoPad').classList.toggle('visible', !conectado);
+        document.getElementById('capturaEstadoPad').classList.toggle('visible', conectado);
+    }
+    async function conectarPadDesdeCaptura() {
+        await connect();                      // prepararPadTrasConectar -> dibujarPantallaSegunModo -> pantalla de captura
+        actualizarAvisoPadCaptura();
+    }
+    function cerrarCapturaEditor() {
+        capturaEditor = null;
+        document.getElementById('modalCaptura').classList.remove('visible');
+        if (wacom.checkConnected()) dibujarPantallaSegunModo();
+    }
+    async function limpiarCapturaEditor() {
+        if (!capturaEditor) return;
+        capturaEditor.trazos = [];
+        trazoPadActual = null; trazoMouseActual = null;
+        redibujarModalCaptura();
+        if (wacom.checkConnected()) {
+            try { await wacom.setInking(false); } catch (e) { }
+            dibujarPantallaCapturaEditor();
+            setTimeout(function () { try { wacom.setInking(true); } catch (e) { } }, 200);
+        }
+    }
+    async function usarCapturaEditor() {
+        if (!capturaEditor || capturaEditor.trazos.length === 0) return;
+        var cap = capturaEditor;
+        var alto = 480 - PAD_BARRA;
+        // tinta en alta resolución, fondo transparente
+        var c = document.createElement('canvas');
+        c.width = 1600; c.height = alto * 2;
+        dibujarTrazos(c.getContext('2d'), cap.trazos, 2, PAD_BARRA);
+        var recortada = recortarCanvas(c, 12);
+        if (!recortada) { mostrarToast('No hay trazos en la firma', 'error'); return; }
+        var guardar = document.getElementById('capturaGuardar').checked;
+        if (guardar) agregarAMisFirmas(recortada.toDataURL('image/png'), recortada.width, recortada.height);
+        cerrarCapturaEditor();
+
+        if (cap.tipo === 'documento') {
+            // La firma queda exactamente donde se trazó sobre el documento
+            var el = buscarElemento(cap.zonaId);
+            if (el) {
+                guardarHistorialEditor();
+                el.tipo = 'firma';
+                el.src = c.toDataURL('image/png');
+                editor.seleccionado = el.id;
+                renderizarElementosEditor();
+                mostrarToast('✓ Firma colocada sobre el documento', 'success');
+            }
+            return;
+        }
+        if (editor.pdf) {
+            var i = paginaVisibleEditor(), centro = centroVisibleEditor(i);
+            await colocarFirmaEnPagina(recortada.toDataURL('image/png'), recortada.width, recortada.height, i, centro.fx, centro.fy);
+            mostrarToast(guardar ? '✓ Firma guardada y colocada. Arrástrala a su lugar.' : '✓ Firma colocada. Arrástrala a su lugar.', 'success');
+        } else {
+            mostrarToast('✓ Firma guardada en Mis firmas', 'success');
+        }
+    }
+    // Eventos del pad mientras la captura está abierta
+    function manejarPenEditor(z, x, y, p) {
+        function en(zn) { return x >= zn.x1 && x <= zn.x2 && y >= zn.y1 && y <= zn.y2; }
+        if (z && (en(ZONA_PAD_BORRAR) || en(ZONA_PAD_LISTO))) {
+            if (!botonPadEditorPresionado) {
+                botonPadEditorPresionado = true;
+                trazoPadActual = null;
+                if (en(ZONA_PAD_BORRAR)) limpiarCapturaEditor(); else usarCapturaEditor();
+            }
+            return;
+        }
+        if (!z) { botonPadEditorPresionado = false; trazoPadActual = null; return; }
+        if (y < PAD_BARRA) { trazoPadActual = null; return; }
+        var punto = { x: x, y: y, p: p };
+        if (!trazoPadActual) { trazoPadActual = [punto]; capturaEditor.trazos.push(trazoPadActual); }
+        else {
+            var ant = trazoPadActual[trazoPadActual.length - 1];
+            trazoPadActual.push(punto);
+            dibujarSegmento(document.getElementById('capturaCanvas').getContext('2d'), ant, punto, 1, PAD_BARRA);
+        }
+        document.getElementById('btnUsarCaptura').disabled = false;
+    }
+    // Dibujo con mouse / dedo / lápiz en el lienzo del modal
+    (function () {
+        var c = document.getElementById('capturaCanvas');
+        function aPad(e) {
+            var r = c.getBoundingClientRect();
+            return { x: (e.clientX - r.left) / r.width * 800, y: (e.clientY - r.top) / r.height * (480 - PAD_BARRA) + PAD_BARRA,
+                p: e.pointerType === 'mouse' ? 0.5 : (e.pressure || 0.5) };
+        }
+        c.addEventListener('pointerdown', function (e) {
+            if (!capturaEditor) return;
+            e.preventDefault();
+            c.setPointerCapture(e.pointerId);
+            trazoMouseActual = [aPad(e)];
+            capturaEditor.trazos.push(trazoMouseActual);
+            redibujarModalCaptura();
+        });
+        c.addEventListener('pointermove', function (e) {
+            if (!capturaEditor || !trazoMouseActual) return;
+            var eventos = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            var ctx = c.getContext('2d');
+            eventos.forEach(function (ev) {
+                var pt = aPad(ev), ant = trazoMouseActual[trazoMouseActual.length - 1];
+                trazoMouseActual.push(pt);
+                dibujarSegmento(ctx, ant, pt, 1, PAD_BARRA);
+            });
+        });
+        function fin() { trazoMouseActual = null; }
+        c.addEventListener('pointerup', fin);
+        c.addEventListener('pointercancel', fin);
+    })();
+    document.addEventListener('keydown', function (ev) {
+        if (!capturaEditor) return;
+        if (ev.key === 'Escape') cerrarCapturaEditor();
+        if (ev.key === 'Enter') { ev.preventDefault(); usarCapturaEditor(); }
+    });
+
+    // =================== Exportar PDF firmado ===================
+    // Convierte un punto (u,v) en puntos de la página tal como se ve (origen arriba-izquierda)
+    // a coordenadas PDF reales, considerando la rotación /Rotate de la página.
+    function puntoVistaAPdf(u, v, rot, cb) {
+        switch (rot) {
+            case 90:  return { x: cb.x + v, y: cb.y + u };
+            case 180: return { x: cb.x + cb.width - u, y: cb.y + v };
+            case 270: return { x: cb.x + cb.width - v, y: cb.y + cb.height - u };
+            default:  return { x: cb.x + u, y: cb.y + cb.height - v };
+        }
+    }
+    function textoCompatibleWinAnsi(t) {
+        // Helvetica estándar solo admite Windows-1252; cambia lo que no se pueda dibujar
+        return t.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[^\x20-\x7E\xA0-\xFF\n€…–—•]/g, '?');
+    }
+    async function nombreDisponibleSalida(base) {
+        if (!carpetaGuardado) return base + '.pdf';
+        for (var n = 0; n < 100; n++) {
+            var nombre = base + (n ? ' (' + (n + 1) + ')' : '') + '.pdf';
+            try { await carpetaGuardado.getFileHandle(nombre); } catch (e) { return nombre; }
+        }
+        return base + '_' + Date.now() + '.pdf';
+    }
+    async function guardarPdfEditor() {
+        if (!editor.pdf) return;
+        var zonas = editor.elementos.filter(function (e) { return e.tipo === 'zona'; });
+        var utiles = editor.elementos.filter(function (e) { return e.tipo !== 'zona'; });
+        if (utiles.length === 0) { mostrarToast('Agrega al menos una firma o texto antes de guardar', 'error'); return; }
+        if (zonas.length && !confirm('Hay ' + zonas.length + ' recuadro(s) de "firmar en el pad" sin firmar. Se ignorarán. ¿Guardar de todas formas?')) return;
+        var btn = document.getElementById('btnGuardarEditor');
+        var htmlBtn = btn.innerHTML;
+        btn.disabled = true; btn.textContent = 'Guardando…';
+        try {
+            var doc = await PDFLib.PDFDocument.load(editor.bytes, { ignoreEncryption: true });
+            var paginasPdf = doc.getPages();
+            var fuente = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+            var cacheImg = {};
+            for (var k = 0; k < utiles.length; k++) {
+                var el = utiles[k];
+                var pag = paginasPdf[el.pagina];
+                var rot = ((pag.getRotation().angle % 360) + 360) % 360;
+                var cb = pag.getCropBox();
+                var W = (rot === 90 || rot === 270) ? cb.height : cb.width;
+                var H = (rot === 90 || rot === 270) ? cb.width : cb.height;
+                var u = el.fx * W, v = el.fy * H;
+                if (el.tipo === 'firma') {
+                    if (!cacheImg[el.src]) cacheImg[el.src] = await doc.embedPng(dataUrlABytes(el.src));
+                    var w = el.fw * W, h = el.fh * H;
+                    var ancla = puntoVistaAPdf(u, v + h, rot, cb);               // esquina inferior izquierda tal como se ve
+                    pag.drawImage(cacheImg[el.src], { x: ancla.x, y: ancla.y, width: w, height: h, rotate: PDFLib.degrees(rot) });
+                } else if (el.tipo === 'texto') {
+                    var lineas = textoCompatibleWinAnsi(el.texto).split('\n');
+                    lineas.forEach(function (linea, n) {
+                        var base = puntoVistaAPdf(u, v + el.fs * 0.947 + n * el.fs * 1.2, rot, cb);
+                        pag.drawText(linea, { x: base.x, y: base.y, size: el.fs, font: fuente, color: PDFLib.rgb(0.06, 0.09, 0.16), rotate: PDFLib.degrees(rot) });
+                    });
+                }
+            }
+            var salida = await doc.save();
+            var nombre = await nombreDisponibleSalida(editor.nombre + '_firmado');
+            var enCarpeta = await guardarArchivoFinal(nombre, salida, 'application/pdf');
+            editor.sinGuardar = false;
+            mostrarToast(enCarpeta ? ('✓ Guardado en la carpeta de salida: ' + nombre) : ('✓ Descargado: ' + nombre), 'success');
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo guardar el PDF: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false; btn.innerHTML = htmlBtn;
+        }
+    }
+
+    // Arrastrar un archivo a la zona vacía (o a cualquier parte del editor)
+    (function () {
+        var sec = document.getElementById('editorSection'), vacio = document.getElementById('editorVacio');
+        sec.addEventListener('dragover', function (ev) {
+            if (ev.dataTransfer.types.indexOf('Files') === -1) return;
+            ev.preventDefault(); vacio.classList.add('arrastrando');
+        });
+        sec.addEventListener('dragleave', function (ev) { if (!sec.contains(ev.relatedTarget)) vacio.classList.remove('arrastrando'); });
+        sec.addEventListener('drop', function (ev) {
+            vacio.classList.remove('arrastrando');
+            if (!ev.dataTransfer.files || !ev.dataTransfer.files[0]) return;
+            ev.preventDefault();
+            abrirArchivoEditor(ev.dataTransfer.files[0]);
+        });
+    })();
+    renderizarMisFirmas();
+
 </script>
 </body>
 </html>
