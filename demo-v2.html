@@ -891,6 +891,7 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
    ===================================================================== */
 body[data-modo="editor"] #layout { grid-template-columns: minmax(0, 1fr); }
 body[data-modo="editor"] #panelFirma { display: none; }
+body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !important; }
 #editorSection { display: none; padding: 0; overflow: visible; }
 
 /* Estado vacío: zona para soltar archivos */
@@ -1410,6 +1411,7 @@ body[data-modo="editor"] #panelFirma { display: none; }
         <aside id="panelFirma">
             <div class="panelFirmaHead">
                 <h2><svg class="icon"><use href="#i-firma"/></svg>Pad de firma</h2>
+                <button class="btn sm" id="btnVerMaterialesPad" onclick="alternarRevisionDesdePc()" style="display:none;" title="Muestra u oculta la lista de materiales en el pad"></button>
             </div>
             <p class="hintModo" data-para="documento">Carga un documento de la lista para habilitar el pad. Firma arriba y escribe el No. de tarjeta abajo.</p>
             <p class="hintModo" data-para="cargoDirecto">El pad está listo: la persona puede firmar directamente.</p>
@@ -1472,6 +1474,10 @@ body[data-modo="editor"] #panelFirma { display: none; }
         <button class="btnCarpetaAdmin" style="width:100%;margin-top:6px;" onclick="agregarArticuloCatalogo()">+ Agregar artículo</button>
 
         <h3>Pluma y pantalla</h3>
+        <div class="adminRow">
+            <span>Mostrar materiales en el pad antes de firmar</span>
+            <input id="adminMostrarMateriales" type="checkbox" style="width:18px;height:18px;accent-color:var(--primary);" onchange="cambiarMostrarMaterialesPad(this.checked)" />
+        </div>
         <div class="adminRow">
             <span>Color de pluma</span>
             <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
@@ -1980,7 +1986,9 @@ body[data-modo="editor"] #panelFirma { display: none; }
         hayTrazosFirma = false;
         hayTrazosTarjeta = false;
         document.getElementById('btnConfirmar').disabled = true;
+        limpiarRevisionMateriales();
         dibujarPantallaSegunModo();
+        prepararRevisionMultiple();   // lee los materiales de todos los documentos seleccionados
     }
     function cancelarModoMultiple() {
         if (hayTrazosFirma || hayTrazosTarjeta) {
@@ -2001,6 +2009,7 @@ body[data-modo="editor"] #panelFirma { display: none; }
         document.getElementById('filaRefresh').style.display = 'flex';
         document.getElementById('listaArchivos').style.display = 'block';
         document.getElementById('infoModoMultiple').style.display = 'none';
+        limpiarRevisionMateriales();
         dibujarPantallaSegunModo();
     }
 
@@ -2043,6 +2052,9 @@ body[data-modo="editor"] #panelFirma { display: none; }
             cajaNumero.style.color = 'rgb(153,27,27)';
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
+        await prepararRevisionDocumentoActual(pdf);
+        var nMat = contarItemsMateriales(materialesDocActual);
+        cajaNumero.innerText += nMat ? ('  ·  ' + nMat + ' material(es) para revisar en el pad') : '  ·  no se pudo leer la lista de materiales';
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
@@ -2085,6 +2097,7 @@ body[data-modo="editor"] #panelFirma { display: none; }
     }
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
+        document.getElementById('adminMostrarMateriales').checked = mostrarMaterialesEnPadActivo();
         await restaurarCarpetasGuardadas();
         cargarCatalogoMateriales();
         renderizarAdminCatalogoMateriales();
@@ -2167,7 +2180,8 @@ body[data-modo="editor"] #panelFirma { display: none; }
         } else if (modoActual === 'materiales') {
             if (materialesListoParaFirmar) dibujarPantallaFirmaMS(); else dibujarPantallaReposo();
         } else if (documentoListoParaFirmar || modoMultipleActivo) {
-            dibujarPantallaFirma();
+            if (revisionMaterialesActiva && materialesDocActual.length) dibujarPantallaRevisionMateriales();
+            else dibujarPantallaFirma();
         } else {
             dibujarPantallaReposo();
         }
@@ -2205,14 +2219,14 @@ body[data-modo="editor"] #panelFirma { display: none; }
         context.fillStyle = "#FFFFFF";
         context.font = "bold 20px Arial";
         context.textAlign = "center";
-        context.fillText("SISTEMA DE AUTOGESTIÓN", 350, 32);
+        context.fillText("SISTEMA DE AUTOGESTIÓN", materialesDocActual.length ? 250 : 350, 32);
         context.font = "12px Arial";
         context.fillStyle = "rgba(255,255,255,0.65)";
         context.fillText(
             modoMultipleActivo
                 ? ('Lote: ' + documentosParaFirmarMultiple.length + ' documento(s)')
                 : ('Doc. ' + (numeroDocumentoDetectado || "—")),
-            350, 52
+            materialesDocActual.length ? 250 : 350, 52
         );
         roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
         context.fillStyle = "#FFFFFF";
@@ -2238,6 +2252,14 @@ body[data-modo="editor"] #panelFirma { display: none; }
         context.moveTo(zonaTarjetaDocumento.x1 + 20, zonaTarjetaDocumento.y2 - 25);
         context.lineTo(zonaTarjetaDocumento.x2 - 20, zonaTarjetaDocumento.y2 - 25);
         context.stroke();
+        if (materialesDocActual.length) {   // botón para volver a la lista de materiales
+            roundRectFill(ZONA_VER_MATERIALES.x1, ZONA_VER_MATERIALES.y1, ZONA_VER_MATERIALES.x2 - ZONA_VER_MATERIALES.x1, ZONA_VER_MATERIALES.y2 - ZONA_VER_MATERIALES.y1, 8, "#1D4ED8");
+            context.fillStyle = "#FFFFFF";
+            context.font = "bold 13px Arial";
+            context.textAlign = "center";
+            context.fillText("VER MATERIALES", (ZONA_VER_MATERIALES.x1 + ZONA_VER_MATERIALES.x2) / 2, (ZONA_VER_MATERIALES.y1 + ZONA_VER_MATERIALES.y2) / 2 + 5);
+        }
+        dibujarTintaExistente();
         wacom.setWritingArea(areaTotalDocumento);
         empujarImagenAlPad();
     }
@@ -2372,6 +2394,22 @@ body[data-modo="editor"] #panelFirma { display: none; }
         if (modoActual === 'documento' && !documentoListoParaFirmar && !modoMultipleActivo) return;
         if (modoActual === 'materiales' && !materialesListoParaFirmar) return;
         if (modoActual === 'firmados') return;
+        // Revisión de materiales en el pad: solo botones, sin tinta
+        if (modoActual === 'documento' && revisionMaterialesActiva) {
+            if (z && !yaSePresionoBoton) { yaSePresionoBoton = true; manejarToqueRevision(x, y); }
+            if (!z) yaSePresionoBoton = false;
+            return;
+        }
+        if (modoActual === 'documento' && z && materialesDocActual.length &&
+            x >= ZONA_VER_MATERIALES.x1 && x <= ZONA_VER_MATERIALES.x2 && y >= ZONA_VER_MATERIALES.y1 && y <= ZONA_VER_MATERIALES.y2) {
+            if (!yaSePresionoBoton) {
+                yaSePresionoBoton = true;
+                revisionMaterialesActiva = true;
+                actualizarBotonVerMateriales();
+                dibujarPantallaRevisionMateriales();
+            }
+            return;
+        }
         if (z && estaEnBotonReintentar(x, y)) {
             if (!yaSePresionoBoton) {
                 yaSePresionoBoton = true;
@@ -2471,6 +2509,7 @@ body[data-modo="editor"] #panelFirma { display: none; }
             numeroDocumentoDetectado = null;
             paginaActualPdf = null;
             documentoListoParaFirmar = false;
+            limpiarRevisionMateriales();
             document.getElementById('previewPdf').style.display = 'none';
             document.getElementById('docNumeroDetectado').style.display = 'none';
             document.getElementById('btnConnect').disabled = true;
@@ -3519,6 +3558,271 @@ body[data-modo="editor"] #panelFirma { display: none; }
         var caja = document.getElementById('deviceInfo');
         caja.style.display = 'block';
         caja.innerText = JSON.stringify(info, null, 2);
+    }
+
+
+    // =====================================================================
+    // REVISIÓN DE MATERIALES EN EL PAD (Documento SAP)
+    // ---------------------------------------------------------------------
+    // Antes de firmar, el pad muestra la lista de materiales que el mecánico
+    // va a recibir (leída del texto del PDF de SAP). Pulsa "CORRECTO · FIRMAR"
+    // para pasar a la firma. En la pantalla de firma, "VER MATERIALES" vuelve
+    // a la lista sin perder lo ya firmado.
+    // =====================================================================
+    var materialesDocActual = [];          // [{tipo:'item', linea, cant, um, material, desc, nota} | {tipo:'doc', texto}]
+    var revisionMaterialesActiva = false;
+    var paginaRevision = 0;
+    var FILAS_REVISION = 6;
+    var ZONA_REV_ANT = { x1: 20, y1: 414, x2: 96, y2: 468 };
+    var ZONA_REV_SIG = { x1: 196, y1: 414, x2: 272, y2: 468 };
+    var ZONA_REV_FIRMAR = { x1: 440, y1: 412, x2: 786, y2: 470 };
+    var ZONA_VER_MATERIALES = { x1: 480, y1: 15, x2: 645, y2: 55 };
+
+    function mostrarMaterialesEnPadActivo() {
+        try { return localStorage.getItem('mostrarMaterialesPad') !== '0'; } catch (e) { return true; }
+    }
+    function cambiarMostrarMaterialesPad(activo) {
+        try { localStorage.setItem('mostrarMaterialesPad', activo ? '1' : '0'); } catch (e) { }
+        if (!activo && revisionMaterialesActiva) { revisionMaterialesActiva = false; dibujarPantallaSegunModo(); }
+    }
+
+    // ---------- Lectura de materiales desde el PDF ----------
+    // Agrupa el texto en filas (por coordenada Y) y usa los títulos de columna
+    // (Linea, Cant, U/M, Material, Descripción, Lote...) para ubicar cada dato.
+    async function extraerMaterialesDePdf(pdf) {
+        var resultado = [];
+        for (var n = 1; n <= pdf.numPages; n++) {
+            var pagina = await pdf.getPage(n);
+            var contenido = await pagina.getTextContent();
+            var items = contenido.items
+                .filter(function (it) { return it.str && it.str.trim(); })
+                .map(function (it) { return { s: it.str.replace(/\s+/g, ' ').trim(), x: it.transform[4], y: it.transform[5] }; });
+            // filas por Y (de arriba hacia abajo)
+            items.sort(function (a, b) { return b.y - a.y || a.x - b.x; });
+            var filas = [];
+            items.forEach(function (it) {
+                var f = filas[filas.length - 1];
+                if (f && Math.abs(f.y - it.y) <= 3) f.items.push(it);
+                else filas.push({ y: it.y, items: [it] });
+            });
+            filas.forEach(function (f) { f.items.sort(function (a, b) { return a.x - b.x; }); });
+
+            // fila de títulos
+            var cols = null;
+            for (var i = 0; i < filas.length && !cols; i++) {
+                var t = filas[i].items;
+                var buscar = function (re) { var it = t.filter(function (x) { return re.test(x.s); })[0]; return it ? it.x : null; };
+                var c = { linea: buscar(/^l[ií]nea$/i), cant: buscar(/^cant/i), um: buscar(/^u\s*\/\s*m$/i), material: buscar(/^material$/i),
+                    desc: buscar(/^descrip/i), lote: buscar(/^lote$/i), ubic: buscar(/^ubicaci/i), resv: buscar(/^l[ií]nea\s+resv/i) };
+                if (c.cant !== null && c.material !== null && c.desc !== null) { c.yTitulo = filas[i].y; cols = c; }
+            }
+
+            var ultimo = null;
+            filas.forEach(function (f) {
+                if (cols && f.y >= cols.yTitulo) return;                       // encabezado del documento
+                var textoFila = f.items.map(function (x) { return x.s; }).join(' ');
+                var item = null;
+                if (/^\d{3,4}\b/.test(f.items[0].s)) {
+                    if (cols) item = filaPorColumnas(f.items, cols);
+                    if (!item || !item.material || !item.desc) item = filaPorPatron(textoFila) || item;
+                }
+                if (item && item.material) {
+                    item.tipo = 'item';
+                    resultado.push(item);
+                    ultimo = { item: item, y: f.y };
+                    return;
+                }
+                // línea de nota justo debajo de un material (ej. "MATERIALES PARA LA FICHA ...")
+                if (ultimo && ultimo.y - f.y > 0 && ultimo.y - f.y < 16 && !ultimo.item.nota && textoFila.length > 3) {
+                    ultimo.item.nota = textoFila;
+                    return;
+                }
+                ultimo = null;
+            });
+        }
+        return resultado;
+    }
+    function filaPorColumnas(items, c) {
+        // límites de columna: cada dato pertenece a la columna cuyo título está a su izquierda más cercano
+        var orden = [['linea', c.linea === null ? -1 : c.linea], ['cant', c.cant], ['um', c.um], ['material', c.material],
+            ['desc', c.desc], ['lote', c.lote], ['ubic', c.ubic], ['resv', c.resv]]
+            .filter(function (o) { return o[1] !== null; })
+            .sort(function (a, b) { return a[1] - b[1]; });
+        var r = { linea: '', cant: '', um: '', material: '', desc: '' };
+        items.forEach(function (it, idx) {
+            if (idx === 0) { r.linea = it.s; return; }
+            var col = orden[0][0];
+            orden.forEach(function (o) { if (it.x + 8 >= o[1]) col = o[0]; });
+            if (col === 'linea') col = 'cant';
+            if (r.hasOwnProperty(col)) r[col] = (r[col] ? r[col] + ' ' : '') + it.s;
+        });
+        // si el texto de la línea vino pegado con la cantidad ("0001 1")
+        var m = r.linea.match(/^(\d{3,4})\s+(.*)$/);
+        if (m) { r.linea = m[1]; r.cant = (m[2] + ' ' + r.cant).trim(); }
+        return r;
+    }
+    function filaPorPatron(texto) {
+        // 0001 1 PZA 1036130 FILTRO CABINA ... [VALORADO 61030710021]
+        var m = texto.match(/^(\d{3,4})\s+(\d+(?:[.,]\d+)?)\s+([A-Za-z]{1,4})\s+(\d{4,})\s+(.+)$/);
+        if (!m) return null;
+        var desc = m[5].replace(/\s+(VALORADO|NO\s+VALORADO)\b.*$/i, '').replace(/\s+\d{8,}\s*$/, '').trim();
+        return { linea: m[1], cant: m[2], um: m[3], material: m[4], desc: desc };
+    }
+    function contarItemsMateriales(lista) { return lista.filter(function (x) { return x.tipo === 'item'; }).length; }
+
+    async function prepararRevisionDocumentoActual(pdf) {
+        try { materialesDocActual = await extraerMaterialesDePdf(pdf); }
+        catch (e) { console.warn('No se pudieron leer los materiales del PDF', e); materialesDocActual = []; }
+        paginaRevision = 0;
+        revisionMaterialesActiva = mostrarMaterialesEnPadActivo() && materialesDocActual.length > 0;
+        actualizarBotonVerMateriales();
+    }
+    async function prepararRevisionMultiple() {
+        var lista = [];
+        for (var i = 0; i < documentosParaFirmarMultiple.length; i++) {
+            var nombre = documentosParaFirmarMultiple[i];
+            try {
+                var h = mapaArchivosPorNombre[nombre];
+                var bytes = await (await h.getFile()).arrayBuffer();
+                var pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+                var p1 = await pdf.getPage(1);
+                var txt = (await p1.getTextContent()).items.map(function (it) { return it.str; }).join(' ');
+                var mDoc = txt.match(/No\.?\s*docum\.?\s*-\s*(\d+)/i);
+                var mats = await extraerMaterialesDePdf(pdf);
+                lista.push({ tipo: 'doc', texto: 'Documento ' + (mDoc ? mDoc[1] : nombre.replace(/\.pdf$/i, '')) + ' · ' + contarItemsMateriales(mats) + ' artículo(s)' });
+                lista = lista.concat(mats);
+            } catch (e) { console.warn('No se pudieron leer los materiales de ' + nombre, e); }
+        }
+        if (!modoMultipleActivo) return;              // se canceló mientras se leía
+        materialesDocActual = contarItemsMateriales(lista) ? lista : [];
+        paginaRevision = 0;
+        revisionMaterialesActiva = mostrarMaterialesEnPadActivo() && materialesDocActual.length > 0;
+        actualizarBotonVerMateriales();
+        dibujarPantallaSegunModo();
+    }
+    function limpiarRevisionMateriales() {
+        materialesDocActual = [];
+        revisionMaterialesActiva = false;
+        paginaRevision = 0;
+        actualizarBotonVerMateriales();
+    }
+    function actualizarBotonVerMateriales() {
+        var b = document.getElementById('btnVerMaterialesPad');
+        if (!b) return;
+        var n = contarItemsMateriales(materialesDocActual);
+        b.style.display = n ? '' : 'none';
+        b.innerHTML = '<svg class="icon sm"><use href="#i-lista"/></svg>' + (revisionMaterialesActiva ? 'Ir a la firma' : 'Ver materiales (' + n + ')');
+    }
+    function alternarRevisionDesdePc() {
+        if (!materialesDocActual.length) return;
+        revisionMaterialesActiva = !revisionMaterialesActiva;
+        actualizarBotonVerMateriales();
+        dibujarPantallaSegunModo();
+    }
+
+    // ---------- Pantalla del pad ----------
+    function textoAjustado(texto, anchoMax) {
+        texto = String(texto || '');
+        if (context.measureText(texto).width <= anchoMax) return texto;
+        while (texto.length > 1 && context.measureText(texto + '…').width > anchoMax) texto = texto.slice(0, -1);
+        return texto + '…';
+    }
+    function dibujarPantallaRevisionMateriales() {
+        var totalItems = contarItemsMateriales(materialesDocActual);
+        var paginas = Math.max(1, Math.ceil(materialesDocActual.length / FILAS_REVISION));
+        paginaRevision = limitarNum(paginaRevision, 0, paginas - 1);
+        context.fillStyle = '#F8FAFC'; context.fillRect(0, 0, 800, 480);
+        // encabezado
+        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, 64);
+        context.textAlign = 'left';
+        context.fillStyle = '#FFFFFF'; context.font = 'bold 22px Arial';
+        context.fillText('REVISE LOS MATERIALES', 24, 31);
+        context.font = '13px Arial'; context.fillStyle = 'rgba(255,255,255,0.7)';
+        var sub = (modoMultipleActivo ? (documentosParaFirmarMultiple.length + ' documentos') : ('Doc. ' + (numeroDocumentoDetectado || '—'))) +
+            '  ·  ' + totalItems + ' artículo(s)';
+        context.fillText(sub, 24, 52);
+        context.textAlign = 'right'; context.font = 'bold 13px Arial'; context.fillStyle = 'rgba(255,255,255,0.85)';
+        context.fillText('Verifique antes de firmar', 776, 38);
+        // títulos de columnas
+        context.fillStyle = '#E2E8F0'; context.fillRect(0, 64, 800, 30);
+        context.fillStyle = '#475569'; context.font = 'bold 12px Arial'; context.textAlign = 'left';
+        context.fillText('CANT.', 24, 84); context.fillText('CÓDIGO', 124, 84); context.fillText('DESCRIPCIÓN', 244, 84);
+        // filas
+        var desde = paginaRevision * FILAS_REVISION;
+        var filas = materialesDocActual.slice(desde, desde + FILAS_REVISION);
+        var y0 = 94, alto = 52;
+        filas.forEach(function (it, i) {
+            var y = y0 + i * alto;
+            if (it.tipo === 'doc') {
+                context.fillStyle = '#E8EEFF'; context.fillRect(0, y, 800, alto);
+                context.fillStyle = '#1D4ED8'; context.font = 'bold 15px Arial'; context.textAlign = 'left';
+                context.fillText(it.texto, 24, y + 32);
+                return;
+            }
+            context.fillStyle = i % 2 ? '#F1F5F9' : '#FFFFFF'; context.fillRect(0, y, 800, alto);
+            context.textAlign = 'left';
+            context.fillStyle = '#0F172A'; context.font = 'bold 24px Arial';
+            var cant = String(it.cant || '').replace(/[.,]000$/, '');
+            context.fillText(cant, 24, y + (it.nota ? 27 : 33));
+            var wCant = context.measureText(cant).width;
+            context.font = '12px Arial'; context.fillStyle = '#64748B';
+            context.fillText(textoAjustado(it.um || '', 92 - wCant - 6), 24 + wCant + 6, y + (it.nota ? 27 : 33));
+            context.fillStyle = '#0F172A'; context.font = 'bold 17px Arial';
+            context.fillText(textoAjustado(it.material, 112), 124, y + (it.nota ? 27 : 33));
+            context.font = '17px Arial'; context.fillStyle = '#1E293B';
+            context.fillText(textoAjustado(it.desc, 776 - 244), 244, y + (it.nota ? 27 : 33));
+            if (it.nota) {
+                context.font = '12px Arial'; context.fillStyle = '#64748B';
+                context.fillText(textoAjustado(it.nota, 776 - 124), 124, y + 45);
+            }
+        });
+        context.strokeStyle = '#E2E8F0'; context.lineWidth = 1;
+        context.beginPath(); context.moveTo(0, 406); context.lineTo(800, 406); context.stroke();
+        // paginación
+        var hayAnt = paginaRevision > 0, haySig = paginaRevision < paginas - 1;
+        roundRectFill(ZONA_REV_ANT.x1, ZONA_REV_ANT.y1, ZONA_REV_ANT.x2 - ZONA_REV_ANT.x1, ZONA_REV_ANT.y2 - ZONA_REV_ANT.y1, 10, hayAnt ? '#334155' : '#E2E8F0');
+        roundRectFill(ZONA_REV_SIG.x1, ZONA_REV_SIG.y1, ZONA_REV_SIG.x2 - ZONA_REV_SIG.x1, ZONA_REV_SIG.y2 - ZONA_REV_SIG.y1, 10, haySig ? '#334155' : '#E2E8F0');
+        context.fillStyle = hayAnt ? '#FFFFFF' : '#94A3B8'; context.font = 'bold 26px Arial'; context.textAlign = 'center';
+        context.fillText('‹', (ZONA_REV_ANT.x1 + ZONA_REV_ANT.x2) / 2, 450);
+        context.fillStyle = haySig ? '#FFFFFF' : '#94A3B8';
+        context.fillText('›', (ZONA_REV_SIG.x1 + ZONA_REV_SIG.x2) / 2, 450);
+        context.fillStyle = '#475569'; context.font = 'bold 14px Arial';
+        context.fillText('Pág. ' + (paginaRevision + 1) + ' de ' + paginas, (ZONA_REV_ANT.x2 + ZONA_REV_SIG.x1) / 2, 446);
+        // botón continuar
+        roundRectFill(ZONA_REV_FIRMAR.x1, ZONA_REV_FIRMAR.y1, ZONA_REV_FIRMAR.x2 - ZONA_REV_FIRMAR.x1, ZONA_REV_FIRMAR.y2 - ZONA_REV_FIRMAR.y1, 10, '#15803D');
+        context.fillStyle = '#FFFFFF'; context.font = 'bold 19px Arial';
+        context.fillText('CORRECTO  ·  FIRMAR  ›', (ZONA_REV_FIRMAR.x1 + ZONA_REV_FIRMAR.x2) / 2, 448);
+        try { wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 }); } catch (e) { }   // sin tinta en esta pantalla
+        empujarImagenAlPad();
+    }
+    function limitarNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function manejarToqueRevision(x, y) {
+        function en(z) { return x >= z.x1 && x <= z.x2 && y >= z.y1 && y <= z.y2; }
+        var paginas = Math.max(1, Math.ceil(materialesDocActual.length / FILAS_REVISION));
+        if (en(ZONA_REV_FIRMAR)) {
+            revisionMaterialesActiva = false;
+            actualizarBotonVerMateriales();
+            dibujarPantallaSegunModo();
+        } else if (en(ZONA_REV_ANT) && paginaRevision > 0) {
+            paginaRevision--; dibujarPantallaRevisionMateriales();
+        } else if (en(ZONA_REV_SIG) && paginaRevision < paginas - 1) {
+            paginaRevision++; dibujarPantallaRevisionMateriales();
+        }
+    }
+    // Vuelve a pintar en el pad la tinta ya trazada (al regresar de la lista de materiales)
+    function dibujarTintaExistente() {
+        ['ssvvggFirma', 'ssvvggTarjeta'].forEach(function (id) {
+            document.querySelectorAll('#' + id + ' polyline').forEach(function (pl) {
+                var pts = pl.points;
+                if (!pts || pts.numberOfItems < 2) return;
+                var ancho = parseFloat((pl.getAttribute('style') || '').replace(/.*stroke-width:\s*([\d.]+).*/, '$1')) || 2;
+                context.strokeStyle = colaPluma; context.lineWidth = ancho; context.lineCap = 'round'; context.lineJoin = 'round';
+                context.beginPath();
+                context.moveTo(pts.getItem(0).x, pts.getItem(0).y);
+                for (var k = 1; k < pts.numberOfItems; k++) context.lineTo(pts.getItem(k).x, pts.getItem(k).y);
+                context.stroke();
+            });
+        });
     }
 
     // =====================================================================
