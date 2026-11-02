@@ -1139,6 +1139,50 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     #modalCaptura { padding: 0; }
     .capturaCaja { border-radius: 0; height: 100%; }
 }
+
+/* =====================================================================
+   v2.1 · Estados animados y rendimiento
+   ===================================================================== */
+#status.reconnecting { color: #FDE68A; background: rgba(245,158,11,.14); border-color: rgba(252,211,77,.35); animation: latido 1.4s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: .55; } }
+/* Pulso sobre el punto verde de "Listo para firmar" en la vista previa del pad */
+#animReposo { display: none; position: absolute; left: 37.5%; top: 67.9%; width: 0; height: 0; pointer-events: none; }
+body.padReposo #animReposo { display: block; }
+#animReposo span {
+    position: absolute; left: 0; top: 0;
+    width: 34px; height: 34px; margin: -17px 0 0 -17px;
+    border-radius: 50%; border: 2px solid rgba(22,163,74,.55);
+    animation: onda 2.4s cubic-bezier(.2,.7,.2,1) infinite;
+}
+#animReposo span + span { animation-delay: 1.2s; }
+@keyframes onda { from { transform: scale(.4); opacity: 1; } to { transform: scale(2.6); opacity: 0; } }
+/* Barra de envío al pad */
+#progresoPad { height: 3px; margin: 8px auto 0; max-width: 700px; border-radius: 3px; background: transparent; overflow: hidden; transition: background .2s; }
+#progresoPad.activo { background: var(--surface-3); }
+#progresoPad span { display: block; height: 100%; width: 0; background: var(--primary); border-radius: 3px; transition: width .15s linear; }
+#progresoPad:not(.activo) span { width: 0 !important; transition: none; }
+/* Esqueletos mientras carga una lista */
+.esqueleto {
+    height: 54px; border-radius: var(--r-md);
+    background: linear-gradient(90deg, var(--surface-3) 0%, #F8FAFC 40%, var(--surface-3) 80%) 0 0 / 300% 100%;
+    animation: brillo 1.2s linear infinite;
+}
+@keyframes brillo { to { background-position: -150% 0; } }
+/* Vista previa del PDF cargando */
+#previewPdf { position: relative; min-height: 120px; }
+#previewPdf.cargando #pdfCanvas { opacity: .25; filter: blur(1px); transition: opacity .2s; }
+#previewPdf.cargando::after {
+    content: ''; position: absolute; left: 50%; top: 60px; width: 34px; height: 34px; margin-left: -17px;
+    border-radius: 50%; border: 3px solid var(--primary-soft); border-top-color: var(--primary);
+    animation: girar .8s linear infinite;
+}
+/* Botón actualizar girando */
+.girando .icon { animation: girar .8s linear infinite; }
+/* Transición al cambiar de pestaña */
+#documentoSection, #cargoDirectoSection, #materialesSection, #firmadosSection, #editorSection { animation: subir .22s var(--ease); }
+/* Menos trabajo de pintado */
+#listaArchivos, #listaFirmados, #listaHistorialMS { contain: content; }
+.archivoItem, .filaHistorialMS { content-visibility: auto; contain-intrinsic-size: auto 54px; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1421,9 +1465,11 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
             <div id="firmaBox">
                 <div id="appcont">
                     <canvas id="myCanvas" width="800" height="480"></canvas>
+                    <div id="animReposo" aria-hidden="true"><span></span><span></span></div>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggFirma"></svg>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggTarjeta"></svg>
                 </div>
+                <div id="progresoPad" title="Actualizando la pantalla del pad"><span></span></div>
                 <div id="etiquetaZonas">
                     <span><svg class="icon sm"><use href="#i-pluma"/></svg>Firma</span>
                     <span id="etiquetaZonaTarjeta"><svg class="icon sm"><use href="#i-tarjeta"/></svg>No. Tarjeta</span>
@@ -1816,7 +1862,10 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     }
     async function refrescarManual() {
         if (!carpetaPendientes) { mostrarToast('Conecta primero una carpeta de entrada en ⚙️', 'info'); return; }
-        await listarPdfs();
+        var btn = document.getElementById('btnRefrescarLista');
+        btn.classList.add('girando');
+        await listarPdfs(true);
+        btn.classList.remove('girando');
         mostrarToast('Lista actualizada', 'success');
     }
     function iniciarAutoRefresh() {
@@ -1827,6 +1876,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
             if (documentoListoParaFirmar && modoActual === 'documento') return; // no refrescar mientras hay un documento cargado para firmar
             if (modoMultipleActivo) return; // no refrescar mientras se firma para un lote
             if (modoActual !== 'documento') return; // no refrescar la lista de pendientes si no se está viendo esa pestaña
+            if (document.hidden) return;            // pestaña en segundo plano: no gastar recursos
             await listarPdfs();
         }, 6000);
     }
@@ -1888,23 +1938,49 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     }
 
     // ============ Listado de PDFs pendientes (con checkboxes para selección múltiple) ============
-    async function listarPdfs() {
-        archivosPendientesCache = [];
-        mapaArchivosPorNombre = {};
-        for await (const entrada of carpetaPendientes.values()) {
-            if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
-                archivosPendientesCache.push(entrada);
-                mapaArchivosPorNombre[entrada.name] = entrada;
+    var listandoPdfs = null, firmaListaPendientes = null, listaPendientesCargada = false;
+    function listarPdfs(forzarRender) {
+        if (listandoPdfs) return listandoPdfs;            // evita lecturas de carpeta encimadas
+        listandoPdfs = listarPdfsInterno(forzarRender).finally(function () { listandoPdfs = null; });
+        return listandoPdfs;
+    }
+    async function listarPdfsInterno(forzarRender) {
+        if (!carpetaPendientes) return;
+        if (!listaPendientesCargada) mostrarEsqueletoLista('listaArchivos');
+        var nuevos = [], mapa = {};
+        try {
+            for await (const entrada of carpetaPendientes.values()) {
+                if (entrada.kind === 'file' && entrada.name.toLowerCase().endsWith('.pdf')) {
+                    nuevos.push(entrada);
+                    mapa[entrada.name] = entrada;
+                }
             }
+        } catch (e) {
+            console.warn('No se pudo leer la carpeta de entrada', e);
+            if (!listaPendientesCargada) document.getElementById('listaArchivos').innerHTML = '<div class="estadoVacio error">No se pudo leer la carpeta. Reconéctala en ⚙️.</div>';
+            return;
         }
+        nuevos.sort(function (a, b) { return a.name.localeCompare(b.name, 'es', { numeric: true }); });
+        archivosPendientesCache = nuevos;
+        mapaArchivosPorNombre = mapa;
+        listaPendientesCargada = true;
+        var firma = nuevos.map(function (e) { return e.name; }).join('|') + '#' + (entradaArchivoActual ? entradaArchivoActual.name : '') + '#' + documentoListoParaFirmar + modoMultipleActivo;
         // Si algún archivo seleccionado ya no existe (fue movido/borrado), lo quitamos de la selección
         Array.from(seleccionMultipleActiva).forEach(function (nombre) {
             if (!mapaArchivosPorNombre[nombre]) seleccionMultipleActiva.delete(nombre);
         });
         document.getElementById('ultimaActualizacion').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
+        if (!forzarRender && firma === firmaListaPendientes) return;   // nada cambió: no se redibuja la lista
+        firmaListaPendientes = firma;
         renderizarListaPendientes();
     }
+    function mostrarEsqueletoLista(id) {
+        var c = document.getElementById(id);
+        if (!c || c.querySelector('.esqueleto')) return;
+        c.innerHTML = '<div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>';
+    }
     function filtrarPendientes() {
+        firmaListaPendientes = null;
         renderizarListaPendientes();
     }
     function renderizarListaPendientes() {
@@ -2022,11 +2098,33 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         document.getElementById('progresoMultiple').classList.remove('visible');
     }
 
+    var tokenCargaPdf = 0;
     async function cargarPdf(entradaArchivo) {
-        entradaArchivoActual = entradaArchivo;
+        var token = ++tokenCargaPdf;                 // si se toca otro archivo mientras carga, gana el último
+        var prev = document.getElementById('previewPdf');
+        prev.style.display = 'block';
+        prev.classList.add('cargando');
+        try {
+            await cargarPdfInterno(entradaArchivo, token);
+        } catch (e) {
+            if (token !== tokenCargaPdf) return;
+            console.error(e);
+            documentoListoParaFirmar = false;
+            entradaArchivoActual = null;
+            prev.style.display = 'none';
+            mostrarToast('No se pudo abrir "' + entradaArchivo.name + '": ' + (e.message || e), 'error');
+            listarPdfs(true);
+        } finally {
+            if (token === tokenCargaPdf) prev.classList.remove('cargando');
+        }
+    }
+    async function cargarPdfInterno(entradaArchivo, token) {
         var archivo = await entradaArchivo.getFile();
-        pdfBytesActual = await archivo.arrayBuffer();
-        var pdf = await pdfjsLib.getDocument({ data: pdfBytesActual.slice(0) }).promise;
+        var bytes = await archivo.arrayBuffer();
+        var pdf = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+        if (token !== tokenCargaPdf) return;
+        entradaArchivoActual = entradaArchivo;
+        pdfBytesActual = bytes;
         var pagina = await pdf.getPage(1);
         paginaActualPdf = pagina;
         var viewport = pagina.getViewport({ scale: escalaRenderPdf });
@@ -2053,58 +2151,175 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
         await prepararRevisionDocumentoActual(pdf);
+        if (token !== tokenCargaPdf) return;
         var nMat = contarItemsMateriales(materialesDocActual);
         cajaNumero.innerText += nMat ? ('  ·  ' + nMat + ' material(es) para revisar en el pad') : '  ·  no se pudo leer la lista de materiales';
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
         await redibujarPreviewConMarcadores();
-        await listarPdfs(); // refresca resaltando el archivo activo (y oculta checkboxes/barra)
-        if (wacom.checkConnected()) dibujarPantallaSegunModo();
+        dibujarPantallaSegunModo();   // primero el pad (lo que espera el mecánico)
+        listarPdfs(true);             // luego refresca la lista resaltando el archivo activo
     }
-    wacom.checkAvailable().then(function (supp) {
-        if (!supp) document.getElementById('status').innerText = "⚠ Pad no detectado (conecta el USB)"
-    })
-    wacom.onHidChange(function (e) {
-        if (e == 'connect') {
-            document.getElementById('status').className = 'connected';
-            document.getElementById('status').innerText = '● Pad conectado';
-        } else {
-            wacom.device = null
-            document.getElementById('status').className = 'disconnected';
-            document.getElementById('status').innerText = '● Pad desconectado';
-        }
-    })
-    async function prepararPadTrasConectar() {
-        await wacom.setPenColorAndWidth(colaPluma, grosorPluma)
-        await wacom.setWritingMode(1)
-        await wacom.setInking(true)
-        wacom.onPenData(function (pen) {
-            pointevent(pen.press > 0, pen.cx, pen.cy, pen.press)
-        })
-        addpoly()
-        setTimeout(function () {
-            dibujarPantallaSegunModo();
-        }, 150)
-        document.getElementById('status').className = 'connected';
-        document.getElementById('status').innerText = '● Pad conectado';
+    // =====================================================================
+    // CONEXIÓN DEL PAD — automática y vigilada
+    // ---------------------------------------------------------------------
+    // - Al abrir la página se conecta solo (si el pad ya fue autorizado una vez).
+    // - Si se desconecta (cable, suspensión USB de Windows, error), lo detecta
+    //   y vuelve a conectar solo, restaurando la pantalla que tenía.
+    // - Cada 20 s sin actividad hace un "ping" liviano: si el pad no responde,
+    //   cierra y reabre la conexión (también evita que Windows lo suspenda).
+    // =====================================================================
+    var reconectandoPad = false;
+    var padPreparado = false;
+    var ultimoIntentoPad = 0;
+    var fallosSeguidosPad = 0;
+
+    function ponerEstadoPad(estado, texto) {
+        var el = document.getElementById('status');
+        el.className = estado;                     // connected | disconnected | reconnecting
+        el.innerText = texto;
+        el.title = texto;
+    }
+    function padConectadoUI() {
+        ponerEstadoPad('connected', '● Pad conectado');
         document.getElementById('btnConnect').innerText = 'Reconectar';
     }
-    async function connect() {
-        if (await wacom.connect()) {
+    wacom.onPenData(function (pen) {
+        pointevent(pen.press > 0, pen.cx, pen.cy, pen.press);
+    });
+    wacom.onError(function (e) {
+        console.warn('Error de comunicación con el pad:', e && e.message);
+        // si el pad dejó de estar abierto, el vigilante lo reconecta enseguida
+        if (!wacom.checkConnected()) setTimeout(function () { asegurarConexionPad('error'); }, 300);
+    });
+    wacom.onHidChange(function (e) {
+        if (e == 'connect') {
+            ponerEstadoPad('reconnecting', '● Pad detectado, conectando…');
+            setTimeout(function () { asegurarConexionPad('usb'); }, 700);   // da tiempo a Windows a terminar de montarlo
+        } else {
+            padPreparado = false;
+            wacom.desconectar();
+            ponerEstadoPad('disconnected', '● Pad desconectado · reconectando solo');
+        }
+    });
+    async function prepararPadTrasConectar() {
+        await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
+        await wacom.setWritingMode(1);
+        await wacom.setInking(true);
+        addpoly();
+        wacom.invalidarImagen();
+        padPreparado = true;
+        fallosSeguidosPad = 0;
+        padConectadoUI();
+        dibujarPantallaSegunModo();               // restaura la pantalla que corresponde al momento actual
+    }
+    // Conecta sin mostrar el selector (solo funciona si ya se autorizó antes en este navegador)
+    async function asegurarConexionPad(motivo) {
+        if (reconectandoPad) return false;
+        if (wacom.checkConnected() && padPreparado) return true;
+        reconectandoPad = true;
+        ultimoIntentoPad = Date.now();
+        try {
+            if (!wacom.checkConnected()) {
+                if (motivo !== 'inicio') ponerEstadoPad('reconnecting', '● Conectando pad…');
+                // límite de 10 s: si Windows deja el USB a medias, se reintenta en la próxima vuelta
+                var ok = await Promise.race([wacom.connectSilencioso(), new Promise(function (r) { setTimeout(function () { r(false); }, 10000); })]);
+                if (!ok) {
+                    fallosSeguidosPad++;
+                    var autorizado = await wacom.checkAvailable();
+                    if (wacom.ultimoError && /open|in use|busy|access/i.test(String(wacom.ultimoError.message))) {
+                        ponerEstadoPad('disconnected', '⚠ El pad está en uso por otra pestaña o programa');
+                    } else {
+                        ponerEstadoPad('disconnected', autorizado ? '● Pad no responde · reintentando' : '⚠ Pad no conectado · conecta el USB o pulsa Conectar');
+                    }
+                    return false;
+                }
+            }
             await prepararPadTrasConectar();
+            if (motivo !== 'inicio' && motivo !== 'vigilante-silencioso') mostrarToast('✓ Pad reconectado', 'success');
+            return true;
+        } catch (e) {
+            console.warn('No se pudo conectar el pad:', e);
+            fallosSeguidosPad++;
+            ponerEstadoPad('disconnected', '● Pad desconectado · reintentando');
+            return false;
+        } finally {
+            reconectandoPad = false;
         }
     }
+    // Vigilante: revisa la conexión cada 4 s
+    setInterval(async function () {
+        if (reconectandoPad) return;
+        if (!wacom.checkConnected() || !padPreparado) {
+            // reintenta más espaciado si falla mucho (4 s, luego hasta cada 20 s)
+            var espera = Math.min(20000, 4000 * Math.max(1, fallosSeguidosPad));
+            if (Date.now() - ultimoIntentoPad >= espera - 100) asegurarConexionPad('vigilante');
+            return;
+        }
+        if (Date.now() - wacom.ultimaActividad > 20000) {
+            var vivo = await wacom.ping(3000);
+            if (!vivo) {
+                console.warn('El pad no respondió al ping; reconectando…');
+                padPreparado = false;
+                await wacom.desconectar();
+                ponerEstadoPad('reconnecting', '● Reconectando pad…');
+                asegurarConexionPad('ping');
+            }
+        }
+    }, 4000);
+    // Al volver a la pestaña / ventana, comprobar enseguida
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) asegurarConexionPad('visible');
+    });
+    // Botón "Conectar pad de firma" (muestra el selector la primera vez)
+    async function connect() {
+        try {
+            if (wacom.checkConnected()) { await wacom.desconectar(); padPreparado = false; }
+            var ok = await wacom.connect();
+            if (ok === false) return;
+            await prepararPadTrasConectar();
+        } catch (e) {
+            console.warn(e);
+            if (e && e.name === 'NotFoundError') return;          // el usuario cerró el selector
+            ponerEstadoPad('disconnected', '⚠ No se pudo abrir el pad (¿abierto en otra pestaña?)');
+            mostrarToast('No se pudo abrir el pad. Cierra otras pestañas o programas que lo estén usando.', 'error');
+        }
+    }
+    // Aviso si la herramienta está abierta en otra pestaña (dos pestañas pelean por el pad)
+    (function () {
+        if (!window.BroadcastChannel) return;
+        var canal = new BroadcastChannel('firma-digital-almacen');
+        var miId = Math.random().toString(36).slice(2);
+        canal.onmessage = function (ev) {
+            if (!ev.data || ev.data.id === miId) return;
+            if (ev.data.tipo === 'hola') canal.postMessage({ tipo: 'aqui', id: miId });
+            if (ev.data.tipo === 'aqui' || ev.data.tipo === 'hola')
+                mostrarToast('⚠ La herramienta está abierta en otra pestaña. Usa solo una para que el pad no se desconecte.', 'error');
+        };
+        canal.postMessage({ tipo: 'hola', id: miId });
+    })();
+    // Indicador de envío de pantalla al pad (barra de progreso en la vista previa)
+    wacom.onImageProgress(function (enviados, total) {
+        var barra = document.getElementById('progresoPad');
+        if (!barra) return;
+        if (enviados >= total) { barra.classList.remove('activo'); return; }
+        barra.classList.add('activo');
+        barra.firstElementChild.style.width = Math.round(enviados / total * 100) + '%';
+    });
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
         document.getElementById('adminMostrarMateriales').checked = mostrarMaterialesEnPadActivo();
+        // el pad se conecta en paralelo mientras se cargan carpetas e historial
+        ponerEstadoPad('reconnecting', '● Buscando pad…');
+        var conexion = asegurarConexionPad('inicio');
         await restaurarCarpetasGuardadas();
         cargarCatalogoMateriales();
         renderizarAdminCatalogoMateriales();
         await cargarHistorialMateriales();
         iniciarAutoRefresh();
-        var ok = await wacom.connectSilencioso();
-        if (ok) await prepararPadTrasConectar();
+        await conexion;
+        if (!wacom.checkConnected()) dibujarPantallaSegunModo();   // al menos dibuja la vista previa en la PC
     });
 
     // ============ Cambio de modo (Documento SAP <-> Solo Firma Cargo Directo <-> Firmados) ============
@@ -2124,6 +2339,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         }
         seleccionMultipleActiva.clear();
         modoActual = nuevoModo;
+        estadoBotonesConfirmar = {};
         document.body.setAttribute('data-modo', modoActual);   // v2: el layout (columna del pad, ayudas) depende del modo
         document.getElementById('ssvvggFirma').innerHTML = '';
         document.getElementById('ssvvggTarjeta').innerHTML = '';
@@ -2187,11 +2403,24 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         }
     }
 
+    // Pantalla de espera "viva": hora, fecha y mensajes que cambian cada minuto
+    var MENSAJES_REPOSO = {
+        documento: ['Esperando documento para firmar…', 'Revise sus materiales antes de firmar', 'Firme dentro del recuadro y escriba su No. de tarjeta'],
+        materiales: ['Esperando el conduce de materiales…', 'Verifique que su nombre y artículos sean correctos', 'Use el EPP que le corresponde'],
+        otro: ['Listo para firmar…']
+    };
+    var pantallaEsReposo = false, pantallaPadFueReposo = false, minutoReposo = -1;
     function dibujarPantallaReposo() {
+        var ahora = new Date();
+        minutoReposo = ahora.getHours() * 60 + ahora.getMinutes();
+        var lista = MENSAJES_REPOSO[modoActual] || MENSAJES_REPOSO.otro;
+        var mensaje = lista[minutoReposo % lista.length];
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
         context.fillStyle = "#0B1F4A";
         context.fillRect(0, 0, 800, 90);
+        context.fillStyle = "#DA291C";
+        context.fillRect(0, 90, 800, 4);
         context.fillStyle = "#FFFFFF";
         context.font = "bold 26px Arial";
         context.textAlign = "center";
@@ -2199,18 +2428,36 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         context.font = "14px Arial";
         context.fillStyle = "rgba(255,255,255,0.65)";
         context.fillText("Taller Automotriz · Claro", 400, 68);
-        context.font = "90px Arial";
-        context.fillStyle = "#CBD5E1";
-        context.fillText("⏳", 400, 280);
+        // hora y fecha
+        context.fillStyle = "#0B1F4A";
+        context.font = "bold 92px Arial";
+        context.fillText(ahora.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/\s?([ap])\.?\s?m\.?/i, function (m, x) { return ' ' + x.toUpperCase() + 'M'; }), 400, 222);
+        var fecha = ahora.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         context.font = "22px Arial";
         context.fillStyle = "#64748B";
-        context.fillText("Esperando documento para firmar...", 400, 340);
-        context.font = "15px Arial";
+        context.fillText(fecha.charAt(0).toUpperCase() + fecha.slice(1), 400, 262);
+        // estado
+        roundRectFill(270, 300, 260, 52, 26, "#DCFCE7");
+        context.fillStyle = "#16A34A";
+        context.beginPath(); context.arc(300, 326, 8, 0, Math.PI * 2); context.fill();
+        context.fillStyle = "#166534";
+        context.font = "bold 19px Arial";
+        context.textAlign = "left";
+        context.fillText("Listo para firmar", 318, 333);
+        context.textAlign = "center";
+        context.font = "17px Arial";
         context.fillStyle = "#94A3B8";
-        context.fillText("Selecciona un PDF pendiente desde la computadora", 400, 370);
+        context.fillText(mensaje, 400, 420);
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
+        pantallaEsReposo = true;
         empujarImagenAlPad();
     }
+    // Actualiza la hora del pad una vez por minuto, solo si está en reposo
+    setInterval(function () {
+        if (!pantallaPadFueReposo || capturaEditor) return;
+        var ahora = new Date(), m = ahora.getHours() * 60 + ahora.getMinutes();
+        if (m !== minutoReposo) dibujarPantallaSegunModo();
+    }, 10000);
     function dibujarPantallaFirma() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -2339,6 +2586,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         context.fill();
     }
     async function clearscreen() {
+        estadoBotonesConfirmar = {};
         await wacom.setInking(false)
         document.getElementById('ssvvggFirma').innerHTML = ''
         document.getElementById('ssvvggTarjeta').innerHTML = ''
@@ -2350,17 +2598,22 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         dibujarPantallaSegunModo();
         setTimeout(async () => { await wacom.setInking(true) }, 200)
     }
-    async function empujarImagenAlPad() {
-        var imageData = context.getImageData(0, 0, 800, 480)
-        const rgb24 = new Uint8Array((imageData.data.length / 4) * 3)
-        var i = 0, j = 0;
-        while (i < imageData.data.length) {
-            rgb24[j++] = imageData.data[i + 2]
-            rgb24[j++] = imageData.data[i + 1]
-            rgb24[j++] = imageData.data[i + 0]
-            i += 4
+    // Convierte la vista previa a BGR y la manda al pad. La librería encola y
+    // descarta pantallas repetidas, así que se puede llamar sin esperar.
+    function empujarImagenAlPad() {
+        pantallaPadFueReposo = pantallaEsReposo;
+        document.body.classList.toggle('padReposo', pantallaEsReposo);
+        pantallaEsReposo = false;
+        if (!wacom.checkConnected()) return Promise.resolve();
+        var px = new Uint32Array(context.getImageData(0, 0, 800, 480).data.buffer);
+        var bgr = new Uint8Array(px.length * 3);
+        for (var i = 0, j = 0; i < px.length; i++) {
+            var v = px[i];                       // RGBA en memoria (little-endian): 0xAABBGGRR
+            bgr[j++] = (v >>> 16) & 255;         // B
+            bgr[j++] = (v >>> 8) & 255;          // G
+            bgr[j++] = v & 255;                  // R
         }
-        await wacom.setImage(rgb24)
+        return wacom.setImage(bgr).catch(function (e) { console.warn('No se pudo actualizar el pad', e); });
     }
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
@@ -2379,8 +2632,10 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         polyTarjeta.setAttributeNS(null, "style", "fill:none;stroke:" + colaPluma + ";stroke-width:" + makestroke(grosorPluma + 1) + ";")
         document.getElementById('ssvvggTarjeta').append(polyTarjeta)
     }
+    var svgFirmaEl = null, svgTarjetaEl = null;
     function polypoint(esTarjeta, x, y) {
-        var svg = esTarjeta ? document.getElementById('ssvvggTarjeta') : document.getElementById('ssvvggFirma');
+        if (!svgFirmaEl) { svgFirmaEl = document.getElementById('ssvvggFirma'); svgTarjetaEl = document.getElementById('ssvvggTarjeta'); }
+        var svg = esTarjeta ? svgTarjetaEl : svgFirmaEl;
         var poly = esTarjeta ? polyTarjeta : polyFirma;
         var point = svg.createSVGPoint()
         point.x = x
@@ -2388,6 +2643,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         poly.points.appendItem(point)
     }
     var yaSePresionoBoton = false;
+    var estadoBotonesConfirmar = {};   // referencias en caché a los botones Confirmar
     async function pointevent(z, x, y, p) {
         if (capturaEditor) { manejarPenEditor(z, x, y, p); return; }     // módulo Firmar PDF
         if (modoActual === 'editor') return;
@@ -2426,13 +2682,11 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         }
         if (z) {
             if (esTarjeta) { hayTrazosTarjeta = true; } else { hayTrazosFirma = true; }
-            if (modoActual === 'documento') {
-                document.getElementById('btnConfirmar').disabled = !(hayTrazosFirma && hayTrazosTarjeta);
-            } else if (modoActual === 'materiales') {
-                document.getElementById('btnConfirmarMS').disabled = !hayTrazosFirma;
-            } else {
-                document.getElementById('btnConfirmarCD').disabled = !hayTrazosFirma;
-            }
+            // solo toca el DOM cuando el estado cambia (antes se escribía en cada punto del lápiz)
+            var idBtn = modoActual === 'documento' ? 'btnConfirmar' : modoActual === 'materiales' ? 'btnConfirmarMS' : 'btnConfirmarCD';
+            var deshabilitar = modoActual === 'documento' ? !(hayTrazosFirma && hayTrazosTarjeta) : !hayTrazosFirma;
+            var btnC = estadoBotonesConfirmar[idBtn] || (estadoBotonesConfirmar[idBtn] = document.getElementById(idBtn));
+            if (btnC.disabled !== deshabilitar) btnC.disabled = deshabilitar;
             if (pressdiff(p, lastPressure) > 0.02) {
                 polypoint(esTarjeta, x, y)
                 lastPressure = p

@@ -27,6 +27,8 @@ var wacomstu540 = function () {
         eSerial: null,
         onPenDataCb: null,
         onHidChangeCb: null,
+        onErrorCb: null,
+        onImageProgressCb: null,
     }
     /**
      * Report ids (See SDK for more info and compatibility matrix, direction, etc...)
@@ -52,6 +54,37 @@ var wacomstu540 = function () {
     this.device = null
     // Store internal image chunks to resend without reprocess
     this.image = null
+    // ---- Optimización (Oscar Amparo / v2) ----
+    // Cola única de comandos: los reportes HID se envían SIEMPRE en orden y nunca
+    // se mezclan dos imágenes ni un comando a mitad de una imagen.
+    this._cola = Promise.resolve()
+    this._imagenPendiente = null      // última imagen pedida mientras otra se transfería (solo cuenta la más reciente)
+    this._transfiriendo = false
+    this._promesaImagen = null
+    this._ultimaImagen = null         // última imagen que el pad tiene en pantalla (para no reenviar la misma)
+    this._pantallaSucia = true        // true si el lápiz dibujó tinta desde el último envío
+    this.ultimaActividad = 0          // ms de la última comunicación exitosa con el pad
+    this.ultimoError = null
+    /**
+     * Ejecuta fn en la cola (una operación a la vez, en orden de llegada)
+     */
+    this._ejecutar = function (fn, limiteMs) {
+        // Cada operación tiene un tiempo máximo: si el pad se cuelga, la cola no queda bloqueada
+        const limite = limiteMs || 5000
+        const correr = function () {
+            return new Promise(function (ok, mal) {
+                const t = setTimeout(function () { mal(new Error('El pad no respondió a tiempo')) }, limite)
+                Promise.resolve().then(fn).then(function (v) { clearTimeout(t); ok(v) }, function (e) { clearTimeout(t); mal(e) })
+            })
+        }
+        const p = this._cola.then(correr, correr)
+        this._cola = p.catch(function () { })
+        return p
+    }.bind(this)
+    this._reportarError = function (e) {
+        this.ultimoError = e
+        if (this.config.onErrorCb) { try { this.config.onErrorCb(e) } catch (x) { } }
+    }.bind(this)
     // Methods
     /**
      * Check is a usb hid from wacom vid+pid is present
@@ -74,11 +107,20 @@ var wacomstu540 = function () {
      * @returns {Boolean} success
      */
     this._configurarDispositivo = async function () {
-        // Open the device
-        await this.device.open()
-        // Set handler to read input reports (this contains pen data)
-        this.device.addEventListener("inputreport", async function (event) {
-            if (this.config.onPenDataCb == null) return
+        // Open the device (si ya estaba abierto no se vuelve a abrir)
+        if (!this.device.opened) await this.device.open()
+        this._ultimaImagen = null
+        this._pantallaSucia = true
+        this.ultimaActividad = Date.now()
+        // El escuchador del lápiz se agrega UNA sola vez por dispositivo
+        // (antes se duplicaba en cada reconexión y los trazos llegaban repetidos)
+        if (this.device.__wacomEscuchando) return await this._leerInformacion()
+        this.device.__wacomEscuchando = true
+        const self = this
+        this.device.addEventListener("inputreport", function (event) {
+            self.ultimaActividad = Date.now()
+            if (self.config.onPenDataCb == null) return
+            if ((event.data.getUint8(0) & 0x02) !== 0) self._pantallaSucia = true   // el lápiz tocó: hay tinta en pantalla
             // See WacomGSS_ReportHandlerFunctionTable on the SDK. just read onPenData and onPenDataTimeCountSequence, depending
             // of the write mode used (0/1). Start/End capture toggles encryption which im not in the mood of implement, so not using it.
             if (event.reportId == this.command.penData || event.reportId == this.command.penDataTiming) {
@@ -102,6 +144,9 @@ var wacomstu540 = function () {
                 this.config.onPenDataCb(packet)
             }
         }.bind(this));
+        return await this._leerInformacion()
+    }.bind(this)
+    this._leerInformacion = async function () {
         // Read info and capabilities from device and fill the data
         let dv = await this.readData(this.command.capability)
         this.config.tabletWidth = dv.getUint16(1)
@@ -142,7 +187,41 @@ var wacomstu540 = function () {
         let dev = devices.find(d => d.vendorId == this.config.vid && d.productId == this.config.pid)
         if (dev == null) return false
         this.device = dev
-        return await this._configurarDispositivo()
+        try {
+            return await this._configurarDispositivo()
+        } catch (e) {
+            this._reportarError(e)
+            return false
+        }
+    }.bind(this)
+    /**
+     * Comprueba que el pad responde (lectura liviana). No interrumpe una imagen en curso.
+     * @returns {Boolean} true si respondió
+     */
+    this.ping = async function (timeoutMs) {
+        if (!this.checkConnected()) return false
+        if (this._transfiriendo) return true
+        const lectura = this.readData(this.command.brightness).then(function () { return true }, function () { return false })
+        const limite = new Promise(function (r) { setTimeout(function () { r(false) }, timeoutMs || 3000) })
+        return await Promise.race([lectura, limite])
+    }.bind(this)
+    /**
+     * Cierra la conexión (para reabrir limpio después)
+     */
+    this.desconectar = async function () {
+        const d = this.device
+        this.device = null
+        this._imagenPendiente = null
+        this._ultimaImagen = null
+        this._cola = Promise.resolve()     // descarta operaciones colgadas de la conexión anterior
+        if (d && d.opened) { try { await d.close() } catch (e) { } }
+    }.bind(this)
+    /**
+     * Obliga a reenviar la próxima imagen aunque sea igual a la actual
+     */
+    this.invalidarImagen = function () {
+        this._ultimaImagen = null
+        this._pantallaSucia = true
     }.bind(this)
     /**
      * Retrives general data from the device
@@ -171,8 +250,9 @@ var wacomstu540 = function () {
     this.setBacklight = async function (intensity) {
         if (!this.checkConnected()) return
         // Check if device already has this value, to avoid unnecessary writes
-        let dv = await this.readData(this.command.brightness)
-        if (dv.getUint8(1) == intensity) return
+        let dv = null
+        try { dv = await this.readData(this.command.brightness) } catch (e) { }
+        if (dv && dv.getUint8(1) == intensity) return
         await this.sendData(this.command.brightness, new Uint8Array([intensity, 0]))
     }.bind(this)
     /**
@@ -184,8 +264,9 @@ var wacomstu540 = function () {
         if (!this.checkConnected()) return
         let c = color.replace('#', '').split(/(?<=^(?:.{2})+)(?!$)/).map(e => parseInt("0x" + e, 16)) //Converts "#RRGGBB" to Array(r,g,b)
         // Check if device already has this value, to avoid unnecessary writes
-        let dv = await this.readData(this.command.backgroundColor)
-        if (dv.getUint8(1) == c[0] && dv.getUint8(2) == c[1] && dv.getUint8(3) == c[2]) return
+        let dv = null
+        try { dv = await this.readData(this.command.backgroundColor) } catch (e) { }
+        if (dv && dv.getUint8(1) == c[0] && dv.getUint8(2) == c[1] && dv.getUint8(3) == c[2]) return
         await this.sendData(this.command.backgroundColor, new Uint8Array(c))
     }.bind(this)
     /**
@@ -225,20 +306,74 @@ var wacomstu540 = function () {
         await this.sendData(this.command.clearScreen, new Uint8Array([0]))
     }.bind(this)
     /**
-     * Send a raw image to the pad. 
-     * @param {Array} imageData Image must be BGR 24bpp 800x480. If null, it will send last image.
+     * Send a raw image to the pad.
+     * - Si ya se está enviando una imagen, solo se guarda la más reciente y se envía al terminar.
+     * - Si la imagen es idéntica a la que el pad ya muestra (y no hay tinta), no se reenvía.
+     * - Los paquetes se envían en orden y esperando cada uno (antes se disparaban todos a la vez).
+     * @param {Uint8Array} imageData Image must be BGR 24bpp 800x480. If null, it will send last image.
+     * @returns {Promise} se resuelve cuando el pad muestra la imagen
      */
-    this.setImage = async function (imageData) {
+    this.setImage = function (imageData) {
+        if (!this.checkConnected()) return Promise.resolve()
+        if (imageData == null) {
+            if (!this._ultimaImagenDatos) return Promise.resolve()
+            this._ultimaImagen = null
+            imageData = this._ultimaImagenDatos
+        }
+        this._imagenPendiente = imageData
+        if (this._transfiriendo) return this._promesaImagen
+        this._transfiriendo = true
+        this._promesaImagen = (async function () {
+            try {
+                while (this._imagenPendiente && this.checkConnected()) {
+                    const img = this._imagenPendiente
+                    this._imagenPendiente = null
+                    if (!this._pantallaSucia && this._ultimaImagen && this._iguales(img, this._ultimaImagen)) continue
+                    try {
+                        await this._ejecutar(function () { return this._transferirImagen(img) }.bind(this), 60000)
+                    } catch (e) { this._ultimaImagen = null; this._reportarError(e) }
+                }
+            } finally {
+                this._transfiriendo = false
+            }
+        }.bind(this))()
+        return this._promesaImagen
+    }.bind(this)
+    this._iguales = function (a, b) {
+        if (a.length !== b.length) return false
+        for (let i = 0; i < a.length; i += 3) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) return false
+        return true
+    }
+    this._transferirImagen = async function (img) {
         if (!this.checkConnected()) return
-        if (imageData != null)
-            this.image = this.splitToBulks(imageData, this.config.chunkSize)
-        if (this.image == null) return
-        //Only 24BGR is supported now, send start packet, then chunked data packets, then end packet
-        await this.sendData(this.command.writeImageStart, new Uint8Array([this.config.imageFormat24BGR]))
-        this.image.forEach(async function (e) {
-            await this.sendData(this.command.writeImageData, new Uint8Array([e.length, 0].concat(e)))
-        }.bind(this))
-        await this.sendData(this.command.writeImageEnd, new Uint8Array([0]))
+        const tam = this.config.chunkSize
+        const total = Math.ceil(img.length / tam)
+        const progreso = this.config.onImageProgressCb
+        try {
+            this._pantallaSucia = false
+            if (progreso) progreso(0, total)
+            await this.device.sendFeatureReport(this.command.writeImageStart, new Uint8Array([this.config.imageFormat24BGR]))
+            const dispositivo = this.device
+            for (let i = 0; i < total; i++) {
+                if (this.device !== dispositivo || !dispositivo.opened) throw new Error('Conexión cerrada durante el envío')
+                const ini = i * tam
+                const trozo = img.subarray(ini, Math.min(ini + tam, img.length))
+                const pk = new Uint8Array(tam + 2)
+                pk[0] = trozo.length
+                pk.set(trozo, 2)
+                await dispositivo.sendFeatureReport(this.command.writeImageData, pk)
+                if (progreso && (i & 127) === 0) progreso(i, total)
+            }
+            await this.device.sendFeatureReport(this.command.writeImageEnd, new Uint8Array([0]))
+            this._ultimaImagen = img
+            this._ultimaImagenDatos = img
+            this.ultimaActividad = Date.now()
+        } catch (e) {
+            this._ultimaImagen = null
+            this._reportarError(e)
+        } finally {
+            if (progreso) progreso(total, total)
+        }
     }.bind(this)
     // Helpers
     /**
@@ -252,18 +387,31 @@ var wacomstu540 = function () {
      * Send direct usb hid feature report (internal usage)
      * @param {Number} reportId ID of the report to read. Use one of this.command
      */
-    this.sendData = async function (reportId, data) {
-        if (!this.checkConnected()) return
-        await this.device.sendFeatureReport(reportId, data)
+    this.sendData = function (reportId, data) {
+        if (!this.checkConnected()) return Promise.resolve()
+        return this._ejecutar(async function () {
+            if (!this.checkConnected()) return
+            try {
+                await this.device.sendFeatureReport(reportId, data)
+                this.ultimaActividad = Date.now()
+            } catch (e) { this._reportarError(e) }
+        }.bind(this))
     }.bind(this)
     /**
      * Get a report from the device (internal usage)
      * @param {Number} reportId ID of the report to read. Use one of this.command
      * @returns {DataView} data returned or null
      */
-    this.readData = async function (reportId) {
-        if (!this.checkConnected()) return
-        return await this.device.receiveFeatureReport(reportId)
+    this.readData = function (reportId) {
+        if (!this.checkConnected()) return Promise.resolve()
+        return this._ejecutar(async function () {
+            if (!this.checkConnected()) throw new Error('Pad no conectado')
+            try {
+                const r = await this.device.receiveFeatureReport(reportId)
+                this.ultimaActividad = Date.now()
+                return r
+            } catch (e) { this._reportarError(e); throw e }
+        }.bind(this))
     }.bind(this)
     /**
      * Return an object containing an array of (len) bytes and a DataView for manipulation
@@ -334,12 +482,25 @@ var wacomstu540 = function () {
     this.onHidChange = function (func) {
         this.config.onHidChangeCb = func
     }.bind(this)
+    /**
+     * Callback de errores de comunicación (para reconectar)
+     */
+    this.onError = function (func) {
+        this.config.onErrorCb = func
+    }.bind(this)
+    /**
+     * Callback de progreso al enviar una imagen: func(enviados, total)
+     */
+    this.onImageProgress = function (func) {
+        this.config.onImageProgressCb = func
+    }.bind(this)
     // HID events
     navigator.hid.addEventListener("connect", function (e) {
         if (this.config.onHidChangeCb != null && e.device.vendorId == this.config.vid && e.device.productId == this.config.pid)
             this.config.onHidChangeCb('connect', e.device)
     }.bind(this))
     navigator.hid.addEventListener("disconnect", function (e) {
+        if (this.device && e.device === this.device) { this._imagenPendiente = null; this._ultimaImagen = null }
         if (this.config.onHidChangeCb != null && e.device.vendorId == this.config.vid && e.device.productId == this.config.pid)
             this.config.onHidChangeCb('disconnect', e.device)
     }.bind(this))
