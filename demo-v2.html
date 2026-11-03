@@ -1231,6 +1231,36 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
 :root[data-theme="dark"] #adminBackdrop { background: rgba(0,0,0,.5); }
 :root[data-theme="dark"] .segmentado button.activo, :root[data-theme="dark"] .adminTab.activa { color: #fff; }
 :root[data-theme="dark"] .adminTab.activa { background: var(--surface-3); }
+
+/* ============ Configuración: apariencia del dispositivo ============ */
+#adminPanel { width: min(540px, 100%); }
+.adminTab { font-size: 12.5px; padding: 8px 4px; }
+.vistaPadCaja { margin-top: 14px; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-md); background: #fff; }
+.vistaPadCaja canvas { display: block; width: 100%; height: auto; }
+.chipsPantalla { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.chipsPantalla button { padding: 6px 11px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 12.5px; font-weight: 500; }
+.chipsPantalla button:hover { border-color: var(--primary); }
+.chipsPantalla button.activo { background: var(--primary); border-color: var(--primary); color: #fff; }
+.presetsPad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.presetPad { display: flex; flex-direction: column; gap: 6px; padding: 6px 6px 8px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text-2); font-size: 12px; font-weight: 500; }
+.presetPad:hover { border-color: var(--primary); }
+.presetPad.activo { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); color: var(--text); }
+.presetPad .pp { position: relative; display: block; height: 46px; border-radius: 5px; overflow: hidden; border: 1px solid rgba(0,0,0,.08); }
+.presetPad .pp i { position: absolute; left: 0; right: 0; top: 0; height: 13px; }
+.presetPad .pp b { position: absolute; right: 6px; top: 3px; width: 20px; height: 7px; border-radius: 2px; }
+.presetPad .pp em { position: absolute; left: 8px; right: 8px; bottom: 6px; height: 8px; border-radius: 2px; }
+.coloresPad { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.colorPad { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+.colorPad input { width: 34px; height: 26px; padding: 1px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); cursor: pointer; flex: none; }
+.filaLogo { display: flex; gap: 12px; align-items: stretch; }
+.logoVista { width: 150px; height: 80px; flex: none; display: grid; place-items: center; border: 1px dashed var(--border-strong); border-radius: var(--r-sm); background: repeating-conic-gradient(#E2E8F0 0% 25%, #FFFFFF 0% 50%) 0 0 / 14px 14px; overflow: hidden; }
+.logoVista img { max-width: 92%; max-height: 90%; }
+.logoVista span { font-size: 12px; color: #64748B; background: rgba(255,255,255,.8); padding: 2px 6px; border-radius: 4px; }
+.coloresPluma { display: flex; gap: 8px; padding: 6px 0 2px; }
+.coloresPluma button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border-strong); }
+.coloresPluma button:hover { transform: scale(1.1); }
+select.campo { appearance: auto; }
+@media (max-width: 520px) { .presetsPad { grid-template-columns: 1fr 1fr; } .coloresPad { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body data-modo="documento">
@@ -1548,9 +1578,10 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     </div>
     <nav class="adminTabs" role="tablist">
         <button class="adminTab activa" data-tab="general" onclick="cambiarTabAdmin('general')">General</button>
-        <button class="adminTab" data-tab="apariencia" onclick="cambiarTabAdmin('apariencia')">Apariencia</button>
+        <button class="adminTab" data-tab="apariencia" onclick="cambiarTabAdmin('apariencia')">Página</button>
+        <button class="adminTab" data-tab="dispositivo" onclick="cambiarTabAdmin('dispositivo')">Dispositivo</button>
         <button class="adminTab" data-tab="catalogo" onclick="cambiarTabAdmin('catalogo')">Catálogo</button>
-        <button class="adminTab" data-tab="pad" onclick="cambiarTabAdmin('pad')">Pad</button>
+        <button class="adminTab" data-tab="pad" onclick="cambiarTabAdmin('pad')">Avanzado</button>
     </nav>
     <div class="adminCuerpo">
         <!-- ===== General ===== -->
@@ -1600,8 +1631,75 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
                 </div>
             </div>
 
-            <h3>Pantalla de espera del pad</h3>
-            <div class="vistaReloj"><canvas id="vistaPreviaReloj" width="800" height="480"></canvas></div>
+            <button class="btnCarpetaAdmin" style="width:100%;margin-top:14px;" onclick="restablecerApariencia()">Restablecer apariencia original</button>
+        </section>
+
+        <!-- ===== Dispositivo (apariencia del pad) ===== -->
+        <section class="adminSeccion" data-tab="dispositivo">
+            <div class="vistaPadCaja">
+                <canvas id="vistaPreviaPad" width="800" height="480"></canvas>
+            </div>
+            <div class="chipsPantalla" id="pantallasVistaPad">
+                <button data-valor="espera">Espera</button>
+                <button data-valor="firma">Firma SAP</button>
+                <button data-valor="revision">Revisión</button>
+                <button data-valor="cd">Cargo Directo</button>
+                <button data-valor="ms">Seguridad</button>
+                <button data-valor="editor">Firmar PDF</button>
+            </div>
+            <p class="latAyuda" style="margin:6px 0 0;">Vista previa de cada pantalla. Los cambios se envían al pad al momento.</p>
+
+            <h3>Estilo de las pantallas</h3>
+            <div class="presetsPad" id="presetsPad"></div>
+
+            <h3>Colores</h3>
+            <div class="coloresPad" id="coloresPad"></div>
+
+            <h3>Logo</h3>
+            <div class="filaLogo">
+                <div class="logoVista" id="logoPadVista"><span>Sin logo</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+                    <button class="btnCarpetaAdmin" onclick="document.getElementById('logoPadInput').click()">Subir logo (PNG o JPG)</button>
+                    <button class="btnCarpetaAdmin" id="btnQuitarLogo" onclick="quitarLogoPad()">Quitar logo</button>
+                </div>
+                <input type="file" id="logoPadInput" class="inputOculto" accept="image/png,image/jpeg,image/webp" onchange="if (this.files[0]) subirLogoPad(this.files[0]); this.value='';">
+            </div>
+            <div class="adminRow">
+                <span>Mostrar el logo en las pantallas</span>
+                <input type="checkbox" class="checkAdmin" data-pad="mostrarLogo" />
+            </div>
+
+            <h3>Tipografía</h3>
+            <label class="campoAdmin"><span>Fuente</span><select class="campo" data-pad="fuente"></select></label>
+            <div class="campoAdmin">
+                <span>Tamaño de los textos</span>
+                <div class="segmentado" data-pad="escala">
+                    <button data-valor="1">Normal</button>
+                    <button data-valor="1.1">Grande</button>
+                    <button data-valor="1.2">Muy grande</button>
+                </div>
+            </div>
+
+            <h3>Zona de firma</h3>
+            <div class="adminRow">
+                <span>Mostrar marca ✕ junto a la línea de firma</span>
+                <input type="checkbox" class="checkAdmin" data-pad="marcaX" />
+            </div>
+
+            <h3>Textos de las pantallas</h3>
+            <div id="textosPad"></div>
+
+            <h3>Pantalla de espera</h3>
+            <div class="campoAdmin">
+                <span>Qué mostrar</span>
+                <div class="segmentado" data-pad="tipoEspera">
+                    <button data-valor="reloj">Reloj</button>
+                    <button data-valor="logo">Logo y hora</button>
+                    <button data-valor="mensaje">Mensaje y hora</button>
+                </div>
+            </div>
+            <label class="campoAdmin" id="filaMensajeEspera"><span>Mensaje</span><input type="text" class="campo" maxlength="70" data-pad="mensajeEspera"></label>
+            
             <div class="campoAdmin">
                 <span>Estilo del reloj</span>
                 <div class="muestras" id="muestrasReloj"></div>
@@ -1621,6 +1719,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
             <label class="campoAdmin"><span>Texto inferior</span><input type="text" class="campo" data-ajuste="pie" maxlength="50"></label>
 
             <h3>Pluma y brillo del pad</h3>
+            <div class="coloresPluma"><button data-color="#1A3C8C" title="Azul tinta"></button><button data-color="#0F172A" title="Negro"></button><button data-color="#1D4ED8" title="Azul"></button><button data-color="#7C3AED" title="Morado"></button><button data-color="#B91C1C" title="Rojo"></button><button data-color="#15803D" title="Verde"></button></div>
             <div class="adminRow">
                 <span>Color de pluma</span>
                 <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
@@ -1633,7 +1732,16 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
                 <span>Brillo de pantalla</span>
                 <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
             </div>
-            <button class="btnCarpetaAdmin" style="width:100%;margin-top:14px;" onclick="restablecerApariencia()">Restablecer apariencia original</button>
+            
+
+            <h3>Respaldo</h3>
+            <p class="latAyuda" style="margin:0 0 8px;">Guarda toda la apariencia (página, pad y logo) en un archivo para usarla en otra PC.</p>
+            <div class="filaBotonesLat" style="margin-top:0;">
+                <button class="btnCarpetaAdmin" onclick="exportarAjustesApariencia()">Exportar ajustes</button>
+                <button class="btnCarpetaAdmin" onclick="document.getElementById('importarAparienciaInput').click()">Importar ajustes</button>
+            </div>
+            <input type="file" id="importarAparienciaInput" class="inputOculto" accept="application/json,.json" onchange="if (this.files[0]) importarAjustesApariencia(this.files[0]); this.value='';">
+            <button class="btnCarpetaAdmin" style="width:100%;margin-top:8px;" onclick="restablecerApariencia()">Restablecer apariencia original</button>
         </section>
 
         <!-- ===== Catálogo ===== -->
@@ -1969,7 +2077,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     // ============ Refrescar lista de PDFs pendientes (manual + automático) ============
     function toggleAdmin() {
         var abierto = document.getElementById('adminPanel').classList.toggle('visible');
-        if (abierto) { actualizarDiagnosticoPad(); dibujarVistaPreviaReloj(); }
+        if (abierto) { actualizarDiagnosticoPad(); dibujarVistaPreviaPad(); }
     }
     // ============ Diagnóstico del pad (Admin) ============
     var reconexionesPad = 0, inicioSesionPad = Date.now();
@@ -2448,8 +2556,10 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     });
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
+        cargarLogoPad();
         document.getElementById('adminMostrarMateriales').checked = mostrarMaterialesEnPadActivo();
         construirControlesApariencia();
+        construirControlesPad();
         try { var tabGuardada = localStorage.getItem('tabConfiguracion'); if (tabGuardada) cambiarTabAdmin(tabGuardada); } catch (e) { }
         // el pad se conecta en paralelo mientras se cargan carpetas e historial
         ponerEstadoPad('reconnecting', '● Buscando pad…');
@@ -2565,44 +2675,6 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         var adelanto = (wacom.checkConnected() && wacom.estadisticas && wacom.estadisticas.promedioMs) ? Math.min(15000, wacom.estadisticas.promedioMs) : 0;
         return new Date(Date.now() + adelanto);
     }
-    // Dibuja el reloj en cualquier lienzo de 800x480 (pad o vista previa de Apariencia)
-    function pintarReloj(c, ahora, cfg) {
-        var e = ESTILOS_RELOJ[cfg.estiloReloj] || ESTILOS_RELOJ.marino;
-        var h = ahora.getHours(), m = ahora.getMinutes();
-        var textoHora, sufijo = '';
-        if (cfg.formato === '24') textoHora = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-        else { textoHora = (h % 12 || 12) + ':' + String(m).padStart(2, '0'); sufijo = h < 12 ? 'AM' : 'PM'; }
-        var conFecha = cfg.mostrarFecha !== false;
-        var yHora = conFecha ? 290 : 318;
-        var g = c.createLinearGradient(0, 0, 0, 480);
-        g.addColorStop(0, e.fondo[0]); g.addColorStop(1, e.fondo[1]);
-        c.fillStyle = g; c.fillRect(0, 0, 800, 480);
-        c.strokeStyle = e.anillos; c.lineWidth = 2;
-        [170, 230, 290].forEach(function (r) { c.beginPath(); c.arc(400, 250, r, 0, Math.PI * 2); c.stroke(); });
-        c.textAlign = 'center';
-        if (cfg.titulo) {
-            c.fillStyle = e.texto; c.globalAlpha = 0.92;
-            c.font = 'bold 20px Arial';
-            c.fillText(cfg.titulo.toUpperCase(), 400, 48);
-            c.globalAlpha = 1;
-            c.fillStyle = e.linea; c.fillRect(370, 62, 60, 3);
-        }
-        c.font = 'bold 190px Arial';
-        var anchoHora = c.measureText(textoHora).width;
-        c.font = 'bold 40px Arial';
-        var anchoSufijo = sufijo ? c.measureText(sufijo).width + 18 : 0;
-        var x0 = 400 - (anchoHora + anchoSufijo) / 2;
-        c.textAlign = 'left';
-        c.fillStyle = e.texto; c.font = 'bold 190px Arial';
-        c.fillText(textoHora, x0, yHora);
-        if (sufijo) { c.fillStyle = e.acento; c.font = 'bold 40px Arial'; c.fillText(sufijo, x0 + anchoHora + 18, yHora - 108); }
-        c.textAlign = 'center';
-        if (conFecha) {
-            c.fillStyle = e.sub; c.font = '28px Arial';
-            c.fillText(DIAS[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear(), 400, 352);
-        }
-        if (cfg.pie) { c.fillStyle = e.tenue; c.font = '15px Arial'; c.fillText(cfg.pie, 400, 446); }
-    }
     function dibujarPantallaReposo() {
         var ahora = horaAMostrar();
         minutoReposo = Math.floor(ahora.getTime() / 60000);
@@ -2665,19 +2737,9 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         sincronizarControlesApariencia();
         if (['estiloReloj', 'formato', 'mostrarFecha', 'titulo', 'pie'].indexOf(clave) !== -1) {
             dibujarVistaPreviaReloj();
-            if (pantallaPadFueReposo || !wacom.checkConnected()) dibujarPantallaSegunModo();   // el pad en espera se actualiza al momento
+            programarVistaPreviaPad();
+            if (pantallaPadFueReposo || !wacom.checkConnected()) refrescarPadPorTema();   // el pad en espera se actualiza enseguida
         }
-    }
-    function restablecerApariencia() {
-        if (!confirm('¿Volver a la apariencia original?')) return;
-        apariencia = Object.assign({}, APARIENCIA_BASE);
-        guardarApariencia();
-        colaPluma = apariencia.colorPluma; grosorPluma = apariencia.grosorPluma;
-        try { wacom.setPenColorAndWidth(colaPluma, grosorPluma); wacom.setBacklight(apariencia.brillo); } catch (e) { }
-        aplicarApariencia();
-        sincronizarControlesApariencia();
-        dibujarVistaPreviaReloj();
-        dibujarPantallaSegunModo();
     }
     function sincronizarControlesApariencia() {
         document.querySelectorAll('.segmentado[data-ajuste]').forEach(function (g) {
@@ -2737,124 +2799,515 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         document.querySelectorAll('.adminTab').forEach(function (b) { b.classList.toggle('activa', b.dataset.tab === tab); });
         document.querySelectorAll('.adminSeccion').forEach(function (s) { s.classList.toggle('activa', s.dataset.tab === tab); });
         document.querySelector('.adminCuerpo').scrollTop = 0;
-        if (tab === 'apariencia') dibujarVistaPreviaReloj();
+        if (tab === 'dispositivo') dibujarVistaPreviaPad();
         if (tab === 'pad') actualizarDiagnosticoPad();
         try { localStorage.setItem('tabConfiguracion', tab); } catch (e) { }
     }
     aplicarApariencia();
-    function dibujarPantallaFirma() {
-        context.fillStyle = "#F8FAFC";
-        context.fillRect(0, 0, 800, 480);
-        context.fillStyle = "#0B1F4A";
-        context.fillRect(0, 0, 800, 70);
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 20px Arial";
-        context.textAlign = "center";
-        context.fillText("SISTEMA DE AUTOGESTIÓN", materialesDocActual.length ? 250 : 350, 32);
-        context.font = "12px Arial";
-        context.fillStyle = "rgba(255,255,255,0.65)";
-        context.fillText(
-            modoMultipleActivo
-                ? ('Lote: ' + documentosParaFirmarMultiple.length + ' documento(s)')
-                : ('Doc. ' + (numeroDocumentoDetectado || "—")),
-            materialesDocActual.length ? 250 : 350, 52
-        );
-        roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 13px Arial";
-        context.textAlign = "center";
-        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
-        roundRectStroke(zonaFirmaDocumento.x1, zonaFirmaDocumento.y1, zonaFirmaDocumento.x2 - zonaFirmaDocumento.x1, zonaFirmaDocumento.y2 - zonaFirmaDocumento.y1, 10, "#CBD5E1", 1);
-        context.fillStyle = "#94A3B8";
-        context.font = "13px Arial";
-        context.textAlign = "left";
-        context.fillText("FIRME AQUÍ", zonaFirmaDocumento.x1 + 14, zonaFirmaDocumento.y1 - 8);
-        context.strokeStyle = "#E2E8F0";
-        context.lineWidth = 1;
-        context.beginPath();
-        context.moveTo(zonaFirmaDocumento.x1 + 20, zonaFirmaDocumento.y2 - 30);
-        context.lineTo(zonaFirmaDocumento.x2 - 20, zonaFirmaDocumento.y2 - 30);
-        context.stroke();
-        roundRectStroke(zonaTarjetaDocumento.x1, zonaTarjetaDocumento.y1, zonaTarjetaDocumento.x2 - zonaTarjetaDocumento.x1, zonaTarjetaDocumento.y2 - zonaTarjetaDocumento.y1, 10, "#CBD5E1", 1);
-        context.fillStyle = "#94A3B8";
-        context.font = "13px Arial";
-        context.fillText("NO. TARJETA", zonaTarjetaDocumento.x1 + 14, zonaTarjetaDocumento.y1 - 8);
-        context.beginPath();
-        context.moveTo(zonaTarjetaDocumento.x1 + 20, zonaTarjetaDocumento.y2 - 25);
-        context.lineTo(zonaTarjetaDocumento.x2 - 20, zonaTarjetaDocumento.y2 - 25);
-        context.stroke();
-        if (materialesDocActual.length) {   // botón para volver a la lista de materiales
-            roundRectFill(ZONA_VER_MATERIALES.x1, ZONA_VER_MATERIALES.y1, ZONA_VER_MATERIALES.x2 - ZONA_VER_MATERIALES.x1, ZONA_VER_MATERIALES.y2 - ZONA_VER_MATERIALES.y1, 8, "#1D4ED8");
-            context.fillStyle = "#FFFFFF";
-            context.font = "bold 13px Arial";
-            context.textAlign = "center";
-            context.fillText("VER MATERIALES", (ZONA_VER_MATERIALES.x1 + ZONA_VER_MATERIALES.x2) / 2, (ZONA_VER_MATERIALES.y1 + ZONA_VER_MATERIALES.y2) / 2 + 5);
+    // =====================================================================
+    // TEMA DEL PAD — apariencia de TODAS las pantallas del dispositivo
+    // ---------------------------------------------------------------------
+    // Colores, textos, tipografía, logo y pantalla de espera salen de aquí.
+    // Se configura en ⚙️ → Dispositivo, con vista previa de cada pantalla.
+    // =====================================================================
+    var PRESETS_PAD = {
+        corporativo: { nombre: 'Corporativo', fondo: '#F8FAFC', encabezado: '#0B1F4A', textoEncabezado: '#FFFFFF', acento: '#1D4ED8', exito: '#15803D', peligro: '#DC2626', neutro: '#475569', texto: '#0F172A', textoSec: '#64748B', etiqueta: '#94A3B8', marcoZona: '#CBD5E1', fondoZona: '#FFFFFF', lineaGuia: '#E2E8F0', filaAlterna: '#F1F5F9', filaTitulo: '#E2E8F0' },
+        claro:       { nombre: 'Rojo Claro',  fondo: '#FFFFFF', encabezado: '#DA291C', textoEncabezado: '#FFFFFF', acento: '#B91C1C', exito: '#15803D', peligro: '#7F1D1D', neutro: '#475569', texto: '#111827', textoSec: '#6B7280', etiqueta: '#9CA3AF', marcoZona: '#E5B4AF', fondoZona: '#FFFFFF', lineaGuia: '#F3D9D6', filaAlterna: '#FEF2F2', filaTitulo: '#FDE2DF' },
+        minimal:     { nombre: 'Minimalista', fondo: '#FFFFFF', encabezado: '#FFFFFF', textoEncabezado: '#0F172A', acento: '#0F172A', exito: '#0F172A', peligro: '#64748B', neutro: '#94A3B8', texto: '#0F172A', textoSec: '#64748B', etiqueta: '#94A3B8', marcoZona: '#E2E8F0', fondoZona: '#FFFFFF', lineaGuia: '#E2E8F0', filaAlterna: '#F8FAFC', filaTitulo: '#F1F5F9' },
+        contraste:   { nombre: 'Alto contraste', fondo: '#FFFFFF', encabezado: '#000000', textoEncabezado: '#FFFFFF', acento: '#0033CC', exito: '#006400', peligro: '#B00000', neutro: '#333333', texto: '#000000', textoSec: '#333333', etiqueta: '#000000', marcoZona: '#000000', fondoZona: '#FFFFFF', lineaGuia: '#666666', filaAlterna: '#EEEEEE', filaTitulo: '#DDDDDD' },
+        verde:       { nombre: 'Verde',       fondo: '#F7FBF9', encabezado: '#064E3B', textoEncabezado: '#FFFFFF', acento: '#047857', exito: '#15803D', peligro: '#DC2626', neutro: '#475569', texto: '#0F172A', textoSec: '#4B6358', etiqueta: '#8AA69A', marcoZona: '#BFD9CD', fondoZona: '#FFFFFF', lineaGuia: '#DCEBE4', filaAlterna: '#EEF6F2', filaTitulo: '#DCEBE4' },
+        grafito:     { nombre: 'Grafito',     fondo: '#F5F5F4', encabezado: '#292524', textoEncabezado: '#FAFAF9', acento: '#D97706', exito: '#15803D', peligro: '#DC2626', neutro: '#57534E', texto: '#1C1917', textoSec: '#78716C', etiqueta: '#A8A29E', marcoZona: '#D6D3D1', fondoZona: '#FFFFFF', lineaGuia: '#E7E5E4', filaAlterna: '#EFEEEC', filaTitulo: '#E7E5E4' }
+    };
+    var COLORES_PAD = [
+        ['fondo', 'Fondo'], ['encabezado', 'Encabezado'], ['textoEncabezado', 'Texto del encabezado'], ['acento', 'Acento'],
+        ['exito', 'Botón confirmar'], ['peligro', 'Botón reintentar'], ['neutro', 'Botones secundarios'], ['texto', 'Texto'],
+        ['textoSec', 'Texto secundario'], ['etiqueta', 'Etiquetas (Firme aquí)'], ['marcoZona', 'Borde de zonas'], ['fondoZona', 'Fondo de zonas'],
+        ['lineaGuia', 'Líneas guía'], ['filaAlterna', 'Filas alternas'], ['filaTitulo', 'Títulos de tabla']
+    ];
+    var TEXTOS_PAD = {
+        titulo: ['Título de las pantallas', 'SISTEMA DE AUTOGESTIÓN'],
+        etiquetaFirma: ['Etiqueta de la firma', 'FIRME AQUÍ'],
+        etiquetaTarjeta: ['Etiqueta de la tarjeta', 'NO. TARJETA'],
+        reintentar: ['Botón reintentar', 'REINTENTAR'],
+        verMateriales: ['Botón ver materiales', 'VER MATERIALES'],
+        tituloRevision: ['Título de revisión', 'REVISE LOS MATERIALES'],
+        notaRevision: ['Nota de revisión', 'Verifique antes de firmar'],
+        botonRevision: ['Botón de revisión', 'CORRECTO  ·  FIRMAR  ›'],
+        tituloCD: ['Título Cargo Directo', 'FIRMA · CARGO DIRECTO'],
+        subCD: ['Subtítulo Cargo Directo', 'Entrega de materiales sin reserva SAP'],
+        tituloMS: ['Título Materiales de seguridad', 'MATERIALES DE SEGURIDAD']
+    };
+    var FUENTES_PAD = ['Arial', 'Verdana', 'Tahoma', 'Segoe UI', 'Calibri', 'Trebuchet MS', 'Georgia'];
+    var PAD_BASE = { preset: 'corporativo', colores: Object.assign({}, PRESETS_PAD.corporativo), textos: {}, fuente: 'Arial', escala: '1',
+        mostrarLogo: true, marcaX: false, tipoEspera: 'reloj', mensajeEspera: 'Bienvenido al Taller Automotriz' };
+    Object.keys(TEXTOS_PAD).forEach(function (k) { PAD_BASE.textos[k] = TEXTOS_PAD[k][1]; });
+    delete PAD_BASE.colores.nombre;
+
+    function temaPad() {
+        var p = apariencia.pad || (apariencia.pad = JSON.parse(JSON.stringify(PAD_BASE)));
+        p.colores = Object.assign({}, PAD_BASE.colores, p.colores || {});
+        p.textos = Object.assign({}, PAD_BASE.textos, p.textos || {});
+        return p;
+    }
+    var vistaPreviaActiva = false;       // true mientras se dibuja la vista previa (no se envía nada al pad)
+    function areaPad(a) { if (!vistaPreviaActiva) { try { wacom.setWritingArea(a); } catch (e) { } } }
+    function fp(peso, px) {
+        var t = temaPad();
+        return (peso ? peso + ' ' : '') + Math.round(px * Number(t.escala || 1)) + 'px "' + t.fuente + '", Arial, sans-serif';
+    }
+    function alfa(hex, a) {
+        if (!/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+        var n = parseInt(hex.slice(1), 16);
+        return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
+    // ---------- logo ----------
+    var logoPadImg = null;
+    function cargarLogoPad() {
+        var d = null;
+        try { d = localStorage.getItem('logoPad'); } catch (e) { }
+        if (!d) { logoPadImg = null; return; }
+        var img = new Image();
+        img.onload = function () { logoPadImg = img; dibujarVistaPreviaPad(); if (wacom.checkConnected()) refrescarPadPorTema(); };
+        img.src = d;
+    }
+    function hayLogo() { return !!(logoPadImg && temaPad().mostrarLogo); }
+    // dibuja el logo dentro de una caja (manteniendo proporción); devuelve el ancho usado
+    function dibujarLogo(c, x, y, maxW, maxH, centrado) {
+        if (!logoPadImg) return 0;
+        var k = Math.min(maxW / logoPadImg.width, maxH / logoPadImg.height);
+        var w = logoPadImg.width * k, h = logoPadImg.height * k;
+        c.drawImage(logoPadImg, centrado ? x - w / 2 : x, y + (maxH - h) / 2, w, h);
+        return w;
+    }
+    // ---------- piezas comunes ----------
+    function encabezadoPad(o) {
+        var t = temaPad().colores;
+        context.fillStyle = t.encabezado; context.fillRect(0, 0, 800, o.alto);
+        if (t.encabezado.toUpperCase() === t.fondo.toUpperCase()) {          // encabezado del mismo color que el fondo: línea separadora
+            context.fillStyle = t.marcoZona; context.fillRect(0, o.alto - 1, 800, 1);
         }
-        dibujarTintaExistente();
-        wacom.setWritingArea(areaTotalDocumento);
+        var xTexto = null;
+        if (hayLogo()) xTexto = 18 + dibujarLogo(context, 18, 8, 120, o.alto - 16, false) + 16;
+        var yT = o.sub ? o.alto / 2 - 3 : o.alto / 2 + 7, yS = o.alto / 2 + 17;
+        var derecha = o.derecha || 776;                       // hasta dónde puede llegar el texto (antes de los botones)
+        var izquierdaTxt = xTexto !== null || o.izquierda;
+        var x = izquierdaTxt ? (xTexto !== null ? xTexto : 24) : (o.centroX || 400);
+        var ancho = izquierdaTxt ? derecha - x : 2 * Math.min(x - (hayLogo() ? 150 : 24), derecha - x);
+        // el título se achica solo si no cabe (letra grande, título largo o logo)
+        function ajustar(texto, peso, tam, minimo) {
+            var t2 = tam;
+            context.font = fp(peso, t2);
+            while (t2 > minimo && context.measureText(texto).width > ancho) { t2--; context.font = fp(peso, t2); }
+            return textoAjustado(texto, ancho);
+        }
+        context.textAlign = izquierdaTxt ? 'left' : 'center';
+        context.fillStyle = t.textoEncabezado;
+        context.fillText(ajustar(o.titulo, 'bold', o.tamTitulo || 20, 12), x, yT);
+        if (o.sub) {
+            context.fillStyle = alfa(t.textoEncabezado, 0.68);
+            context.fillText(ajustar(o.sub, '', 12, 10), x, yS);
+        }
+    }
+    function botonPad(z, texto, color, tam) {
+        roundRectFill(z.x1, z.y1, z.x2 - z.x1, z.y2 - z.y1, 8, color);
+        context.fillStyle = '#FFFFFF';
+        context.font = fp('bold', tam || 13);
+        context.textAlign = 'center';
+        context.fillText(texto, (z.x1 + z.x2) / 2, (z.y1 + z.y2) / 2 + 5);
+    }
+    function zonaFirmaPad(z, etiqueta, altoLinea) {
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = c.fondoZona;
+        context.beginPath(); context.roundRect(z.x1, z.y1, z.x2 - z.x1, z.y2 - z.y1, 10); context.fill();
+        roundRectStroke(z.x1, z.y1, z.x2 - z.x1, z.y2 - z.y1, 10, c.marcoZona, 1);
+        context.fillStyle = c.etiqueta;
+        context.font = fp('', 13);
+        context.textAlign = 'left';
+        context.fillText(etiqueta, z.x1 + 14, z.y1 - 8);
+        context.strokeStyle = c.lineaGuia; context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(z.x1 + 20, z.y2 - altoLinea);
+        context.lineTo(z.x2 - 20, z.y2 - altoLinea);
+        context.stroke();
+        if (t.marcaX) {
+            context.fillStyle = c.etiqueta; context.font = fp('', 20);
+            context.fillText('✕', z.x1 + 22, z.y2 - altoLinea - 8);
+        }
+    }
+
+    // ---------- Pantalla: firma de documento SAP ----------
+    function dibujarPantallaFirma() {
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: 70, titulo: t.textos.titulo, centroX: materialesDocActual.length ? 250 : 350,
+            derecha: (materialesDocActual.length ? ZONA_VER_MATERIALES.x1 : zonaReintentar.x1) - 14,
+            sub: modoMultipleActivo ? ('Lote: ' + documentosParaFirmarMultiple.length + ' documento(s)') : ('Doc. ' + (numeroDocumentoDetectado || '—')) });
+        botonPad(zonaReintentar, t.textos.reintentar, c.peligro);
+        if (materialesDocActual.length) botonPad(ZONA_VER_MATERIALES, t.textos.verMateriales, c.acento);
+        zonaFirmaPad(zonaFirmaDocumento, t.textos.etiquetaFirma, 30);
+        zonaFirmaPad(zonaTarjetaDocumento, t.textos.etiquetaTarjeta, 25);
+        if (!vistaPreviaActiva) dibujarTintaExistente();
+        areaPad(areaTotalDocumento);
         empujarImagenAlPad();
     }
+    // ---------- Pantalla: Cargo Directo ----------
     function dibujarPantallaFirmaCD() {
-        context.fillStyle = "#F8FAFC";
-        context.fillRect(0, 0, 800, 480);
-        context.fillStyle = "#0B1F4A";
-        context.fillRect(0, 0, 800, 70);
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 20px Arial";
-        context.textAlign = "center";
-        context.fillText("FIRMA · CARGO DIRECTO", 350, 32);
-        context.font = "12px Arial";
-        context.fillStyle = "rgba(255,255,255,0.65)";
-        context.fillText("Entrega de materiales sin reserva SAP", 350, 52);
-        roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 13px Arial";
-        context.textAlign = "center";
-        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
-        roundRectStroke(zonaFirmaCD.x1, zonaFirmaCD.y1, zonaFirmaCD.x2 - zonaFirmaCD.x1, zonaFirmaCD.y2 - zonaFirmaCD.y1, 10, "#CBD5E1", 1);
-        context.fillStyle = "#94A3B8";
-        context.font = "13px Arial";
-        context.textAlign = "left";
-        context.fillText("FIRME AQUÍ", zonaFirmaCD.x1 + 14, zonaFirmaCD.y1 - 8);
-        context.strokeStyle = "#E2E8F0";
-        context.lineWidth = 1;
-        context.beginPath();
-        context.moveTo(zonaFirmaCD.x1 + 20, zonaFirmaCD.y2 - 40);
-        context.lineTo(zonaFirmaCD.x2 - 20, zonaFirmaCD.y2 - 40);
-        context.stroke();
-        wacom.setWritingArea(areaTotalCD);
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: 70, titulo: t.textos.tituloCD, sub: t.textos.subCD, centroX: 350, derecha: zonaReintentar.x1 - 14 });
+        botonPad(zonaReintentar, t.textos.reintentar, c.peligro);
+        zonaFirmaPad(zonaFirmaCD, t.textos.etiquetaFirma, 40);
+        areaPad(areaTotalCD);
         empujarImagenAlPad();
     }
+    // ---------- Pantalla: Materiales de seguridad ----------
     function dibujarPantallaFirmaMS() {
-        context.fillStyle = "#F8FAFC";
-        context.fillRect(0, 0, 800, 480);
-        context.fillStyle = "#0B1F4A";
-        context.fillRect(0, 0, 800, 70);
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 20px Arial";
-        context.textAlign = "center";
-        context.fillText("MATERIALES DE SEGURIDAD", 350, 32);
-        context.font = "12px Arial";
-        context.fillStyle = "rgba(255,255,255,0.65)";
-        context.fillText(formatearNumeroMateriales(siguienteNumeroMateriales), 350, 52);
-        roundRectFill(zonaReintentar.x1, zonaReintentar.y1, zonaReintentar.x2 - zonaReintentar.x1, zonaReintentar.y2 - zonaReintentar.y1, 8, "#DC2626");
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 13px Arial";
-        context.textAlign = "center";
-        context.fillText("REINTENTAR", (zonaReintentar.x1 + zonaReintentar.x2) / 2, (zonaReintentar.y1 + zonaReintentar.y2) / 2 + 5);
-        roundRectStroke(zonaFirmaCD.x1, zonaFirmaCD.y1, zonaFirmaCD.x2 - zonaFirmaCD.x1, zonaFirmaCD.y2 - zonaFirmaCD.y1, 10, "#CBD5E1", 1);
-        context.fillStyle = "#94A3B8";
-        context.font = "13px Arial";
-        context.textAlign = "left";
-        context.fillText("FIRME AQUÍ", zonaFirmaCD.x1 + 14, zonaFirmaCD.y1 - 8);
-        context.strokeStyle = "#E2E8F0";
-        context.lineWidth = 1;
-        context.beginPath();
-        context.moveTo(zonaFirmaCD.x1 + 20, zonaFirmaCD.y2 - 40);
-        context.lineTo(zonaFirmaCD.x2 - 20, zonaFirmaCD.y2 - 40);
-        context.stroke();
-        wacom.setWritingArea(areaTotalCD);
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: 70, titulo: t.textos.tituloMS, sub: formatearNumeroMateriales(siguienteNumeroMateriales), centroX: 350, derecha: zonaReintentar.x1 - 14 });
+        botonPad(zonaReintentar, t.textos.reintentar, c.peligro);
+        zonaFirmaPad(zonaFirmaCD, t.textos.etiquetaFirma, 40);
+        areaPad(areaTotalCD);
         empujarImagenAlPad();
+    }
+    // ---------- Pantalla: revisión de materiales ----------
+    function dibujarPantallaRevisionMateriales() {
+        var t = temaPad(), c = t.colores;
+        var totalItems = contarItemsMateriales(materialesDocActual);
+        var paginas = Math.max(1, Math.ceil(materialesDocActual.length / FILAS_REVISION));
+        paginaRevision = limitarNum(paginaRevision, 0, paginas - 1);
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        var sub = (modoMultipleActivo ? (documentosParaFirmarMultiple.length + ' documentos') : ('Doc. ' + (numeroDocumentoDetectado || '—'))) + '  ·  ' + totalItems + ' artículo(s)';
+        context.font = fp('bold', 13);
+        var anchoNota = context.measureText(t.textos.notaRevision).width;
+        encabezadoPad({ alto: 64, titulo: t.textos.tituloRevision, sub: sub, izquierda: true, tamTitulo: 22, derecha: 776 - anchoNota - 20 });
+        context.textAlign = 'right'; context.font = fp('bold', 13); context.fillStyle = alfa(c.textoEncabezado, 0.85);
+        context.fillText(t.textos.notaRevision, 776, 38);
+        // títulos de columnas
+        context.fillStyle = c.filaTitulo; context.fillRect(0, 64, 800, 30);
+        context.fillStyle = c.neutro; context.font = fp('bold', 12); context.textAlign = 'left';
+        context.fillText('CANT.', 24, 84); context.fillText('CÓDIGO', 124, 84); context.fillText('DESCRIPCIÓN', 244, 84);
+        // filas
+        var desde = paginaRevision * FILAS_REVISION;
+        var filas = materialesDocActual.slice(desde, desde + FILAS_REVISION);
+        var y0 = 94, alto = 52;
+        filas.forEach(function (it, i) {
+            var y = y0 + i * alto;
+            if (it.tipo === 'doc') {
+                context.fillStyle = alfa(c.acento, 0.1); context.fillRect(0, y, 800, alto);
+                context.fillStyle = c.acento; context.font = fp('bold', 15); context.textAlign = 'left';
+                context.fillText(it.texto, 24, y + 32);
+                return;
+            }
+            context.fillStyle = i % 2 ? c.filaAlterna : c.fondoZona; context.fillRect(0, y, 800, alto);
+            context.textAlign = 'left';
+            var yt = y + (it.nota ? 27 : 33);
+            context.fillStyle = c.texto; context.font = fp('bold', 24);
+            var cant = String(it.cant || '').replace(/[.,]000$/, '');
+            context.fillText(cant, 24, yt);
+            var wCant = context.measureText(cant).width;
+            context.font = fp('', 12); context.fillStyle = c.textoSec;
+            context.fillText(textoAjustado(it.um || '', 92 - wCant - 6), 24 + wCant + 6, yt);
+            context.fillStyle = c.texto; context.font = fp('bold', 17);
+            context.fillText(textoAjustado(it.material, 112), 124, yt);
+            context.font = fp('', 17); context.fillStyle = c.texto;
+            context.fillText(textoAjustado(it.desc, 776 - 244), 244, yt);
+            if (it.nota) {
+                context.font = fp('', 12); context.fillStyle = c.textoSec;
+                context.fillText(textoAjustado(it.nota, 776 - 124), 124, y + 45);
+            }
+        });
+        context.strokeStyle = c.lineaGuia; context.lineWidth = 1;
+        context.beginPath(); context.moveTo(0, 406); context.lineTo(800, 406); context.stroke();
+        // paginación
+        var hayAnt = paginaRevision > 0, haySig = paginaRevision < paginas - 1;
+        roundRectFill(ZONA_REV_ANT.x1, ZONA_REV_ANT.y1, ZONA_REV_ANT.x2 - ZONA_REV_ANT.x1, ZONA_REV_ANT.y2 - ZONA_REV_ANT.y1, 10, hayAnt ? c.neutro : c.lineaGuia);
+        roundRectFill(ZONA_REV_SIG.x1, ZONA_REV_SIG.y1, ZONA_REV_SIG.x2 - ZONA_REV_SIG.x1, ZONA_REV_SIG.y2 - ZONA_REV_SIG.y1, 10, haySig ? c.neutro : c.lineaGuia);
+        context.font = 'bold 26px Arial'; context.textAlign = 'center';
+        context.fillStyle = hayAnt ? '#FFFFFF' : c.etiqueta; context.fillText('‹', (ZONA_REV_ANT.x1 + ZONA_REV_ANT.x2) / 2, 450);
+        context.fillStyle = haySig ? '#FFFFFF' : c.etiqueta; context.fillText('›', (ZONA_REV_SIG.x1 + ZONA_REV_SIG.x2) / 2, 450);
+        context.fillStyle = c.neutro; context.font = fp('bold', 14);
+        context.fillText('Pág. ' + (paginaRevision + 1) + ' de ' + paginas, (ZONA_REV_ANT.x2 + ZONA_REV_SIG.x1) / 2, 446);
+        botonPad(ZONA_REV_FIRMAR, t.textos.botonRevision, c.exito, 19);
+        areaPad({ x1: 0, y1: 0, x2: 1, y2: 1 });
+        empujarImagenAlPad();
+    }
+    // ---------- Pantalla: captura en Firmar PDF ----------
+    function dibujarPantallaCapturaEditor() {
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = '#FFFFFF'; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: PAD_BARRA, izquierda: true, tamTitulo: 18, derecha: ZONA_PAD_BORRAR.x1 - 14,
+            titulo: capturaEditor && capturaEditor.tipo === 'documento' ? 'FIRME SOBRE EL DOCUMENTO' : 'FIRMA DIGITAL',
+            sub: editor.nombre ? editor.nombre.slice(0, 40) : 'Firma nueva' });
+        botonPad(ZONA_PAD_BORRAR, 'BORRAR', c.neutro, 14);
+        botonPad(ZONA_PAD_LISTO, 'LISTO ✓', c.exito, 14);
+        context.save();
+        context.translate(0, PAD_BARRA);
+        dibujarFondoCaptura(context, 800, 480 - PAD_BARRA);
+        context.restore();
+        if (capturaEditor && capturaEditor.tipo === 'documento') {
+            context.strokeStyle = alfa(c.acento, 0.55); context.lineWidth = 2; context.setLineDash([8, 6]);
+            context.strokeRect(1, PAD_BARRA + 1, 798, 480 - PAD_BARRA - 2);
+            context.setLineDash([]);
+        }
+        areaPad({ x1: 0, y1: PAD_BARRA, x2: 800, y2: 480 });
+        empujarImagenAlPad();
+    }
+    // ---------- Pantalla: Firmar PDF sin captura ----------
+    function dibujarPantallaReposoEditor() {
+        var t = temaPad(), c = t.colores;
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: 90, titulo: 'FIRMAR PDF', sub: t.textos.titulo, centroX: 400, tamTitulo: 26 });
+        context.textAlign = 'center';
+        context.font = fp('', 20); context.fillStyle = c.textoSec;
+        context.fillText(editor.pdf ? ('Documento abierto: ' + editor.nombre.slice(0, 38)) : 'Abre un documento en la computadora', 400, 250);
+        context.font = fp('', 15); context.fillStyle = c.etiqueta;
+        context.fillText('Pulsa "Firmar sobre el documento" o "Nueva" para firmar aquí', 400, 285);
+        areaPad({ x1: 0, y1: 0, x2: 1, y2: 1 });
+        empujarImagenAlPad();
+    }
+
+    // ---------- Pantalla de espera (reloj / logo / mensaje) ----------
+    function partirTexto(c, texto, anchoMax) {
+        var palabras = String(texto || '').split(/\s+/), lineas = [], actual = '';
+        palabras.forEach(function (p) {
+            var prueba = actual ? actual + ' ' + p : p;
+            if (c.measureText(prueba).width > anchoMax && actual) { lineas.push(actual); actual = p; } else actual = prueba;
+        });
+        if (actual) lineas.push(actual);
+        return lineas.slice(0, 3);
+    }
+    function pintarReloj(c, ahora, cfg) {
+        var e = ESTILOS_RELOJ[cfg.estiloReloj] || ESTILOS_RELOJ.marino;
+        var tp = temaPad(), fam = '"' + tp.fuente + '", Arial, sans-serif';
+        var tipo = tp.tipoEspera === 'logo' && !logoPadImg ? 'reloj' : (tp.tipoEspera || 'reloj');
+        var h = ahora.getHours(), m = ahora.getMinutes();
+        var textoHora, sufijo = '';
+        if (cfg.formato === '24') textoHora = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        else { textoHora = (h % 12 || 12) + ':' + String(m).padStart(2, '0'); sufijo = h < 12 ? 'AM' : 'PM'; }
+        var conFecha = cfg.mostrarFecha !== false;
+        var fechaTxt = DIAS[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear();
+        var g = c.createLinearGradient(0, 0, 0, 480);
+        g.addColorStop(0, e.fondo[0]); g.addColorStop(1, e.fondo[1]);
+        c.fillStyle = g; c.fillRect(0, 0, 800, 480);
+        c.strokeStyle = e.anillos; c.lineWidth = 2;
+        [170, 230, 290].forEach(function (r) { c.beginPath(); c.arc(400, 250, r, 0, Math.PI * 2); c.stroke(); });
+        c.textAlign = 'center';
+        if (cfg.titulo && tipo !== 'logo') {
+            c.fillStyle = e.texto; c.globalAlpha = 0.92;
+            c.font = 'bold 20px ' + fam;
+            c.fillText(cfg.titulo.toUpperCase(), 400, 48);
+            c.globalAlpha = 1;
+            c.fillStyle = e.linea; c.fillRect(370, 62, 60, 3);
+        }
+        function hora(tam, yBase) {
+            c.font = 'bold ' + tam + 'px ' + fam;
+            var aH = c.measureText(textoHora).width;
+            var tamS = Math.round(tam * 0.21);
+            c.font = 'bold ' + tamS + 'px ' + fam;
+            var aS = sufijo ? c.measureText(sufijo).width + tam * 0.095 : 0;
+            var x0 = 400 - (aH + aS) / 2;
+            c.textAlign = 'left'; c.fillStyle = e.texto; c.font = 'bold ' + tam + 'px ' + fam;
+            c.fillText(textoHora, x0, yBase);
+            if (sufijo) { c.fillStyle = e.acento; c.font = 'bold ' + tamS + 'px ' + fam; c.fillText(sufijo, x0 + aH + tam * 0.095, yBase - tam * 0.57); }
+            c.textAlign = 'center';
+        }
+        if (tipo === 'logo') {
+            dibujarLogo(c, 400, 46, 420, 150, true);
+            hora(120, 330);
+            if (conFecha) { c.fillStyle = e.sub; c.font = '24px ' + fam; c.fillText(fechaTxt, 400, 380); }
+        } else if (tipo === 'mensaje') {
+            hora(84, 178);
+            if (conFecha) { c.fillStyle = e.sub; c.font = '20px ' + fam; c.fillText(fechaTxt, 400, 212); }
+            c.fillStyle = e.texto; c.font = 'bold 40px ' + fam;
+            partirTexto(c, tp.mensajeEspera, 700).forEach(function (l, i, arr) {
+                c.fillText(l, 400, 300 + i * 50 - (arr.length - 1) * 18);
+            });
+        } else {
+            hora(190, conFecha ? 290 : 318);
+            if (conFecha) { c.fillStyle = e.sub; c.font = '28px ' + fam; c.fillText(fechaTxt, 400, 352); }
+        }
+        if (cfg.pie) { c.fillStyle = e.tenue; c.font = '15px ' + fam; c.fillText(cfg.pie, 400, 446); }
+    }
+
+    // ---------- Vista previa en ⚙️ → Dispositivo ----------
+    var pantallaVistaPad = 'espera';
+    var MATERIALES_EJEMPLO = [
+        { tipo: 'item', linea: '0001', cant: '2', um: 'PZA', material: '1036130', desc: 'FILTRO CABINA NS VERSA 22 25 2', nota: 'MATERIALES PARA LA FICHA 4052' },
+        { tipo: 'item', linea: '0002', cant: '1', um: 'PZA', material: '1017318', desc: 'FILTRO AIRE NISSAN D23 2016-XX' },
+        { tipo: 'item', linea: '0003', cant: '1', um: 'PZA', material: '1002356', desc: 'FILTRO ACEITE NISSAN D21/D22' },
+        { tipo: 'item', linea: '0004', cant: '4', um: 'LT', material: '1044521', desc: 'ACEITE MOTOR 15W40' }
+    ];
+    function dibujarVistaPreviaPad() {
+        var lienzo = document.getElementById('vistaPreviaPad');
+        if (!lienzo || !document.getElementById('adminPanel').classList.contains('visible')) return;
+        var g = {
+            context: context, mat: materialesDocActual, num: numeroDocumentoDetectado, mult: modoMultipleActivo,
+            pag: paginaRevision, cap: capturaEditor
+        };
+        vistaPreviaActiva = true;
+        context = lienzo.getContext('2d');
+        try {
+            switch (pantallaVistaPad) {
+                case 'firma': materialesDocActual = MATERIALES_EJEMPLO; numeroDocumentoDetectado = '4949505750'; modoMultipleActivo = false; dibujarPantallaFirma(); break;
+                case 'revision': materialesDocActual = MATERIALES_EJEMPLO; numeroDocumentoDetectado = '4949505750'; modoMultipleActivo = false; paginaRevision = 0; dibujarPantallaRevisionMateriales(); break;
+                case 'cd': dibujarPantallaFirmaCD(); break;
+                case 'ms': dibujarPantallaFirmaMS(); break;
+                case 'editor': capturaEditor = { tipo: 'libre', trazos: [], fondo: null }; dibujarPantallaCapturaEditor(); break;
+                default: pintarReloj(context, new Date(), apariencia);
+            }
+        } catch (e) { console.warn('Vista previa del pad', e); }
+        finally {
+            context = g.context; materialesDocActual = g.mat; numeroDocumentoDetectado = g.num; modoMultipleActivo = g.mult;
+            paginaRevision = g.pag; capturaEditor = g.cap; vistaPreviaActiva = false;
+        }
+    }
+    // Refresca el pad (con un pequeño retraso, para no mandar una pantalla por cada tecla o color)
+    var timerTemaPad = null;
+    function refrescarPadPorTema() {
+        clearTimeout(timerTemaPad);
+        timerTemaPad = setTimeout(function () { if (wacom.checkConnected()) dibujarPantallaSegunModo(); }, 700);
+    }
+    var rafVistaPad = 0;
+    function programarVistaPreviaPad() {
+        if (rafVistaPad) return;
+        rafVistaPad = requestAnimationFrame(function () { rafVistaPad = 0; dibujarVistaPreviaPad(); });
+    }
+    function cambiarAjustePad(ruta, valor) {
+        var p = temaPad(), partes = ruta.split('.');
+        if (partes.length === 2) p[partes[0]][partes[1]] = valor; else p[ruta] = valor;
+        if (partes[0] === 'colores') p.preset = 'personalizado';
+        guardarApariencia();
+        sincronizarControlesPad();
+        programarVistaPreviaPad();
+        refrescarPadPorTema();
+    }
+    function aplicarPresetPad(clave) {
+        var p = temaPad(), pr = PRESETS_PAD[clave];
+        p.colores = Object.assign({}, pr); delete p.colores.nombre;
+        p.preset = clave;
+        guardarApariencia(); sincronizarControlesPad(); programarVistaPreviaPad(); refrescarPadPorTema();
+    }
+    function cambiarPantallaVistaPad(n) { pantallaVistaPad = n; sincronizarControlesPad(); dibujarVistaPreviaPad(); }
+    function sincronizarControlesPad() {
+        var p = temaPad();
+        document.querySelectorAll('#presetsPad .presetPad').forEach(function (b) { b.classList.toggle('activo', b.dataset.valor === p.preset); });
+        document.querySelectorAll('#pantallasVistaPad button').forEach(function (b) { b.classList.toggle('activo', b.dataset.valor === pantallaVistaPad); });
+        document.querySelectorAll('[data-pad]').forEach(function (el) {
+            var ruta = el.dataset.pad, partes = ruta.split('.');
+            var v = partes.length === 2 ? p[partes[0]][partes[1]] : p[ruta];
+            if (el.classList.contains('segmentado')) el.querySelectorAll('button').forEach(function (b) { b.classList.toggle('activo', String(v) === b.dataset.valor); });
+            else if (el.type === 'checkbox') el.checked = !!v;
+            else if (document.activeElement !== el) el.value = v == null ? '' : v;
+        });
+        var hay = !!logoPadImg;
+        document.getElementById('logoPadVista').innerHTML = hay ? '' : '<span>Sin logo</span>';
+        if (hay) document.getElementById('logoPadVista').appendChild(logoPadImg.cloneNode());
+        document.getElementById('btnQuitarLogo').style.display = hay ? '' : 'none';
+        document.getElementById('filaMensajeEspera').style.display = p.tipoEspera === 'mensaje' ? '' : 'none';
+    }
+    function construirControlesPad() {
+        var cont = document.getElementById('presetsPad');
+        Object.keys(PRESETS_PAD).forEach(function (k) {
+            var pr = PRESETS_PAD[k], b = document.createElement('button');
+            b.type = 'button'; b.className = 'presetPad'; b.dataset.valor = k;
+            b.innerHTML = '<span class="pp" style="background:' + pr.fondo + '"><i style="background:' + pr.encabezado + '"></i><b style="background:' + pr.acento + '"></b><em style="background:' + pr.exito + '"></em></span>' + pr.nombre;
+            b.onclick = function () { aplicarPresetPad(k); };
+            cont.appendChild(b);
+        });
+        var grid = document.getElementById('coloresPad');
+        COLORES_PAD.forEach(function (c) {
+            var l = document.createElement('label');
+            l.className = 'colorPad';
+            l.innerHTML = '<input type="color" data-pad="colores.' + c[0] + '"><span>' + c[1] + '</span>';
+            grid.appendChild(l);
+        });
+        var textos = document.getElementById('textosPad');
+        Object.keys(TEXTOS_PAD).forEach(function (k) {
+            var l = document.createElement('label');
+            l.className = 'campoAdmin';
+            l.innerHTML = '<span>' + TEXTOS_PAD[k][0] + '</span><input type="text" class="campo" maxlength="40" data-pad="textos.' + k + '">';
+            textos.appendChild(l);
+        });
+        var sel = document.querySelector('select[data-pad="fuente"]');
+        FUENTES_PAD.forEach(function (f) { var o = document.createElement('option'); o.value = f; o.textContent = f; o.style.fontFamily = f; sel.appendChild(o); });
+        document.querySelectorAll('[data-pad]').forEach(function (el) {
+            var ruta = el.dataset.pad;
+            if (el.classList.contains('segmentado')) {
+                el.querySelectorAll('button').forEach(function (b) { b.type = 'button'; b.onclick = function () { cambiarAjustePad(ruta, b.dataset.valor); }; });
+            } else if (el.type === 'checkbox') el.onchange = function () { cambiarAjustePad(ruta, el.checked); };
+            else if (el.type === 'color') el.oninput = function () { cambiarAjustePad(ruta, el.value); };
+            else if (el.tagName === 'SELECT') el.onchange = function () { cambiarAjustePad(ruta, el.value); };
+            else {
+                var tm = null;
+                el.oninput = function () { clearTimeout(tm); tm = setTimeout(function () { cambiarAjustePad(ruta, el.value.trim() || (ruta.indexOf('textos.') === 0 ? TEXTOS_PAD[ruta.slice(7)][1] : '')); }, 300); };
+            }
+        });
+        document.querySelectorAll('#pantallasVistaPad button').forEach(function (b) { b.type = 'button'; b.onclick = function () { cambiarPantallaVistaPad(b.dataset.valor); }; });
+        document.querySelectorAll('.coloresPluma button').forEach(function (b) {
+            b.type = 'button'; b.style.background = b.dataset.color;
+            b.onclick = function () { document.getElementById('adminColorPluma').value = b.dataset.color; aplicarAjustesAdmin(); };
+        });
+        sincronizarControlesPad();
+    }
+    // ---------- logo: subir / quitar ----------
+    async function subirLogoPad(file) {
+        try {
+            var url = URL.createObjectURL(file);
+            var img = await cargarImagen(url);
+            URL.revokeObjectURL(url);
+            var k = Math.min(1, 600 / img.width, 300 / img.height);
+            var cv = document.createElement('canvas');
+            cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+            cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+            var datos = cv.toDataURL('image/png');
+            localStorage.setItem('logoPad', datos);
+            temaPad().mostrarLogo = true; guardarApariencia();
+            cargarLogoPad();
+            mostrarToast('✓ Logo agregado', 'success');
+        } catch (e) { mostrarToast('No se pudo usar esa imagen como logo', 'error'); }
+    }
+    function quitarLogoPad() {
+        try { localStorage.removeItem('logoPad'); } catch (e) { }
+        logoPadImg = null;
+        sincronizarControlesPad(); dibujarVistaPreviaPad(); refrescarPadPorTema();
+    }
+    // ---------- respaldo: exportar / importar / restablecer ----------
+    function exportarAjustesApariencia() {
+        var datos = { tipo: 'firma-digital-almacen/apariencia', version: 1, fecha: new Date().toISOString(), apariencia: apariencia, logoPad: null };
+        try { datos.logoPad = localStorage.getItem('logoPad'); } catch (e) { }
+        var blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'apariencia_firma_digital.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
+    async function importarAjustesApariencia(file) {
+        try {
+            var datos = JSON.parse(await file.text());
+            if (!datos || datos.tipo !== 'firma-digital-almacen/apariencia' || typeof datos.apariencia !== 'object') throw new Error('archivo no válido');
+            apariencia = Object.assign({}, APARIENCIA_BASE, datos.apariencia);
+            guardarApariencia();
+            if (datos.logoPad) localStorage.setItem('logoPad', datos.logoPad); else localStorage.removeItem('logoPad');
+            colaPluma = apariencia.colorPluma; grosorPluma = Number(apariencia.grosorPluma);
+            try { wacom.setPenColorAndWidth(colaPluma, grosorPluma); wacom.setBacklight(Number(apariencia.brillo)); } catch (e) { }
+            aplicarApariencia(); sincronizarControlesApariencia(); cargarLogoPad(); sincronizarControlesPad();
+            dibujarVistaPreviaReloj(); dibujarVistaPreviaPad(); refrescarPadPorTema();
+            mostrarToast('✓ Apariencia importada', 'success');
+        } catch (e) { mostrarToast('No se pudo importar: ' + e.message, 'error'); }
+    }
+    function restablecerApariencia() {
+        if (!confirm('¿Volver a la apariencia original de la página y del pad? (el logo también se quita)')) return;
+        apariencia = Object.assign({}, APARIENCIA_BASE);
+        apariencia.pad = JSON.parse(JSON.stringify(PAD_BASE));
+        guardarApariencia();
+        try { localStorage.removeItem('logoPad'); } catch (e) { }
+        logoPadImg = null;
+        colaPluma = apariencia.colorPluma; grosorPluma = apariencia.grosorPluma;
+        try { wacom.setPenColorAndWidth(colaPluma, grosorPluma); wacom.setBacklight(apariencia.brillo); } catch (e) { }
+        aplicarApariencia(); sincronizarControlesApariencia(); sincronizarControlesPad();
+        dibujarVistaPreviaReloj(); dibujarVistaPreviaPad();
+        dibujarPantallaSegunModo();
     }
     function roundRectStroke(x, y, w, h, r, color, lineWidth) {
         context.strokeStyle = color;
@@ -2885,6 +3338,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     // Convierte la vista previa a BGR y la manda al pad. La librería encola y
     // descarta pantallas repetidas, así que se puede llamar sin esperar.
     function empujarImagenAlPad() {
+        if (vistaPreviaActiva) return Promise.resolve();       // dibujo de vista previa en ⚙️: no se envía
         pantallaPadFueReposo = pantallaEsReposo;
         document.body.classList.toggle('padReposo', pantallaEsReposo);
         pantallaEsReposo = false;
@@ -4268,74 +4722,6 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         while (texto.length > 1 && context.measureText(texto + '…').width > anchoMax) texto = texto.slice(0, -1);
         return texto + '…';
     }
-    function dibujarPantallaRevisionMateriales() {
-        var totalItems = contarItemsMateriales(materialesDocActual);
-        var paginas = Math.max(1, Math.ceil(materialesDocActual.length / FILAS_REVISION));
-        paginaRevision = limitarNum(paginaRevision, 0, paginas - 1);
-        context.fillStyle = '#F8FAFC'; context.fillRect(0, 0, 800, 480);
-        // encabezado
-        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, 64);
-        context.textAlign = 'left';
-        context.fillStyle = '#FFFFFF'; context.font = 'bold 22px Arial';
-        context.fillText('REVISE LOS MATERIALES', 24, 31);
-        context.font = '13px Arial'; context.fillStyle = 'rgba(255,255,255,0.7)';
-        var sub = (modoMultipleActivo ? (documentosParaFirmarMultiple.length + ' documentos') : ('Doc. ' + (numeroDocumentoDetectado || '—'))) +
-            '  ·  ' + totalItems + ' artículo(s)';
-        context.fillText(sub, 24, 52);
-        context.textAlign = 'right'; context.font = 'bold 13px Arial'; context.fillStyle = 'rgba(255,255,255,0.85)';
-        context.fillText('Verifique antes de firmar', 776, 38);
-        // títulos de columnas
-        context.fillStyle = '#E2E8F0'; context.fillRect(0, 64, 800, 30);
-        context.fillStyle = '#475569'; context.font = 'bold 12px Arial'; context.textAlign = 'left';
-        context.fillText('CANT.', 24, 84); context.fillText('CÓDIGO', 124, 84); context.fillText('DESCRIPCIÓN', 244, 84);
-        // filas
-        var desde = paginaRevision * FILAS_REVISION;
-        var filas = materialesDocActual.slice(desde, desde + FILAS_REVISION);
-        var y0 = 94, alto = 52;
-        filas.forEach(function (it, i) {
-            var y = y0 + i * alto;
-            if (it.tipo === 'doc') {
-                context.fillStyle = '#E8EEFF'; context.fillRect(0, y, 800, alto);
-                context.fillStyle = '#1D4ED8'; context.font = 'bold 15px Arial'; context.textAlign = 'left';
-                context.fillText(it.texto, 24, y + 32);
-                return;
-            }
-            context.fillStyle = i % 2 ? '#F1F5F9' : '#FFFFFF'; context.fillRect(0, y, 800, alto);
-            context.textAlign = 'left';
-            context.fillStyle = '#0F172A'; context.font = 'bold 24px Arial';
-            var cant = String(it.cant || '').replace(/[.,]000$/, '');
-            context.fillText(cant, 24, y + (it.nota ? 27 : 33));
-            var wCant = context.measureText(cant).width;
-            context.font = '12px Arial'; context.fillStyle = '#64748B';
-            context.fillText(textoAjustado(it.um || '', 92 - wCant - 6), 24 + wCant + 6, y + (it.nota ? 27 : 33));
-            context.fillStyle = '#0F172A'; context.font = 'bold 17px Arial';
-            context.fillText(textoAjustado(it.material, 112), 124, y + (it.nota ? 27 : 33));
-            context.font = '17px Arial'; context.fillStyle = '#1E293B';
-            context.fillText(textoAjustado(it.desc, 776 - 244), 244, y + (it.nota ? 27 : 33));
-            if (it.nota) {
-                context.font = '12px Arial'; context.fillStyle = '#64748B';
-                context.fillText(textoAjustado(it.nota, 776 - 124), 124, y + 45);
-            }
-        });
-        context.strokeStyle = '#E2E8F0'; context.lineWidth = 1;
-        context.beginPath(); context.moveTo(0, 406); context.lineTo(800, 406); context.stroke();
-        // paginación
-        var hayAnt = paginaRevision > 0, haySig = paginaRevision < paginas - 1;
-        roundRectFill(ZONA_REV_ANT.x1, ZONA_REV_ANT.y1, ZONA_REV_ANT.x2 - ZONA_REV_ANT.x1, ZONA_REV_ANT.y2 - ZONA_REV_ANT.y1, 10, hayAnt ? '#334155' : '#E2E8F0');
-        roundRectFill(ZONA_REV_SIG.x1, ZONA_REV_SIG.y1, ZONA_REV_SIG.x2 - ZONA_REV_SIG.x1, ZONA_REV_SIG.y2 - ZONA_REV_SIG.y1, 10, haySig ? '#334155' : '#E2E8F0');
-        context.fillStyle = hayAnt ? '#FFFFFF' : '#94A3B8'; context.font = 'bold 26px Arial'; context.textAlign = 'center';
-        context.fillText('‹', (ZONA_REV_ANT.x1 + ZONA_REV_ANT.x2) / 2, 450);
-        context.fillStyle = haySig ? '#FFFFFF' : '#94A3B8';
-        context.fillText('›', (ZONA_REV_SIG.x1 + ZONA_REV_SIG.x2) / 2, 450);
-        context.fillStyle = '#475569'; context.font = 'bold 14px Arial';
-        context.fillText('Pág. ' + (paginaRevision + 1) + ' de ' + paginas, (ZONA_REV_ANT.x2 + ZONA_REV_SIG.x1) / 2, 446);
-        // botón continuar
-        roundRectFill(ZONA_REV_FIRMAR.x1, ZONA_REV_FIRMAR.y1, ZONA_REV_FIRMAR.x2 - ZONA_REV_FIRMAR.x1, ZONA_REV_FIRMAR.y2 - ZONA_REV_FIRMAR.y1, 10, '#15803D');
-        context.fillStyle = '#FFFFFF'; context.font = 'bold 19px Arial';
-        context.fillText('CORRECTO  ·  FIRMAR  ›', (ZONA_REV_FIRMAR.x1 + ZONA_REV_FIRMAR.x2) / 2, 448);
-        try { wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 }); } catch (e) { }   // sin tinta en esta pantalla
-        empujarImagenAlPad();
-    }
     function limitarNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
     function manejarToqueRevision(x, y) {
         function en(z) { return x >= z.x1 && x <= z.x2 && y >= z.y1 && y <= z.y2; }
@@ -4990,45 +5376,6 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         document.getElementById('btnUsarCaptura').disabled = !capturaEditor || capturaEditor.trazos.length === 0;
     }
     // Pantalla del pad durante la captura
-    function dibujarPantallaCapturaEditor() {
-        context.fillStyle = '#FFFFFF'; context.fillRect(0, 0, 800, 480);
-        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, PAD_BARRA);
-        context.textAlign = 'left';
-        context.fillStyle = '#FFFFFF'; context.font = 'bold 18px Arial';
-        context.fillText(capturaEditor && capturaEditor.tipo === 'documento' ? 'FIRME SOBRE EL DOCUMENTO' : 'FIRMA DIGITAL', 20, 28);
-        context.font = '12px Arial'; context.fillStyle = 'rgba(255,255,255,0.65)';
-        context.fillText(editor.nombre ? editor.nombre.slice(0, 40) : 'Firma nueva', 20, 47);
-        roundRectFill(ZONA_PAD_BORRAR.x1, ZONA_PAD_BORRAR.y1, ZONA_PAD_BORRAR.x2 - ZONA_PAD_BORRAR.x1, ZONA_PAD_BORRAR.y2 - ZONA_PAD_BORRAR.y1, 8, '#475569');
-        roundRectFill(ZONA_PAD_LISTO.x1, ZONA_PAD_LISTO.y1, ZONA_PAD_LISTO.x2 - ZONA_PAD_LISTO.x1, ZONA_PAD_LISTO.y2 - ZONA_PAD_LISTO.y1, 8, '#15803D');
-        context.fillStyle = '#FFFFFF'; context.font = 'bold 14px Arial'; context.textAlign = 'center';
-        context.fillText('BORRAR', (ZONA_PAD_BORRAR.x1 + ZONA_PAD_BORRAR.x2) / 2, 35);
-        context.fillText('LISTO ✓', (ZONA_PAD_LISTO.x1 + ZONA_PAD_LISTO.x2) / 2, 35);
-        context.save();
-        context.translate(0, PAD_BARRA);
-        dibujarFondoCaptura(context, 800, 480 - PAD_BARRA);
-        context.restore();
-        if (capturaEditor && capturaEditor.tipo === 'documento') {
-            context.strokeStyle = 'rgba(29,78,216,0.55)'; context.lineWidth = 2; context.setLineDash([8, 6]);
-            context.strokeRect(1, PAD_BARRA + 1, 798, 480 - PAD_BARRA - 2);
-            context.setLineDash([]);
-        }
-        try { wacom.setWritingArea({ x1: 0, y1: PAD_BARRA, x2: 800, y2: 480 }); } catch (e) { }
-        empujarImagenAlPad();
-    }
-    function dibujarPantallaReposoEditor() {
-        context.fillStyle = '#F8FAFC'; context.fillRect(0, 0, 800, 480);
-        context.fillStyle = '#0B1F4A'; context.fillRect(0, 0, 800, 90);
-        context.fillStyle = '#FFFFFF'; context.font = 'bold 26px Arial'; context.textAlign = 'center';
-        context.fillText('FIRMAR PDF', 400, 45);
-        context.font = '14px Arial'; context.fillStyle = 'rgba(255,255,255,0.65)';
-        context.fillText('Taller Automotriz · Claro', 400, 68);
-        context.font = '20px Arial'; context.fillStyle = '#64748B';
-        context.fillText(editor.pdf ? ('Documento abierto: ' + editor.nombre.slice(0, 38)) : 'Abre un documento en la computadora', 400, 250);
-        context.font = '15px Arial'; context.fillStyle = '#94A3B8';
-        context.fillText('Pulsa "Firmar sobre el documento" o "Nueva" para firmar aquí', 400, 285);
-        try { wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 }); } catch (e) { }
-        empujarImagenAlPad();
-    }
     // Recorte de la página (bajo la zona) para mostrarlo en el pad
     async function renderizarRecorteZona(el) {
         var p = editor.paginas[el.pagina];
