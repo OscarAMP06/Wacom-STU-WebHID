@@ -88,8 +88,8 @@ button { cursor: pointer; }
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 0 calc(50% - 50vw);
-    padding: 12px max(20px, calc(50vw - 644px));
+    margin: 0 calc(50% - 50vw / var(--zoom, 1));
+    padding: 12px max(20px, calc(50vw / var(--zoom, 1) - 644px));
     background: var(--brand);
     color: #fff;
     box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, var(--shadow-sm);
@@ -1178,6 +1178,59 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
 .diagPad div:nth-child(odd) { background: var(--surface-2); }
 .diagPad span { color: var(--muted); }
 .diagPad b { font-weight: 600; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ============ Configuración: menú por secciones ============ */
+.adminTabs { display: flex; gap: 2px; margin: 12px 20px 0; padding: 3px; border-radius: var(--r-sm); background: var(--surface-3); }
+.adminTab { flex: 1; padding: 8px 6px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; transition: background .15s, color .15s; }
+.adminTab:hover { color: var(--text); }
+.adminTab.activa { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); font-weight: 600; }
+.adminSeccion { display: none; }
+.adminSeccion.activa { display: block; animation: subir .18s var(--ease); }
+.adminSeccion > h3:first-child { margin-top: 12px; }
+.campoAdmin { display: flex; flex-direction: column; gap: 7px; padding: 9px 0; font-size: 13.5px; color: var(--text-2); }
+.campoAdmin .campo { padding: 8px 10px; font-size: 13.5px; }
+.checkAdmin { width: 18px; height: 18px; accent-color: var(--primary); }
+.segmentado { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2); }
+.segmentado button { flex: 1; padding: 7px 8px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+.segmentado button:hover { color: var(--text); }
+.segmentado button.activo { background: var(--primary); color: #fff; box-shadow: var(--shadow-xs); }
+.muestras { display: flex; gap: 8px; flex-wrap: wrap; }
+.muestra { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--surface); background: var(--m); box-shadow: 0 0 0 1px var(--border-strong); transition: transform .12s, box-shadow .12s; }
+.muestra:hover { transform: scale(1.08); }
+.muestra.activo { box-shadow: 0 0 0 2px var(--text); }
+.muestra.reloj { width: 64px; height: 40px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; font-weight: 700; font-family: Arial, sans-serif; }
+.vistaReloj { border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 4px; }
+.vistaReloj canvas { display: block; width: 100%; height: auto; }
+
+/* ============ Tema oscuro ============ */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0A1020; --surface: #111A2E; --surface-2: #0E1628; --surface-3: #1A2540;
+    --border: #24314F; --border-strong: #34446A;
+    --text: #E6EBF4; --text-2: #C4CDDD; --muted: #8C9AB4; --subtle: #63728F;
+    --success-soft: rgba(34,197,94,.14); --danger-soft: rgba(239,68,68,.14); --warning-soft: rgba(245,158,11,.14);
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.4); --shadow-sm: 0 1px 3px rgba(0,0,0,.45);
+    --shadow-md: 0 8px 24px -8px rgba(0,0,0,.6); --shadow-lg: 0 24px 48px -12px rgba(0,0,0,.7);
+}
+:root[data-theme="dark"] #header { background: #08132E; }
+:root[data-theme="dark"] .modoTab.active { background: var(--primary); }
+:root[data-theme="dark"] .archivoItem:hover, :root[data-theme="dark"] .filaHistorialMS:hover { background: var(--surface-3); border-color: var(--border-strong); }
+:root[data-theme="dark"] #msEmpleadoCard, :root[data-theme="dark"] .btnPad { background: var(--primary-soft); border-color: var(--border-strong); }
+:root[data-theme="dark"] .chipTarjeta, :root[data-theme="dark"] .articuloMSRow select,
+:root[data-theme="dark"] .articuloMSRow input[type=number], :root[data-theme="dark"] .catalogoMSRow input[type=text],
+:root[data-theme="dark"] .catalogoMSRow input[type=number], :root[data-theme="dark"] .adminRow input[type=color] { background: var(--surface-2); color: var(--text); }
+:root[data-theme="dark"] #editorBarra { background: rgba(17,26,46,.94); }
+:root[data-theme="dark"] #avisoSinCarpetaSalida, :root[data-theme="dark"] #avisoSinCarpetaMateriales, :root[data-theme="dark"] #capturaAvisoPad { color: #FCD9A8; border-color: rgba(245,158,11,.35); }
+:root[data-theme="dark"] #infoModoMultiple, :root[data-theme="dark"] #infoModoMateriales, :root[data-theme="dark"] .articuloMSRow.reposicionAlerta { border-color: var(--border-strong); }
+:root[data-theme="dark"] .articuloMSRow.reposicionAlerta { border-color: rgba(245,158,11,.5); }
+:root[data-theme="dark"] .esqueleto { background-image: linear-gradient(90deg, var(--surface-3) 0%, #24314F 40%, var(--surface-3) 80%); }
+:root[data-theme="dark"] #firmaBox { background: radial-gradient(circle at 1px 1px, rgba(148,163,184,.12) 1px, transparent 0) 0 0 / 14px 14px, var(--surface-2); }
+:root[data-theme="dark"] .sugerenciaEmp mark { background: rgba(250,204,21,.35); }
+:root[data-theme="dark"] .elemTexto.editando { background: rgba(255,255,255,.9); }
+:root[data-theme="dark"] .pasoNum { background: var(--primary); }
+:root[data-theme="dark"] #adminBackdrop { background: rgba(0,0,0,.5); }
+:root[data-theme="dark"] .segmentado button.activo, :root[data-theme="dark"] .adminTab.activa { color: #fff; }
+:root[data-theme="dark"] .adminTab.activa { background: var(--surface-3); }
 </style>
 </head>
 <body data-modo="documento">
@@ -1493,63 +1546,126 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         <h2>Configuración</h2>
         <button class="btnEliminarArticulo" onclick="toggleAdmin()" aria-label="Cerrar"><svg class="icon sm"><use href="#i-x"/></svg></button>
     </div>
+    <nav class="adminTabs" role="tablist">
+        <button class="adminTab activa" data-tab="general" onclick="cambiarTabAdmin('general')">General</button>
+        <button class="adminTab" data-tab="apariencia" onclick="cambiarTabAdmin('apariencia')">Apariencia</button>
+        <button class="adminTab" data-tab="catalogo" onclick="cambiarTabAdmin('catalogo')">Catálogo</button>
+        <button class="adminTab" data-tab="pad" onclick="cambiarTabAdmin('pad')">Pad</button>
+    </nav>
     <div class="adminCuerpo">
-        <h3>Carpetas de trabajo</h3>
-        <div class="adminRow">
-            <button class="btnCarpetaAdmin" onclick="conectarCarpetaEntrada()">Elegir carpeta de entrada</button>
-            <span class="estadoCarpetaAdmin" id="estadoCarpetaEntrada">No conectada</span>
-        </div>
-        <div class="adminRow">
-            <button class="btnCarpetaAdmin" onclick="conectarCarpetaSalida()">Elegir carpeta de salida</button>
-            <span class="estadoCarpetaAdmin" id="estadoCarpetaSalida">No conectada (se descargará al navegador)</span>
-        </div>
-        <div class="adminRow">
-            <button class="btnCarpetaAdmin" onclick="conectarCarpetaMateriales()">Elegir carpeta de materiales</button>
-            <span class="estadoCarpetaAdmin" id="estadoCarpetaMateriales">No conectada</span>
-        </div>
-        <button id="btnReconectarCarpetas" onclick="reconectarCarpetasGuardadas()">Reconectar carpetas guardadas</button>
+        <!-- ===== General ===== -->
+        <section class="adminSeccion activa" data-tab="general">
+            <h3>Carpetas de trabajo</h3>
+            <div class="adminRow">
+                <button class="btnCarpetaAdmin" onclick="conectarCarpetaEntrada()">Elegir carpeta de entrada</button>
+                <span class="estadoCarpetaAdmin" id="estadoCarpetaEntrada">No conectada</span>
+            </div>
+            <div class="adminRow">
+                <button class="btnCarpetaAdmin" onclick="conectarCarpetaSalida()">Elegir carpeta de salida</button>
+                <span class="estadoCarpetaAdmin" id="estadoCarpetaSalida">No conectada (se descargará al navegador)</span>
+            </div>
+            <div class="adminRow">
+                <button class="btnCarpetaAdmin" onclick="conectarCarpetaMateriales()">Elegir carpeta de materiales</button>
+                <span class="estadoCarpetaAdmin" id="estadoCarpetaMateriales">No conectada</span>
+            </div>
+            <button id="btnReconectarCarpetas" onclick="reconectarCarpetasGuardadas()">Reconectar carpetas guardadas</button>
+            <h3>Firma de documentos SAP</h3>
+            <div class="adminRow">
+                <span>Mostrar materiales en el pad antes de firmar</span>
+                <input id="adminMostrarMateriales" type="checkbox" class="checkAdmin" onchange="cambiarMostrarMaterialesPad(this.checked)" />
+            </div>
+        </section>
 
-        <h3>Catálogo de materiales de seguridad</h3>
-        <div id="listaCatalogoAdminMS"></div>
-        <button class="btnCarpetaAdmin" style="width:100%;margin-top:6px;" onclick="agregarArticuloCatalogo()">+ Agregar artículo</button>
+        <!-- ===== Apariencia ===== -->
+        <section class="adminSeccion" data-tab="apariencia">
+            <h3>Página</h3>
+            <div class="campoAdmin">
+                <span>Tema</span>
+                <div class="segmentado" data-ajuste="tema">
+                    <button data-valor="claro">Claro</button>
+                    <button data-valor="oscuro">Oscuro</button>
+                    <button data-valor="auto">Automático</button>
+                </div>
+            </div>
+            <div class="campoAdmin">
+                <span>Color de acento</span>
+                <div class="muestras" id="muestrasAcento"></div>
+            </div>
+            <div class="campoAdmin">
+                <span>Tamaño del texto</span>
+                <div class="segmentado" data-ajuste="tamano">
+                    <button data-valor="1">Normal</button>
+                    <button data-valor="1.1">Grande</button>
+                    <button data-valor="1.2">Muy grande</button>
+                </div>
+            </div>
 
-        <h3>Pluma y pantalla</h3>
-        <div class="adminRow">
-            <span>Mostrar materiales en el pad antes de firmar</span>
-            <input id="adminMostrarMateriales" type="checkbox" style="width:18px;height:18px;accent-color:var(--primary);" onchange="cambiarMostrarMaterialesPad(this.checked)" />
-        </div>
-        <div class="adminRow">
-            <span>Color de pluma</span>
-            <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
-        </div>
-        <div class="adminRow">
-            <span>Grosor de pluma</span>
-            <input id="adminGrosorPluma" type="range" min="0" max="5" value="2" onchange="aplicarAjustesAdmin()" />
-        </div>
-        <div class="adminRow">
-            <span>Brillo de pantalla</span>
-            <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
-        </div>
-        <h3>Calibración — Firma</h3>
-        <div class="adminRow"><span>Posición X</span><input id="posXFirma" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Posición Y</span><input id="posYFirma" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Ancho</span><input id="anchoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Alto</span><input id="altoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-        <h3>Calibración — No. Tarjeta</h3>
-        <div class="adminRow"><span>Posición X</span><input id="posXTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Posición Y</span><input id="posYTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Ancho</span><input id="anchoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-        <div class="adminRow"><span>Alto</span><input id="altoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
-        <button id="btnGuardarCalibracion" onclick="guardarCalibracion()">Guardar esta calibración (permanente)</button>
-        <h3>Dispositivo</h3>
-        <div class="adminRow">
-            <span>Info del dispositivo</span>
-            <button class="btnCarpetaAdmin" onclick="mostrarInfoDispositivo()">Consultar</button>
-        </div>
-        <div id="deviceInfo"></div>
-        <h3>Diagnóstico del pad</h3>
-        <div id="diagPad" class="diagPad"></div>
-        <p class="latAyuda" style="margin-top:6px;">Si el pad se pone lento o se desconecta, toma una captura de este cuadro: ayuda a saber qué pasó.</p>
+            <h3>Pantalla de espera del pad</h3>
+            <div class="vistaReloj"><canvas id="vistaPreviaReloj" width="800" height="480"></canvas></div>
+            <div class="campoAdmin">
+                <span>Estilo del reloj</span>
+                <div class="muestras" id="muestrasReloj"></div>
+            </div>
+            <div class="campoAdmin">
+                <span>Formato de hora</span>
+                <div class="segmentado" data-ajuste="formato">
+                    <button data-valor="12">12 horas (AM/PM)</button>
+                    <button data-valor="24">24 horas</button>
+                </div>
+            </div>
+            <div class="adminRow">
+                <span>Mostrar la fecha</span>
+                <input type="checkbox" class="checkAdmin" data-ajuste="mostrarFecha" />
+            </div>
+            <label class="campoAdmin"><span>Título</span><input type="text" class="campo" data-ajuste="titulo" maxlength="40"></label>
+            <label class="campoAdmin"><span>Texto inferior</span><input type="text" class="campo" data-ajuste="pie" maxlength="50"></label>
+
+            <h3>Pluma y brillo del pad</h3>
+            <div class="adminRow">
+                <span>Color de pluma</span>
+                <input id="adminColorPluma" type="color" value="#1A3C8C" onchange="aplicarAjustesAdmin()" />
+            </div>
+            <div class="adminRow">
+                <span>Grosor de pluma</span>
+                <input id="adminGrosorPluma" type="range" min="0" max="5" value="2" onchange="aplicarAjustesAdmin()" />
+            </div>
+            <div class="adminRow">
+                <span>Brillo de pantalla</span>
+                <input id="adminBrillo" type="range" min="0" max="3" value="3" onchange="aplicarBrillo()" />
+            </div>
+            <button class="btnCarpetaAdmin" style="width:100%;margin-top:14px;" onclick="restablecerApariencia()">Restablecer apariencia original</button>
+        </section>
+
+        <!-- ===== Catálogo ===== -->
+        <section class="adminSeccion" data-tab="catalogo">
+            <h3>Catálogo de materiales de seguridad</h3>
+            <div id="listaCatalogoAdminMS"></div>
+            <button class="btnCarpetaAdmin" style="width:100%;margin-top:6px;" onclick="agregarArticuloCatalogo()">+ Agregar artículo</button>
+        </section>
+
+        <!-- ===== Pad ===== -->
+        <section class="adminSeccion" data-tab="pad">
+            <h3>Diagnóstico del pad</h3>
+            <div id="diagPad" class="diagPad"></div>
+            <p class="latAyuda" style="margin-top:6px;">Si el pad se pone lento o se desconecta, toma una captura de este cuadro: ayuda a saber qué pasó.</p>
+            <h3>Calibración — Firma</h3>
+            <div class="adminRow"><span>Posición X</span><input id="posXFirma" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Posición Y</span><input id="posYFirma" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Ancho</span><input id="anchoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Alto</span><input id="altoFirmaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+            <h3>Calibración — No. Tarjeta</h3>
+            <div class="adminRow"><span>Posición X</span><input id="posXTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Posición Y</span><input id="posYTarjeta" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Ancho</span><input id="anchoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+            <div class="adminRow"><span>Alto</span><input id="altoTarjetaInput" type="number" oninput="recalcularYRedibujar()" /></div>
+            <button id="btnGuardarCalibracion" onclick="guardarCalibracion()">Guardar esta calibración (permanente)</button>
+            <h3>Dispositivo</h3>
+            <div class="adminRow">
+                <span>Info del dispositivo</span>
+                <button class="btnCarpetaAdmin" onclick="mostrarInfoDispositivo()">Consultar</button>
+            </div>
+            <div id="deviceInfo"></div>
+        </section>
     </div>
 </div>
 <div id="adminBackdrop" onclick="toggleAdmin()"></div>
@@ -1853,7 +1969,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     // ============ Refrescar lista de PDFs pendientes (manual + automático) ============
     function toggleAdmin() {
         var abierto = document.getElementById('adminPanel').classList.toggle('visible');
-        if (abierto) actualizarDiagnosticoPad();
+        if (abierto) { actualizarDiagnosticoPad(); dibujarVistaPreviaReloj(); }
     }
     // ============ Diagnóstico del pad (Admin) ============
     var reconexionesPad = 0, inicioSesionPad = Date.now();
@@ -2162,14 +2278,14 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         if (coincidencia) {
             numeroDocumentoDetectado = coincidencia[1];
             cajaNumero.style.display = 'block';
-            cajaNumero.style.background = 'rgb(220,252,231)';
-            cajaNumero.style.color = 'rgb(22,101,52)';
+            cajaNumero.style.background = 'var(--success-soft)';
+            cajaNumero.style.color = 'var(--success)';
             cajaNumero.innerText = '✓ Documento detectado: ' + numeroDocumentoDetectado;
         } else {
             numeroDocumentoDetectado = null;
             cajaNumero.style.display = 'block';
-            cajaNumero.style.background = 'rgb(254,242,242)';
-            cajaNumero.style.color = 'rgb(153,27,27)';
+            cajaNumero.style.background = 'var(--danger-soft)';
+            cajaNumero.style.color = 'var(--danger)';
             cajaNumero.innerText = '⚠ No se detectó el número de documento';
         }
         await prepararRevisionDocumentoActual(pdf);
@@ -2229,6 +2345,7 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
         await wacom.setWritingMode(1);
         await wacom.setInking(true);
+        try { await wacom.setBacklight(Number(apariencia.brillo)); } catch (e) { }
         addpoly();
         wacom.invalidarImagen();
         padPreparado = true;
@@ -2332,6 +2449,8 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
         document.getElementById('adminMostrarMateriales').checked = mostrarMaterialesEnPadActivo();
+        construirControlesApariencia();
+        try { var tabGuardada = localStorage.getItem('tabConfiguracion'); if (tabGuardada) cambiarTabAdmin(tabGuardada); } catch (e) { }
         // el pad se conecta en paralelo mientras se cargan carpetas e historial
         ponerEstadoPad('reconnecting', '● Buscando pad…');
         var conexion = asegurarConexionPad('inicio');
@@ -2426,63 +2545,68 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     }
 
     // =====================================================================
-    // PANTALLA DE ESPERA: reloj grande
+    // PANTALLA DE ESPERA: reloj grande (configurable en Apariencia)
     // ---------------------------------------------------------------------
-    // El pad se actualiza una sola vez por minuto (cada pantalla completa
-    // tarda unos segundos en llegar). Para que el cambio de minuto se vea a
-    // tiempo, el envío empieza un poco antes, según cuánto tarda este pad.
+    // El pad se actualiza una vez por minuto (cada pantalla completa tarda en
+    // llegar). El envío empieza un poco antes, según lo que tarda este pad,
+    // para que el cambio de minuto se vea a tiempo.
     // =====================================================================
     var pantallaEsReposo = false, pantallaPadFueReposo = false, minutoReposo = -1;
     var DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    var ESTILOS_RELOJ = {
+        marino: { nombre: 'Azul marino', fondo: ['#0B1F4A', '#13306B'], texto: '#FFFFFF', acento: '#93B4FF', sub: 'rgba(255,255,255,0.78)', tenue: 'rgba(255,255,255,0.4)', anillos: 'rgba(255,255,255,0.05)', linea: '#DA291C' },
+        claro:  { nombre: 'Claro',       fondo: ['#FFFFFF', '#EEF2F7'], texto: '#0B1F4A', acento: '#1D4ED8', sub: '#475569', tenue: '#94A3B8', anillos: 'rgba(11,31,74,0.06)', linea: '#DA291C' },
+        negro:  { nombre: 'Negro',       fondo: ['#000000', '#111827'], texto: '#FFFFFF', acento: '#FBBF24', sub: 'rgba(255,255,255,0.72)', tenue: 'rgba(255,255,255,0.38)', anillos: 'rgba(255,255,255,0.06)', linea: '#FBBF24' },
+        rojo:   { nombre: 'Rojo',        fondo: ['#B91C1C', '#DA291C'], texto: '#FFFFFF', acento: '#FECACA', sub: 'rgba(255,255,255,0.85)', tenue: 'rgba(255,255,255,0.55)', anillos: 'rgba(255,255,255,0.08)', linea: '#FFFFFF' },
+        verde:  { nombre: 'Verde',       fondo: ['#064E3B', '#065F46'], texto: '#FFFFFF', acento: '#6EE7B7', sub: 'rgba(255,255,255,0.78)', tenue: 'rgba(255,255,255,0.42)', anillos: 'rgba(255,255,255,0.06)', linea: '#6EE7B7' }
+    };
     function horaAMostrar() {
-        // adelanta el reloj lo que tarda el envío al pad, para que llegue justo al cambiar el minuto
         var adelanto = (wacom.checkConnected() && wacom.estadisticas && wacom.estadisticas.promedioMs) ? Math.min(15000, wacom.estadisticas.promedioMs) : 0;
         return new Date(Date.now() + adelanto);
+    }
+    // Dibuja el reloj en cualquier lienzo de 800x480 (pad o vista previa de Apariencia)
+    function pintarReloj(c, ahora, cfg) {
+        var e = ESTILOS_RELOJ[cfg.estiloReloj] || ESTILOS_RELOJ.marino;
+        var h = ahora.getHours(), m = ahora.getMinutes();
+        var textoHora, sufijo = '';
+        if (cfg.formato === '24') textoHora = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        else { textoHora = (h % 12 || 12) + ':' + String(m).padStart(2, '0'); sufijo = h < 12 ? 'AM' : 'PM'; }
+        var conFecha = cfg.mostrarFecha !== false;
+        var yHora = conFecha ? 290 : 318;
+        var g = c.createLinearGradient(0, 0, 0, 480);
+        g.addColorStop(0, e.fondo[0]); g.addColorStop(1, e.fondo[1]);
+        c.fillStyle = g; c.fillRect(0, 0, 800, 480);
+        c.strokeStyle = e.anillos; c.lineWidth = 2;
+        [170, 230, 290].forEach(function (r) { c.beginPath(); c.arc(400, 250, r, 0, Math.PI * 2); c.stroke(); });
+        c.textAlign = 'center';
+        if (cfg.titulo) {
+            c.fillStyle = e.texto; c.globalAlpha = 0.92;
+            c.font = 'bold 20px Arial';
+            c.fillText(cfg.titulo.toUpperCase(), 400, 48);
+            c.globalAlpha = 1;
+            c.fillStyle = e.linea; c.fillRect(370, 62, 60, 3);
+        }
+        c.font = 'bold 190px Arial';
+        var anchoHora = c.measureText(textoHora).width;
+        c.font = 'bold 40px Arial';
+        var anchoSufijo = sufijo ? c.measureText(sufijo).width + 18 : 0;
+        var x0 = 400 - (anchoHora + anchoSufijo) / 2;
+        c.textAlign = 'left';
+        c.fillStyle = e.texto; c.font = 'bold 190px Arial';
+        c.fillText(textoHora, x0, yHora);
+        if (sufijo) { c.fillStyle = e.acento; c.font = 'bold 40px Arial'; c.fillText(sufijo, x0 + anchoHora + 18, yHora - 108); }
+        c.textAlign = 'center';
+        if (conFecha) {
+            c.fillStyle = e.sub; c.font = '28px Arial';
+            c.fillText(DIAS[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear(), 400, 352);
+        }
+        if (cfg.pie) { c.fillStyle = e.tenue; c.font = '15px Arial'; c.fillText(cfg.pie, 400, 446); }
     }
     function dibujarPantallaReposo() {
         var ahora = horaAMostrar();
         minutoReposo = Math.floor(ahora.getTime() / 60000);
-        var h = ahora.getHours(), m = ahora.getMinutes();
-        var h12 = h % 12 || 12, sufijo = h < 12 ? 'AM' : 'PM';
-        var textoHora = h12 + ':' + String(m).padStart(2, '0');
-        // fondo con degradado suave
-        var fondo = context.createLinearGradient(0, 0, 0, 480);
-        fondo.addColorStop(0, '#0B1F4A'); fondo.addColorStop(1, '#13306B');
-        context.fillStyle = fondo;
-        context.fillRect(0, 0, 800, 480);
-        // anillos decorativos
-        context.strokeStyle = 'rgba(255,255,255,0.05)'; context.lineWidth = 2;
-        [170, 230, 290].forEach(function (r) { context.beginPath(); context.arc(400, 250, r, 0, Math.PI * 2); context.stroke(); });
-        // encabezado
-        context.textAlign = 'center';
-        context.fillStyle = 'rgba(255,255,255,0.92)';
-        context.font = 'bold 20px Arial';
-        context.fillText('SISTEMA DE AUTOGESTIÓN', 400, 48);
-        context.fillStyle = '#DA291C';
-        context.fillRect(370, 62, 60, 3);
-        // hora grande
-        context.font = 'bold 190px Arial';
-        var anchoHora = context.measureText(textoHora).width;
-        context.font = 'bold 40px Arial';
-        var anchoSufijo = context.measureText(sufijo).width;
-        var x0 = 400 - (anchoHora + 18 + anchoSufijo) / 2;
-        context.textAlign = 'left';
-        context.fillStyle = '#FFFFFF';
-        context.font = 'bold 190px Arial';
-        context.fillText(textoHora, x0, 290);
-        context.fillStyle = '#93B4FF';
-        context.font = 'bold 40px Arial';
-        context.fillText(sufijo, x0 + anchoHora + 18, 182);
-        // fecha
-        context.textAlign = 'center';
-        context.fillStyle = 'rgba(255,255,255,0.78)';
-        context.font = '28px Arial';
-        context.fillText(DIAS[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear(), 400, 352);
-        // pie
-        context.fillStyle = 'rgba(255,255,255,0.4)';
-        context.font = '15px Arial';
-        context.fillText('Taller Automotriz · Claro', 400, 446);
+        pintarReloj(context, ahora, apariencia);
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
         pantallaEsReposo = true;
         empujarImagenAlPad();
@@ -2492,6 +2616,132 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
         if (!pantallaPadFueReposo || capturaEditor || reconectandoPad) return;
         if (Math.floor(horaAMostrar().getTime() / 60000) !== minutoReposo) dibujarPantallaSegunModo();
     }, 2000);
+
+    // =====================================================================
+    // APARIENCIA (se guarda en este navegador)
+    // =====================================================================
+    var CLAVE_APARIENCIA = 'aparienciaFirma';
+    var ACENTOS = {
+        azul:     { nombre: 'Azul',     c: '#1D4ED8', h: '#1E40AF' },
+        rojo:     { nombre: 'Rojo',     c: '#DA291C', h: '#B91C1C' },
+        verde:    { nombre: 'Verde',    c: '#15803D', h: '#166534' },
+        morado:   { nombre: 'Morado',   c: '#7C3AED', h: '#6D28D9' },
+        naranja:  { nombre: 'Naranja',  c: '#EA580C', h: '#C2410C' },
+        turquesa: { nombre: 'Turquesa', c: '#0E7490', h: '#155E75' }
+    };
+    var APARIENCIA_BASE = { tema: 'claro', acento: 'azul', tamano: '1', estiloReloj: 'marino', formato: '12', mostrarFecha: true,
+        titulo: 'Sistema de Autogestión', pie: 'Taller Automotriz · Claro', colorPluma: '#1A3C8C', grosorPluma: 2, brillo: 3 };
+    var apariencia = (function () {
+        try { return Object.assign({}, APARIENCIA_BASE, JSON.parse(localStorage.getItem(CLAVE_APARIENCIA) || '{}')); }
+        catch (e) { return Object.assign({}, APARIENCIA_BASE); }
+    })();
+    colaPluma = apariencia.colorPluma;            // la pluma guardada se usa desde el primer trazo
+    grosorPluma = Number(apariencia.grosorPluma);
+    function guardarApariencia() {
+        try { localStorage.setItem(CLAVE_APARIENCIA, JSON.stringify(apariencia)); } catch (e) { }
+    }
+    function hexARgba(hex, a) {
+        var n = parseInt(hex.slice(1), 16);
+        return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
+    var consultaOscuro = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    function aplicarApariencia() {
+        var raiz = document.documentElement;
+        var oscuro = apariencia.tema === 'oscuro' || (apariencia.tema === 'auto' && consultaOscuro && consultaOscuro.matches);
+        raiz.setAttribute('data-theme', oscuro ? 'dark' : 'light');
+        var a = ACENTOS[apariencia.acento] || ACENTOS.azul;
+        raiz.style.setProperty('--primary', a.c);
+        raiz.style.setProperty('--primary-hover', a.h);
+        raiz.style.setProperty('--primary-soft', hexARgba(a.c, oscuro ? 0.18 : 0.08));
+        raiz.style.setProperty('--primary-ring', hexARgba(a.c, oscuro ? 0.35 : 0.22));
+        document.body.style.zoom = apariencia.tamano;
+        raiz.style.setProperty('--zoom', apariencia.tamano);   // el encabezado de ancho completo se ajusta al zoom
+    }
+    if (consultaOscuro && consultaOscuro.addEventListener) consultaOscuro.addEventListener('change', function () { if (apariencia.tema === 'auto') aplicarApariencia(); });
+    function cambiarAjusteApariencia(clave, valor) {
+        apariencia[clave] = valor;
+        guardarApariencia();
+        aplicarApariencia();
+        sincronizarControlesApariencia();
+        if (['estiloReloj', 'formato', 'mostrarFecha', 'titulo', 'pie'].indexOf(clave) !== -1) {
+            dibujarVistaPreviaReloj();
+            if (pantallaPadFueReposo || !wacom.checkConnected()) dibujarPantallaSegunModo();   // el pad en espera se actualiza al momento
+        }
+    }
+    function restablecerApariencia() {
+        if (!confirm('¿Volver a la apariencia original?')) return;
+        apariencia = Object.assign({}, APARIENCIA_BASE);
+        guardarApariencia();
+        colaPluma = apariencia.colorPluma; grosorPluma = apariencia.grosorPluma;
+        try { wacom.setPenColorAndWidth(colaPluma, grosorPluma); wacom.setBacklight(apariencia.brillo); } catch (e) { }
+        aplicarApariencia();
+        sincronizarControlesApariencia();
+        dibujarVistaPreviaReloj();
+        dibujarPantallaSegunModo();
+    }
+    function sincronizarControlesApariencia() {
+        document.querySelectorAll('.segmentado[data-ajuste]').forEach(function (g) {
+            g.querySelectorAll('button').forEach(function (b) { b.classList.toggle('activo', String(apariencia[g.dataset.ajuste]) === b.dataset.valor); });
+        });
+        document.querySelectorAll('#muestrasAcento .muestra').forEach(function (b) { b.classList.toggle('activo', b.dataset.valor === apariencia.acento); });
+        document.querySelectorAll('#muestrasReloj .muestra').forEach(function (b) { b.classList.toggle('activo', b.dataset.valor === apariencia.estiloReloj); });
+        document.querySelectorAll('input[data-ajuste]').forEach(function (i) {
+            if (i.type === 'checkbox') i.checked = apariencia[i.dataset.ajuste] !== false;
+            else if (document.activeElement !== i) i.value = apariencia[i.dataset.ajuste] || '';
+        });
+        document.getElementById('adminColorPluma').value = apariencia.colorPluma;
+        document.getElementById('adminGrosorPluma').value = apariencia.grosorPluma;
+        document.getElementById('adminBrillo').value = apariencia.brillo;
+    }
+    function dibujarVistaPreviaReloj() {
+        var c = document.getElementById('vistaPreviaReloj');
+        if (c) pintarReloj(c.getContext('2d'), new Date(), apariencia);
+    }
+    function construirControlesApariencia() {
+        var cA = document.getElementById('muestrasAcento');
+        Object.keys(ACENTOS).forEach(function (k) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'muestra'; b.dataset.valor = k; b.title = ACENTOS[k].nombre;
+            b.style.setProperty('--m', ACENTOS[k].c);
+            b.onclick = function () { cambiarAjusteApariencia('acento', k); };
+            cA.appendChild(b);
+        });
+        var cR = document.getElementById('muestrasReloj');
+        Object.keys(ESTILOS_RELOJ).forEach(function (k) {
+            var e = ESTILOS_RELOJ[k], b = document.createElement('button');
+            b.type = 'button'; b.className = 'muestra reloj'; b.dataset.valor = k; b.title = e.nombre;
+            b.style.background = 'linear-gradient(180deg,' + e.fondo[0] + ',' + e.fondo[1] + ')';
+            b.style.color = e.texto;
+            b.innerHTML = '<span>12:00</span>';
+            b.onclick = function () { cambiarAjusteApariencia('estiloReloj', k); };
+            cR.appendChild(b);
+        });
+        document.querySelectorAll('.segmentado[data-ajuste]').forEach(function (g) {
+            g.querySelectorAll('button').forEach(function (b) {
+                b.type = 'button';
+                b.onclick = function () { cambiarAjusteApariencia(g.dataset.ajuste, b.dataset.valor); };
+            });
+        });
+        document.querySelectorAll('input[data-ajuste]').forEach(function (i) {
+            if (i.type === 'checkbox') i.onchange = function () { cambiarAjusteApariencia(i.dataset.ajuste, i.checked); };
+            else {
+                var t = null;
+                i.oninput = function () { clearTimeout(t); t = setTimeout(function () { cambiarAjusteApariencia(i.dataset.ajuste, i.value.trim()); }, 350); };
+            }
+        });
+        sincronizarControlesApariencia();
+        dibujarVistaPreviaReloj();
+    }
+    // Pestañas del panel de configuración
+    function cambiarTabAdmin(tab) {
+        document.querySelectorAll('.adminTab').forEach(function (b) { b.classList.toggle('activa', b.dataset.tab === tab); });
+        document.querySelectorAll('.adminSeccion').forEach(function (s) { s.classList.toggle('activa', s.dataset.tab === tab); });
+        document.querySelector('.adminCuerpo').scrollTop = 0;
+        if (tab === 'apariencia') dibujarVistaPreviaReloj();
+        if (tab === 'pad') actualizarDiagnosticoPad();
+        try { localStorage.setItem('tabConfiguracion', tab); } catch (e) { }
+    }
+    aplicarApariencia();
     function dibujarPantallaFirma() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -3836,10 +4086,12 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
     async function aplicarAjustesAdmin() {
         colaPluma = document.getElementById('adminColorPluma').value;
         grosorPluma = Number(document.getElementById('adminGrosorPluma').value);
+        apariencia.colorPluma = colaPluma; apariencia.grosorPluma = grosorPluma; guardarApariencia();
         await wacom.setPenColorAndWidth(colaPluma, grosorPluma);
     }
     async function aplicarBrillo() {
-        var valor = document.getElementById('adminBrillo').value;
+        var valor = Number(document.getElementById('adminBrillo').value);
+        apariencia.brillo = valor; guardarApariencia();
         await wacom.setBacklight(valor);
     }
     async function mostrarInfoDispositivo() {
