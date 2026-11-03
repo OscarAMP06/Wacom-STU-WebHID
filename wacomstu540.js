@@ -339,6 +339,49 @@ var wacomstu540 = function () {
         }.bind(this))()
         return this._promesaImagen
     }.bind(this)
+    /**
+     * (Experimental) Escribe solo un rectángulo de la pantalla (reporte 0x22, "image data area"
+     * del protocolo STU-530/540). Mucho menos datos que la pantalla completa.
+     * Prioridad baja: si hay una pantalla completa pendiente o enviándose, el cuadro se descarta.
+     * x2/y2 son inclusivos. Si el pad rechaza el reporte, marca areaNoSoportada = true.
+     * @returns {Promise<Boolean>} true si se envió
+     */
+    this.areaNoSoportada = false
+    this._areaEnCurso = false
+    this.setImageArea = function (data, x1, y1, x2, y2) {
+        if (!this.checkConnected() || this.areaNoSoportada) return Promise.resolve(false)
+        if (this._transfiriendo || this._imagenPendiente || this._areaEnCurso) return Promise.resolve(false)
+        this._areaEnCurso = true
+        const self = this
+        return this._ejecutar(async function () {
+            const dispositivo = self.device
+            const cab = new Uint8Array(9), dv = new DataView(cab.buffer)
+            cab[0] = self.config.imageFormat24BGR
+            dv.setUint16(1, x1, true); dv.setUint16(3, y1, true); dv.setUint16(5, x2, true); dv.setUint16(7, y2, true)
+            try {
+                await dispositivo.sendFeatureReport(0x22, cab)
+            } catch (e) {
+                self.areaNoSoportada = true
+                return false
+            }
+            const tam = self.config.chunkSize
+            const total = Math.ceil(data.length / tam)
+            for (let i = 0; i < total; i++) {
+                if (self.device !== dispositivo || !dispositivo.opened) throw new Error('Conexión cerrada durante el envío')
+                if (self._imagenPendiente) break                 // llegó una pantalla real: se corta la animación
+                const trozo = data.subarray(i * tam, Math.min((i + 1) * tam, data.length))
+                const pk = new Uint8Array(tam + 2)
+                pk[0] = trozo.length
+                pk.set(trozo, 2)
+                await dispositivo.sendFeatureReport(self.command.writeImageData, pk)
+            }
+            await dispositivo.sendFeatureReport(self.command.writeImageEnd, new Uint8Array([0]))
+            self._ultimaImagen = null             // la pantalla ya no es igual a la última imagen completa
+            self.ultimaActividad = Date.now()
+            return true
+        }, 20000).catch(function (e) { self._reportarError(e); return false })
+          .finally(function () { self._areaEnCurso = false })
+    }.bind(this)
     this._iguales = function (a, b) {
         if (a.length !== b.length) return false
         for (let i = 0; i < a.length; i += 3) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) return false
