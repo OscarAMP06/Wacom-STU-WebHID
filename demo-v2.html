@@ -1408,6 +1408,8 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
     .unLinea { grid-template-columns: 1fr auto auto; }
     .unLinea .chipTalla { display: none; }
 }
+
+body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hidden; }
 </style>
 </head>
 <body data-modo="documento">
@@ -3330,6 +3332,7 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
         context.fillStyle = c.neutro; context.font = fp('bold', 14);
         context.fillText('Pág. ' + (paginaRevision + 1) + ' de ' + paginas, (ZONA_REV_ANT.x2 + ZONA_REV_SIG.x1) / 2, 446);
         botonPad(ZONA_REV_FIRMAR, t.textos.botonRevision, c.exito, 19);
+        pantallaSinTinta = true;          // la firma ya trazada no se muestra encima de la lista
         areaPad({ x1: 0, y1: 0, x2: 1, y2: 1 });
         empujarImagenAlPad();
     }
@@ -3647,8 +3650,12 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
     }
     // Convierte la vista previa a BGR y la manda al pad. La librería encola y
     // descarta pantallas repetidas, así que se puede llamar sin esperar.
+    var pantallaSinTinta = false;
     function empujarImagenAlPad() {
-        if (vistaPreviaActiva) return Promise.resolve();       // dibujo de vista previa en ⚙️: no se envía
+        if (vistaPreviaActiva) { pantallaSinTinta = false; return Promise.resolve(); }   // dibujo de vista previa en ⚙️: no se envía
+        // en la vista previa de la PC, la capa de tinta se oculta en pantallas sin firma (p. ej. revisión de materiales)
+        document.body.classList.toggle('padSinTinta', pantallaSinTinta);
+        pantallaSinTinta = false;
         pantallaPadFueReposo = pantallaEsReposo;
         document.body.classList.toggle('padReposo', pantallaEsReposo);
         pantallaEsReposo = false;
@@ -3702,12 +3709,14 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
         if (modoActual === 'firmados') return;
         // Revisión de materiales en el pad: solo botones, sin tinta
         if (modoActual === 'documento' && revisionMaterialesActiva) {
+            pen_state = false;                       // corta cualquier trazo: un toque de botón nunca se une a la firma
             if (z && !yaSePresionoBoton) { yaSePresionoBoton = true; manejarToqueRevision(x, y); }
             if (!z) yaSePresionoBoton = false;
             return;
         }
         if (modoActual === 'documento' && z && materialesDocActual.length &&
             x >= ZONA_VER_MATERIALES.x1 && x <= ZONA_VER_MATERIALES.x2 && y >= ZONA_VER_MATERIALES.y1 && y <= ZONA_VER_MATERIALES.y2) {
+            pen_state = false;
             if (!yaSePresionoBoton) {
                 yaSePresionoBoton = true;
                 revisionMaterialesActiva = true;
@@ -3717,6 +3726,7 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
             return;
         }
         if (z && estaEnBotonReintentar(x, y)) {
+            pen_state = false;
             if (!yaSePresionoBoton) {
                 yaSePresionoBoton = true;
                 await clearscreen();
@@ -3724,6 +3734,7 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
             return;
         }
         if (!z) yaSePresionoBoton = false;
+        else if (yaSePresionoBoton) return;          // el mismo toque que pulsó un botón no dibuja al cambiar de pantalla
         var esTarjeta = estaEnZonaTarjeta(y);
         if (z != pen_state) {
             if (z) addpoly()
