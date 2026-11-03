@@ -1145,11 +1145,6 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
    ===================================================================== */
 #status.reconnecting { color: #FDE68A; background: rgba(245,158,11,.14); border-color: rgba(252,211,77,.35); animation: latido 1.4s ease-in-out infinite; }
 @keyframes latido { 50% { opacity: .55; } }
-/* Barra de segundos bajo la fecha en la vista previa del reloj (solo PC) */
-#animReloj { display: none; position: absolute; left: 35%; width: 30%; top: 79.5%; height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; pointer-events: none; }
-body.padReposo #animReloj { display: block; }
-#animReloj span { display: block; height: 100%; width: 100%; border-radius: 4px; background: linear-gradient(90deg, #93B4FF, #FFFFFF); transform-origin: left; animation: segundos 60s linear infinite; animation-delay: var(--retraso, 0s); }
-@keyframes segundos { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Barra de envío al pad */
 #progresoPad { height: 3px; margin: 8px auto 0; max-width: 700px; border-radius: 3px; background: transparent; overflow: hidden; transition: background .2s; }
 #progresoPad.activo { background: var(--surface-3); }
@@ -1465,7 +1460,6 @@ body.padReposo #animReloj { display: block; }
             <div id="firmaBox">
                 <div id="appcont">
                     <canvas id="myCanvas" width="800" height="480"></canvas>
-                    <div id="animReloj" aria-hidden="true"><span></span></div>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggFirma"></svg>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggTarjeta"></svg>
                 </div>
@@ -2437,7 +2431,6 @@ body.padReposo #animReloj { display: block; }
     // El pad se actualiza una sola vez por minuto (cada pantalla completa
     // tarda unos segundos en llegar). Para que el cambio de minuto se vea a
     // tiempo, el envío empieza un poco antes, según cuánto tarda este pad.
-    // En la PC, una barra de segundos animada acompaña al reloj.
     // =====================================================================
     var pantallaEsReposo = false, pantallaPadFueReposo = false, minutoReposo = -1;
     var DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -2493,8 +2486,6 @@ body.padReposo #animReloj { display: block; }
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
         pantallaEsReposo = true;
         empujarImagenAlPad();
-        var barra = document.querySelector('#animReloj span');
-        if (barra) barra.style.setProperty('--retraso', '-' + (new Date().getSeconds() + new Date().getMilliseconds() / 1000) + 's');
     }
     // Revisa cada 2 s si toca actualizar el minuto (solo en reposo)
     setInterval(function () {
