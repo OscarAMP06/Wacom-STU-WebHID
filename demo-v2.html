@@ -1145,9 +1145,11 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
    ===================================================================== */
 #status.reconnecting { color: #FDE68A; background: rgba(245,158,11,.14); border-color: rgba(252,211,77,.35); animation: latido 1.4s ease-in-out infinite; }
 @keyframes latido { 50% { opacity: .55; } }
-/* Escena animada sobre la vista previa del pad (posición = recuadro 160,244 · 480x160 de 800x480) */
-#animEscena { display: none; position: absolute; left: 20%; top: 50.833%; width: 60%; height: 33.333%; pointer-events: none; }
-body.padReposo #animEscena { display: block; }
+/* Barra de segundos bajo la fecha en la vista previa del reloj (solo PC) */
+#animReloj { display: none; position: absolute; left: 35%; width: 30%; top: 79.5%; height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden; pointer-events: none; }
+body.padReposo #animReloj { display: block; }
+#animReloj span { display: block; height: 100%; width: 100%; border-radius: 4px; background: linear-gradient(90deg, #93B4FF, #FFFFFF); transform-origin: left; animation: segundos 60s linear infinite; animation-delay: var(--retraso, 0s); }
+@keyframes segundos { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* Barra de envío al pad */
 #progresoPad { height: 3px; margin: 8px auto 0; max-width: 700px; border-radius: 3px; background: transparent; overflow: hidden; transition: background .2s; }
 #progresoPad.activo { background: var(--surface-3); }
@@ -1175,6 +1177,12 @@ body.padReposo #animEscena { display: block; }
 /* Menos trabajo de pintado */
 #listaArchivos, #listaFirmados, #listaHistorialMS { contain: content; }
 .archivoItem, .filaHistorialMS { content-visibility: auto; contain-intrinsic-size: auto 54px; }
+
+.diagPad { display: grid; gap: 0; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; font-size: 12.5px; }
+.diagPad div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; }
+.diagPad div:nth-child(odd) { background: var(--surface-2); }
+.diagPad span { color: var(--muted); }
+.diagPad b { font-weight: 600; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1457,7 +1465,7 @@ body.padReposo #animEscena { display: block; }
             <div id="firmaBox">
                 <div id="appcont">
                     <canvas id="myCanvas" width="800" height="480"></canvas>
-                    <canvas id="animEscena" aria-hidden="true"></canvas>
+                    <div id="animReloj" aria-hidden="true"><span></span></div>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggFirma"></svg>
                     <svg width="800" height="480" viewBox="0 0 800 480" id="ssvvggTarjeta"></svg>
                 </div>
@@ -1513,10 +1521,6 @@ body.padReposo #animEscena { display: block; }
 
         <h3>Pluma y pantalla</h3>
         <div class="adminRow">
-            <span>Animación en el pad (experimental)<br><small style="color:var(--muted);">Anima la escena de espera cuadro por cuadro. Si se ve rara, apágala.</small></span>
-            <input id="adminAnimacionPad" type="checkbox" style="width:18px;height:18px;accent-color:var(--primary);" onchange="cambiarAnimacionPad(this.checked)" />
-        </div>
-        <div class="adminRow">
             <span>Mostrar materiales en el pad antes de firmar</span>
             <input id="adminMostrarMateriales" type="checkbox" style="width:18px;height:18px;accent-color:var(--primary);" onchange="cambiarMostrarMaterialesPad(this.checked)" />
         </div>
@@ -1549,6 +1553,9 @@ body.padReposo #animEscena { display: block; }
             <button class="btnCarpetaAdmin" onclick="mostrarInfoDispositivo()">Consultar</button>
         </div>
         <div id="deviceInfo"></div>
+        <h3>Diagnóstico del pad</h3>
+        <div id="diagPad" class="diagPad"></div>
+        <p class="latAyuda" style="margin-top:6px;">Si el pad se pone lento o se desconecta, toma una captura de este cuadro: ayuda a saber qué pasó.</p>
     </div>
 </div>
 <div id="adminBackdrop" onclick="toggleAdmin()"></div>
@@ -1851,8 +1858,33 @@ body.padReposo #animEscena { display: block; }
 
     // ============ Refrescar lista de PDFs pendientes (manual + automático) ============
     function toggleAdmin() {
-        document.getElementById('adminPanel').classList.toggle('visible');
+        var abierto = document.getElementById('adminPanel').classList.toggle('visible');
+        if (abierto) actualizarDiagnosticoPad();
     }
+    // ============ Diagnóstico del pad (Admin) ============
+    var reconexionesPad = 0, inicioSesionPad = Date.now();
+    function actualizarDiagnosticoPad() {
+        var cont = document.getElementById('diagPad');
+        if (!cont) return;
+        var st = wacom.estadisticas || {};
+        var hace = wacom.ultimaActividad ? Math.round((Date.now() - wacom.ultimaActividad) / 1000) : null;
+        var filas = [
+            ['Estado', wacom.checkConnected() ? 'Conectado' : 'Desconectado'],
+            ['Pantallas enviadas', st.imagenes || 0],
+            ['Tiempo por pantalla', st.ultimaMs ? (st.ultimaMs / 1000).toFixed(1) + ' s (promedio ' + (st.promedioMs / 1000).toFixed(1) + ' s)' : '—'],
+            ['Paquetes por pantalla', st.paquetes || '—'],
+            ['Repetidas omitidas', st.omitidas || 0],
+            ['Relojes cancelados por una pantalla real', st.canceladas || 0],
+            ['Errores de envío', st.errores || 0],
+            ['Reconexiones automáticas', reconexionesPad],
+            ['Última comunicación', hace === null ? '—' : ('hace ' + hace + ' s')],
+            ['Último error', wacom.ultimoError ? String(wacom.ultimoError.message || wacom.ultimoError).slice(0, 80) : 'ninguno']
+        ];
+        cont.innerHTML = filas.map(function (f) { return '<div><span>' + f[0] + '</span><b>' + escaparHtml(String(f[1])) + '</b></div>'; }).join('');
+    }
+    setInterval(function () {
+        if (document.getElementById('adminPanel').classList.contains('visible')) actualizarDiagnosticoPad();
+    }, 2000);
     function toggleAutoRefresh() {
         autoRefreshActivo = document.getElementById('chkAutoRefresh').checked;
     }
@@ -2153,8 +2185,8 @@ body.padReposo #animEscena { display: block; }
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
+        dibujarPantallaSegunModo();   // primero el pad (lo que espera el mecánico); su envío corre mientras se dibuja la vista previa
         await redibujarPreviewConMarcadores();
-        dibujarPantallaSegunModo();   // primero el pad (lo que espera el mecánico)
         listarPdfs(true);             // luego refresca la lista resaltando el archivo activo
     }
     // =====================================================================
@@ -2233,7 +2265,7 @@ body.padReposo #animEscena { display: block; }
                 }
             }
             await prepararPadTrasConectar();
-            if (motivo !== 'inicio' && motivo !== 'vigilante-silencioso') mostrarToast('✓ Pad reconectado', 'success');
+            if (motivo !== 'inicio' && motivo !== 'vigilante-silencioso') { reconexionesPad++; mostrarToast('✓ Pad reconectado', 'success'); }
             return true;
         } catch (e) {
             console.warn('No se pudo conectar el pad:', e);
@@ -2306,7 +2338,6 @@ body.padReposo #animEscena { display: block; }
     window.addEventListener('load', async function () {
         cargarCalibracionGuardada();
         document.getElementById('adminMostrarMateriales').checked = mostrarMaterialesEnPadActivo();
-        document.getElementById('adminAnimacionPad').checked = animacionPadActiva();
         // el pad se conecta en paralelo mientras se cargan carpetas e historial
         ponerEstadoPad('reconnecting', '● Buscando pad…');
         var conexion = asegurarConexionPad('inicio');
@@ -2400,350 +2431,76 @@ body.padReposo #animEscena { display: block; }
         }
     }
 
-    // Pantalla de espera: hora, fecha y una escena de mecánica (animada en la PC)
+    // =====================================================================
+    // PANTALLA DE ESPERA: reloj grande
+    // ---------------------------------------------------------------------
+    // El pad se actualiza una sola vez por minuto (cada pantalla completa
+    // tarda unos segundos en llegar). Para que el cambio de minuto se vea a
+    // tiempo, el envío empieza un poco antes, según cuánto tarda este pad.
+    // En la PC, una barra de segundos animada acompaña al reloj.
+    // =====================================================================
     var pantallaEsReposo = false, pantallaPadFueReposo = false, minutoReposo = -1;
+    var DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    function horaAMostrar() {
+        // adelanta el reloj lo que tarda el envío al pad, para que llegue justo al cambiar el minuto
+        var adelanto = (wacom.checkConnected() && wacom.estadisticas && wacom.estadisticas.promedioMs) ? Math.min(15000, wacom.estadisticas.promedioMs) : 0;
+        return new Date(Date.now() + adelanto);
+    }
     function dibujarPantallaReposo() {
-        var ahora = new Date();
-        minutoReposo = ahora.getHours() * 60 + ahora.getMinutes();
-        context.fillStyle = "#F8FAFC";
+        var ahora = horaAMostrar();
+        minutoReposo = Math.floor(ahora.getTime() / 60000);
+        var h = ahora.getHours(), m = ahora.getMinutes();
+        var h12 = h % 12 || 12, sufijo = h < 12 ? 'AM' : 'PM';
+        var textoHora = h12 + ':' + String(m).padStart(2, '0');
+        // fondo con degradado suave
+        var fondo = context.createLinearGradient(0, 0, 0, 480);
+        fondo.addColorStop(0, '#0B1F4A'); fondo.addColorStop(1, '#13306B');
+        context.fillStyle = fondo;
         context.fillRect(0, 0, 800, 480);
-        context.fillStyle = "#0B1F4A";
-        context.fillRect(0, 0, 800, 90);
-        context.fillStyle = "#DA291C";
-        context.fillRect(0, 90, 800, 4);
-        context.fillStyle = "#FFFFFF";
-        context.font = "bold 26px Arial";
-        context.textAlign = "center";
-        context.fillText("SISTEMA DE AUTOGESTIÓN", 400, 45);
-        context.font = "14px Arial";
-        context.fillStyle = "rgba(255,255,255,0.65)";
-        context.fillText("Taller Automotriz · Claro", 400, 68);
-        // hora y fecha
-        context.fillStyle = "#0B1F4A";
-        context.font = "bold 78px Arial";
-        context.fillText(ahora.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/\s?([ap])\.?\s?m\.?/i, function (m, x) { return ' ' + x.toUpperCase() + 'M'; }), 400, 180);
-        var fecha = ahora.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        context.font = "20px Arial";
-        context.fillStyle = "#64748B";
-        context.fillText(fecha.charAt(0).toUpperCase() + fecha.slice(1), 400, 216);
-        // escena de mecánica (en el pad cambia cada minuto; en la PC se anima encima)
-        var e = animacionPadActiva() ? tiempoEscena() : escenaFijaDelMinuto();
-        context.save();
-        context.translate(ESC_X, ESC_Y);
-        dibujarEscena(context, e.n, animacionPadActiva() ? e.seg : e.t);
-        context.restore();
+        // anillos decorativos
+        context.strokeStyle = 'rgba(255,255,255,0.05)'; context.lineWidth = 2;
+        [170, 230, 290].forEach(function (r) { context.beginPath(); context.arc(400, 250, r, 0, Math.PI * 2); context.stroke(); });
+        // encabezado
+        context.textAlign = 'center';
+        context.fillStyle = 'rgba(255,255,255,0.92)';
+        context.font = 'bold 20px Arial';
+        context.fillText('SISTEMA DE AUTOGESTIÓN', 400, 48);
+        context.fillStyle = '#DA291C';
+        context.fillRect(370, 62, 60, 3);
+        // hora grande
+        context.font = 'bold 190px Arial';
+        var anchoHora = context.measureText(textoHora).width;
+        context.font = 'bold 40px Arial';
+        var anchoSufijo = context.measureText(sufijo).width;
+        var x0 = 400 - (anchoHora + 18 + anchoSufijo) / 2;
+        context.textAlign = 'left';
+        context.fillStyle = '#FFFFFF';
+        context.font = 'bold 190px Arial';
+        context.fillText(textoHora, x0, 290);
+        context.fillStyle = '#93B4FF';
+        context.font = 'bold 40px Arial';
+        context.fillText(sufijo, x0 + anchoHora + 18, 182);
+        // fecha
+        context.textAlign = 'center';
+        context.fillStyle = 'rgba(255,255,255,0.78)';
+        context.font = '28px Arial';
+        context.fillText(DIAS[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear(), 400, 352);
+        // pie
+        context.fillStyle = 'rgba(255,255,255,0.4)';
+        context.font = '15px Arial';
+        context.fillText('Taller Automotriz · Claro', 400, 446);
         wacom.setWritingArea({ x1: 0, y1: 0, x2: 1, y2: 1 });
         pantallaEsReposo = true;
         empujarImagenAlPad();
-        iniciarAnimacionEscenaPC();
-        if (animacionPadActiva()) programarCuadroPad(1200);
+        var barra = document.querySelector('#animReloj span');
+        if (barra) barra.style.setProperty('--retraso', '-' + (new Date().getSeconds() + new Date().getMilliseconds() / 1000) + 's');
     }
-    // =====================================================================
-    // ESCENAS ANIMADAS DE LA PANTALLA DE ESPERA (mecánica)
-    // ---------------------------------------------------------------------
-    // dibujarEscena(ctx, n, t) dibuja la escena n en el instante t (segundos)
-    // dentro de un recuadro de ESC_W x ESC_H. Se usa igual para:
-    //  - la vista previa en la PC (animación fluida, requestAnimationFrame)
-    //  - el pad (ilustración fija que cambia cada minuto, o animación
-    //    cuadro por cuadro en modo experimental)
-    // =====================================================================
-    var ESC_W = 480, ESC_H = 160;
-    var ESC_X = 160, ESC_Y = 244;                  // posición del recuadro en la pantalla del pad (800x480)
-    var ESC_DURACION = 20;                          // segundos por escena en la PC
-    var ESCENAS = ['ruta', 'taller', 'engranajes'];
-
-    function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
-    function mod(a, n) { return ((a % n) + n) % n; }
-
-    function dibujarEscena(ctx, n, t) {
-        ctx.save();
-        rr(ctx, 0, 0, ESC_W, ESC_H, 14);
-        ctx.clip();
-        if (ESCENAS[n] === 'ruta') escenaRuta(ctx, t);
-        else if (ESCENAS[n] === 'taller') escenaTaller(ctx, t);
-        else escenaEngranajes(ctx, t);
-        ctx.restore();
-        ctx.save();
-        ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 2;
-        rr(ctx, 1, 1, ESC_W - 2, ESC_H - 2, 14); ctx.stroke();
-        ctx.restore();
-    }
-
-    // ---------- Escena 1: vehículo en ruta ----------
-    function escenaRuta(ctx, t) {
-        var cielo = ctx.createLinearGradient(0, 0, 0, ESC_H);
-        cielo.addColorStop(0, '#DBE7FF'); cielo.addColorStop(1, '#F5F8FF');
-        ctx.fillStyle = cielo; ctx.fillRect(0, 0, ESC_W, ESC_H);
-        // sol
-        ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.arc(418, 34, 15, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = 'rgba(253,230,138,.35)'; ctx.beginPath(); ctx.arc(418, 34, 23 + Math.sin(t * 2) * 2, 0, Math.PI * 2); ctx.fill();
-        // nubes
-        ctx.fillStyle = '#FFFFFF';
-        [[0, 30, 1], [190, 18, .8], [340, 44, .9]].forEach(function (c) {
-            var x = mod(c[0] - t * 10 * c[2], ESC_W + 90) - 60;
-            ctx.beginPath();
-            ctx.ellipse(x, c[1], 22 * c[2], 9 * c[2], 0, 0, Math.PI * 2);
-            ctx.ellipse(x + 16 * c[2], c[1] - 6 * c[2], 15 * c[2], 10 * c[2], 0, 0, Math.PI * 2);
-            ctx.ellipse(x + 30 * c[2], c[1], 18 * c[2], 8 * c[2], 0, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        // ciudad al fondo (parallax lento)
-        ctx.fillStyle = '#C9D6EE';
-        var anchos = [26, 18, 34, 22, 30, 16, 28, 24], altos = [38, 52, 30, 60, 42, 34, 56, 40];
-        var total = 0; anchos.forEach(function (a) { total += a + 6; });
-        var off = mod(t * 14, total);
-        for (var rep = -1; rep < 3; rep++) {
-            var x = rep * total - off;
-            for (var i = 0; i < anchos.length; i++) {
-                ctx.fillRect(x, 112 - altos[i], anchos[i], altos[i]);
-                x += anchos[i] + 6;
-            }
-        }
-        // árboles / postes (más rápido)
-        for (var k = 0; k < 6; k++) {
-            var px = mod(k * 95 - t * 45, ESC_W + 60) - 30;
-            ctx.fillStyle = '#94A3B8'; ctx.fillRect(px, 78, 3, 34);
-            ctx.fillStyle = '#86EFAC'; ctx.beginPath(); ctx.arc(px + 1.5, 76, 10, 0, Math.PI * 2); ctx.fill();
-        }
-        // carretera
-        ctx.fillStyle = '#334155'; ctx.fillRect(0, 112, ESC_W, 48);
-        ctx.fillStyle = '#475569'; ctx.fillRect(0, 112, ESC_W, 4);
-        ctx.fillStyle = '#F8FAFC';
-        var paso = 48, desf = mod(t * 160, paso);
-        for (var d = -paso; d < ESC_W + paso; d += paso) ctx.fillRect(d - desf, 136, 24, 4);
-        // vehículo (camioneta de flotilla) cruzando
-        var recorrido = ESC_W + 200;
-        var vx = mod(t * 85, recorrido) - 160;
-        var salto = Math.sin(t * 14) * 0.8;
-        dibujarCamioneta(ctx, vx, 74 + salto, t * 85);
-        // humo
-        for (var h = 0; h < 4; h++) {
-            var edad = mod(t * 2 + h * 0.25, 1);
-            ctx.fillStyle = 'rgba(148,163,184,' + (0.45 * (1 - edad)) + ')';
-            ctx.beginPath(); ctx.arc(vx - 6 - edad * 26, 116 + salto - edad * 8, 3 + edad * 6, 0, Math.PI * 2); ctx.fill();
-        }
-    }
-    function dibujarRueda(ctx, x, y, r, giro) {
-        ctx.fillStyle = '#0F172A'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#CBD5E1'; ctx.beginPath(); ctx.arc(x, y, r * 0.52, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2;
-        for (var i = 0; i < 5; i++) {
-            var a = giro + i * Math.PI * 2 / 5;
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r * 0.5, y + Math.sin(a) * r * 0.5); ctx.stroke();
-        }
-        ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.arc(x, y, r * 0.14, 0, Math.PI * 2); ctx.fill();
-    }
-    function dibujarCamioneta(ctx, x, y, distancia) {
-        // carrocería
-        ctx.fillStyle = '#FFFFFF';
-        rr(ctx, x, y, 122, 34, 8); ctx.fill();
-        ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.5; rr(ctx, x, y, 122, 34, 8); ctx.stroke();
-        // cabina
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath(); ctx.moveTo(x + 84, y + 2); ctx.lineTo(x + 104, y + 2); ctx.quadraticCurveTo(x + 116, y + 4, x + 121, y + 18); ctx.lineTo(x + 84, y + 18); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#BFDBFE';
-        ctx.beginPath(); ctx.moveTo(x + 90, y + 5); ctx.lineTo(x + 103, y + 5); ctx.quadraticCurveTo(x + 112, y + 7, x + 116, y + 16); ctx.lineTo(x + 90, y + 16); ctx.closePath(); ctx.fill();
-        // franja de color y ventana lateral
-        ctx.fillStyle = '#DA291C'; ctx.fillRect(x + 2, y + 20, 118, 5);
-        ctx.fillStyle = '#BFDBFE'; rr(ctx, x + 10, y + 5, 64, 11, 3); ctx.fill();
-        // faro y defensa
-        ctx.fillStyle = '#FDE047'; rr(ctx, x + 116, y + 24, 6, 5, 2); ctx.fill();
-        ctx.fillStyle = '#94A3B8'; rr(ctx, x + 112, y + 30, 12, 4, 2); ctx.fill();
-        // ruedas (giran según la distancia recorrida)
-        var giro = distancia / 13;
-        dibujarRueda(ctx, x + 28, y + 36, 13, giro);
-        dibujarRueda(ctx, x + 96, y + 36, 13, giro);
-    }
-
-    // ---------- Escena 2: mecánico trabajando bajo el vehículo ----------
-    function escenaTaller(ctx, t) {
-        ctx.fillStyle = '#EEF2F7'; ctx.fillRect(0, 0, ESC_W, ESC_H);
-        // panel de herramientas en la pared
-        ctx.fillStyle = '#E2E8F0'; rr(ctx, 14, 16, 92, 70, 6); ctx.fill();
-        ctx.fillStyle = '#CBD5E1';
-        for (var py = 24; py < 82; py += 9) for (var pxx = 22; pxx < 100; pxx += 9) { ctx.beginPath(); ctx.arc(pxx, py, 1.2, 0, Math.PI * 2); ctx.fill(); }
-        dibujarLlave(ctx, 36, 50, 0.9, -0.6, '#64748B');
-        dibujarMartillo(ctx, 72, 30, 0.9, '#64748B');
-        // caja de herramientas
-        ctx.fillStyle = '#DA291C'; rr(ctx, 394, 70, 70, 70, 6); ctx.fill();
-        ctx.fillStyle = '#B91C1C'; ctx.fillRect(394, 92, 70, 2); ctx.fillRect(394, 114, 70, 2);
-        ctx.fillStyle = '#F8FAFC'; [82, 104, 126].forEach(function (yy) { rr(ctx, 418, yy, 22, 4, 2); ctx.fill(); });
-        // piso
-        ctx.fillStyle = '#CBD5E1'; ctx.fillRect(0, 140, ESC_W, 20);
-        ctx.fillStyle = '#FACC15';
-        for (var s = 0; s < ESC_W; s += 28) { ctx.beginPath(); ctx.moveTo(s, 140); ctx.lineTo(s + 12, 140); ctx.lineTo(s + 4, 146); ctx.lineTo(s - 8, 146); ctx.closePath(); ctx.fill(); }
-        // elevador
-        var sube = Math.sin(t * 0.9) * 1.5;
-        ctx.fillStyle = '#475569'; ctx.fillRect(128, 18, 10, 122); ctx.fillRect(342, 18, 10, 122);
-        ctx.fillStyle = '#64748B'; ctx.fillRect(138, 46 + sube, 40, 6); ctx.fillRect(302, 46 + sube, 40, 6);
-        // vehículo levantado
-        dibujarCamioneta(ctx, 180, 10 + sube, 0);
-        // mecánico debajo
-        var mx = 254, my = 140;
-        // piernas y cuerpo (overol)
-        ctx.fillStyle = '#1E3A8A'; rr(ctx, mx - 11, my - 30, 9, 30, 3); ctx.fill(); rr(ctx, mx + 2, my - 30, 9, 30, 3); ctx.fill();
-        ctx.fillStyle = '#1D4ED8'; rr(ctx, mx - 13, my - 58, 26, 32, 6); ctx.fill();
-        ctx.fillStyle = '#0F172A'; ctx.fillRect(mx - 13, my - 2, 11, 3); ctx.fillRect(mx + 2, my - 2, 11, 3);
-        // cabeza y gorra
-        ctx.fillStyle = '#E8B68C'; ctx.beginPath(); ctx.arc(mx, my - 66, 8, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#DA291C'; ctx.beginPath(); ctx.arc(mx, my - 69, 8, Math.PI, 0); ctx.fill(); ctx.fillRect(mx, my - 70, 11, 3);
-        // brazo levantado con la llave girando
-        var ang = -1.25 + Math.sin(t * 5) * 0.45;
-        var hx = mx + 9, hy = my - 54;
-        var manoX = hx + Math.cos(ang) * 26, manoY = hy + Math.sin(ang) * 26;
-        ctx.strokeStyle = '#1D4ED8'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(manoX, manoY); ctx.stroke();
-        ctx.strokeStyle = '#1D4ED8'; ctx.beginPath(); ctx.moveTo(mx - 9, my - 54); ctx.lineTo(mx - 18, my - 74); ctx.stroke();
-        dibujarLlave(ctx, manoX, manoY - 6, 0.8, ang + Math.PI / 2 + Math.sin(t * 5) * 0.4, '#334155');
-        // chispas
-        var semilla = Math.floor(t * 12);
-        var ox = manoX, oy = 46 + sube;                     // punto de contacto bajo el vehículo
-        for (var c = 0; c < 7; c++) {
-            var r1 = Math.sin(semilla * 12.9898 + c * 78.233) * 43758.5453, rnd = r1 - Math.floor(r1);
-            var r2 = Math.sin(semilla * 4.1414 + c * 11.13) * 9631.7, rnd2 = r2 - Math.floor(r2);
-            var a2 = Math.PI / 2 + (rnd - 0.5) * 2.6, largo = 6 + rnd2 * 12;
-            ctx.strokeStyle = rnd2 > 0.5 ? '#F59E0B' : '#FDE047'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(ox + Math.cos(a2) * 3, oy + Math.sin(a2) * 3); ctx.lineTo(ox + Math.cos(a2) * largo, oy + Math.sin(a2) * largo); ctx.stroke();
-        }
-    }
-    function dibujarLlave(ctx, x, y, escala, ang, color) {
-        ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(escala, escala);
-        ctx.fillStyle = color;
-        rr(ctx, -3, -2, 6, 30, 3); ctx.fill();
-        ctx.beginPath(); ctx.arc(0, -4, 7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#EEF2F7'; ctx.fillRect(-2.5, -13, 5, 9);
-        ctx.restore();
-    }
-    function dibujarMartillo(ctx, x, y, escala, color) {
-        ctx.save(); ctx.translate(x, y); ctx.scale(escala, escala);
-        ctx.fillStyle = '#A16207'; rr(ctx, -2, 0, 5, 38, 2); ctx.fill();
-        ctx.fillStyle = color; rr(ctx, -10, -4, 22, 9, 2); ctx.fill();
-        ctx.restore();
-    }
-
-    // ---------- Escena 3: engranajes y herramientas ----------
-    function dibujarEngrane(ctx, x, y, r, dientes, giro, color) {
-        ctx.save(); ctx.translate(x, y); ctx.rotate(giro);
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        var rExt = r, rInt = r * 0.8, paso = Math.PI * 2 / dientes;
-        for (var i = 0; i < dientes; i++) {
-            var a = i * paso;
-            ctx.lineTo(Math.cos(a - paso * 0.26) * rInt, Math.sin(a - paso * 0.26) * rInt);
-            ctx.lineTo(Math.cos(a - paso * 0.16) * rExt, Math.sin(a - paso * 0.16) * rExt);
-            ctx.lineTo(Math.cos(a + paso * 0.16) * rExt, Math.sin(a + paso * 0.16) * rExt);
-            ctx.lineTo(Math.cos(a + paso * 0.26) * rInt, Math.sin(a + paso * 0.26) * rInt);
-        }
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#F1F5F9'; ctx.beginPath(); ctx.arc(0, 0, r * 0.34, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(0, 0, r * 0.16, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-    }
-    function escenaEngranajes(ctx, t) {
-        var fondo = ctx.createLinearGradient(0, 0, ESC_W, ESC_H);
-        fondo.addColorStop(0, '#F1F5F9'); fondo.addColorStop(1, '#E8EEFF');
-        ctx.fillStyle = fondo; ctx.fillRect(0, 0, ESC_W, ESC_H);
-        var v = t * 0.9;
-        // tres engranes que encajan (velocidades según número de dientes)
-        dibujarEngrane(ctx, 196, 84, 52, 14, v, '#0B1F4A');
-        dibujarEngrane(ctx, 284, 52, 34, 9, -v * 14 / 9 + 0.18, '#1D4ED8');
-        dibujarEngrane(ctx, 286, 120, 28, 8, -v * 14 / 8 + 0.1, '#94A3B8');
-        // llave que va y viene
-        dibujarLlave(ctx, 382, 64, 1.6, Math.PI / 5 + Math.sin(t * 2.2) * 0.35, '#475569');
-        // tuercas
-        ctx.fillStyle = '#64748B';
-        [[70, 40, 10], [98, 118, 8], [420, 128, 9]].forEach(function (b, i) {
-            ctx.save(); ctx.translate(b[0], b[1] + Math.sin(t * 1.6 + i) * 3); ctx.rotate(t * (i % 2 ? -1 : 1));
-            ctx.beginPath();
-            for (var k = 0; k < 6; k++) ctx.lineTo(Math.cos(k * Math.PI / 3) * b[2], Math.sin(k * Math.PI / 3) * b[2]);
-            ctx.closePath(); ctx.fill();
-            ctx.fillStyle = '#F1F5F9'; ctx.beginPath(); ctx.arc(0, 0, b[2] * 0.42, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#64748B';
-            ctx.restore();
-        });
-    }
-
-    // ---------- Línea de tiempo común (PC y pad van sincronizados) ----------
-    function tiempoEscena() {
-        var seg = Date.now() / 1000;
-        return { n: Math.floor(seg / ESC_DURACION) % ESCENAS.length, t: mod(seg, ESC_DURACION), seg: seg };
-    }
-    function escenaFijaDelMinuto() {
-        var m = Math.floor(Date.now() / 60000);
-        return { n: m % ESCENAS.length, t: [3.1, 2.2, 1.4][m % ESCENAS.length] };
-    }
-
-    // ---------- Animación fluida en la vista previa de la PC ----------
-    var lienzoEscena = null, ctxEscena = null, animandoEscena = false;
-    function cicloEscenaPC() {
-        if (!document.body.classList.contains('padReposo') || document.hidden) { animandoEscena = false; return; }
-        var e = tiempoEscena();
-        ctxEscena.setTransform(2, 0, 0, 2, 0, 0);
-        ctxEscena.clearRect(0, 0, ESC_W, ESC_H);
-        dibujarEscena(ctxEscena, e.n, e.seg);
-        var fade = Math.min(1, e.t / 0.6);                    // transición suave al cambiar de escena
-        if (fade < 1) {
-            ctxEscena.fillStyle = 'rgba(248,250,252,' + (1 - fade) + ')';
-            ctxEscena.fillRect(0, 0, ESC_W, ESC_H);
-        }
-        requestAnimationFrame(cicloEscenaPC);
-    }
-    function iniciarAnimacionEscenaPC() {
-        if (!lienzoEscena) {
-            lienzoEscena = document.getElementById('animEscena');
-            if (!lienzoEscena) return;
-            lienzoEscena.width = ESC_W * 2; lienzoEscena.height = ESC_H * 2;
-            ctxEscena = lienzoEscena.getContext('2d');
-        }
-        if (animandoEscena) return;
-        animandoEscena = true;
-        requestAnimationFrame(cicloEscenaPC);
-    }
-    document.addEventListener('visibilitychange', function () { if (!document.hidden) iniciarAnimacionEscenaPC(); });
-
-    // ---------- Animación en el pad (experimental: solo el recuadro de la escena) ----------
-    function animacionPadActiva() {
-        try { return localStorage.getItem('animacionPad') === '1'; } catch (e) { return false; }
-    }
-    function cambiarAnimacionPad(activo) {
-        try { localStorage.setItem('animacionPad', activo ? '1' : '0'); } catch (e) { }
-        if (activo) { wacom.areaNoSoportada = false; programarCuadroPad(0); }
-        else dibujarPantallaSegunModo();
-    }
-    var timerCuadroPad = null;
-    function programarCuadroPad(espera) {
-        clearTimeout(timerCuadroPad);
-        timerCuadroPad = setTimeout(enviarCuadroPad, espera);
-    }
-    async function enviarCuadroPad() {
-        if (!animacionPadActiva() || !pantallaPadFueReposo || capturaEditor || !wacom.checkConnected() || wacom.areaNoSoportada) return;
-        var e = tiempoEscena();
-        var c = document.createElement('canvas');
-        c.width = ESC_W; c.height = ESC_H;
-        var cx = c.getContext('2d');
-        cx.fillStyle = '#F8FAFC'; cx.fillRect(0, 0, ESC_W, ESC_H);
-        dibujarEscena(cx, e.n, e.seg);
-        var px = new Uint32Array(cx.getImageData(0, 0, ESC_W, ESC_H).data.buffer);
-        var bgr = new Uint8Array(px.length * 3);
-        for (var i = 0, j = 0; i < px.length; i++) { var v = px[i]; bgr[j++] = (v >>> 16) & 255; bgr[j++] = (v >>> 8) & 255; bgr[j++] = v & 255; }
-        var inicio = Date.now();
-        var ok = await wacom.setImageArea(bgr, ESC_X, ESC_Y, ESC_X + ESC_W - 1, ESC_Y + ESC_H - 1);
-        if (wacom.areaNoSoportada) {
-            mostrarToast('Este pad no admite la animación parcial; se usará la ilustración fija.', 'info');
-            try { localStorage.setItem('animacionPad', '0'); } catch (x) { }
-            var chk = document.getElementById('adminAnimacionPad'); if (chk) chk.checked = false;
-            return;
-        }
-        // siguiente cuadro en cuanto el pad termine (mínimo 150 ms); si estaba ocupado, reintenta pronto
-        programarCuadroPad(ok ? Math.max(150, 400 - (Date.now() - inicio)) : 800);
-    }
-
-    // Actualiza la hora del pad una vez por minuto, solo si está en reposo
+    // Revisa cada 2 s si toca actualizar el minuto (solo en reposo)
     setInterval(function () {
-        if (!pantallaPadFueReposo || capturaEditor) return;
-        var ahora = new Date(), m = ahora.getHours() * 60 + ahora.getMinutes();
-        if (m !== minutoReposo) dibujarPantallaSegunModo();
-    }, 10000);
+        if (!pantallaPadFueReposo || capturaEditor || reconectandoPad) return;
+        if (Math.floor(horaAMostrar().getTime() / 60000) !== minutoReposo) dibujarPantallaSegunModo();
+    }, 2000);
     function dibujarPantallaFirma() {
         context.fillStyle = "#F8FAFC";
         context.fillRect(0, 0, 800, 480);
@@ -2899,7 +2656,8 @@ body.padReposo #animEscena { display: block; }
             bgr[j++] = (v >>> 8) & 255;          // G
             bgr[j++] = v & 255;                  // R
         }
-        return wacom.setImage(bgr).catch(function (e) { console.warn('No se pudo actualizar el pad', e); });
+        // el reloj va con prioridad baja: si llega una pantalla real, el envío del reloj se cancela
+        return wacom.setImage(bgr, { baja: pantallaPadFueReposo }).catch(function (e) { console.warn('No se pudo actualizar el pad', e); });
     }
     function pressdiff(a, b) { return a > b ? a - b : b - a }
     function makestroke(v) { let pf = lastPressure + 0.5; return Math.max(v * pf, 0.5) }
@@ -5291,6 +5049,36 @@ body.padReposo #animEscena { display: block; }
     })();
     renderizarMisFirmas();
 
+
+    // =====================================================================
+    // Errores inesperados: se registran y se avisan (sin llenar de mensajes)
+    // =====================================================================
+    (function () {
+        var ultimoAviso = 0;
+        function ignorable(e) {
+            var n = e && e.name, m = String((e && e.message) || e || '');
+            return n === 'AbortError' || n === 'NotFoundError' || n === 'NotAllowedError' || /ResizeObserver|cancel/i.test(m);
+        }
+        function avisar(e) {
+            if (ignorable(e)) return;
+            console.error('Error inesperado:', e);
+            if (Date.now() - ultimoAviso < 10000) return;
+            ultimoAviso = Date.now();
+            try { mostrarToast('Ocurrió un error inesperado: ' + String((e && e.message) || e).slice(0, 120), 'error'); } catch (x) { }
+        }
+        window.addEventListener('error', function (ev) { avisar(ev.error || ev.message); });
+        window.addEventListener('unhandledrejection', function (ev) { avisar(ev.reason); });
+    })();
+
+    // =====================================================================
+    // Caché sin conexión (service worker): la página y sus librerías cargan
+    // al instante aunque el internet de la oficina esté lento
+    // =====================================================================
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('No se pudo activar la caché sin conexión', e); });
+        });
+    }
 </script>
 </body>
 </html>

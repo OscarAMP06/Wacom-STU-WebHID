@@ -64,6 +64,8 @@ var wacomstu540 = function () {
     this._ultimaImagen = null         // última imagen que el pad tiene en pantalla (para no reenviar la misma)
     this._pantallaSucia = true        // true si el lápiz dibujó tinta desde el último envío
     this.ultimaActividad = 0          // ms de la última comunicación exitosa con el pad
+    this.enVueloMax = 24              // paquetes de imagen enviados sin esperar respuesta (mantienen el orden)
+    this.estadisticas = { imagenes: 0, omitidas: 0, canceladas: 0, errores: 0, ultimaMs: 0, promedioMs: 0, paquetes: 0 }
     this.ultimoError = null
     /**
      * Ejecuta fn en la cola (una operación a la vez, en orden de llegada)
@@ -313,8 +315,9 @@ var wacomstu540 = function () {
      * @param {Uint8Array} imageData Image must be BGR 24bpp 800x480. If null, it will send last image.
      * @returns {Promise} se resuelve cuando el pad muestra la imagen
      */
-    this.setImage = function (imageData) {
+    this.setImage = function (imageData, opciones) {
         if (!this.checkConnected()) return Promise.resolve()
+        this._pendienteBaja = !!(opciones && opciones.baja)
         if (imageData == null) {
             if (!this._ultimaImagenDatos) return Promise.resolve()
             this._ultimaImagen = null
@@ -327,10 +330,11 @@ var wacomstu540 = function () {
             try {
                 while (this._imagenPendiente && this.checkConnected()) {
                     const img = this._imagenPendiente
+                    const baja = this._pendienteBaja
                     this._imagenPendiente = null
-                    if (!this._pantallaSucia && this._ultimaImagen && this._iguales(img, this._ultimaImagen)) continue
+                    if (!this._pantallaSucia && this._ultimaImagen && this._iguales(img, this._ultimaImagen)) { this.estadisticas.omitidas++; continue }
                     try {
-                        await this._ejecutar(function () { return this._transferirImagen(img) }.bind(this), 60000)
+                        await this._ejecutar(function () { return this._transferirImagen(img, baja) }.bind(this), 60000)
                     } catch (e) { this._ultimaImagen = null; this._reportarError(e) }
                 }
             } finally {
@@ -339,80 +343,58 @@ var wacomstu540 = function () {
         }.bind(this))()
         return this._promesaImagen
     }.bind(this)
-    /**
-     * (Experimental) Escribe solo un rectángulo de la pantalla (reporte 0x22, "image data area"
-     * del protocolo STU-530/540). Mucho menos datos que la pantalla completa.
-     * Prioridad baja: si hay una pantalla completa pendiente o enviándose, el cuadro se descarta.
-     * x2/y2 son inclusivos. Si el pad rechaza el reporte, marca areaNoSoportada = true.
-     * @returns {Promise<Boolean>} true si se envió
-     */
-    this.areaNoSoportada = false
-    this._areaEnCurso = false
-    this.setImageArea = function (data, x1, y1, x2, y2) {
-        if (!this.checkConnected() || this.areaNoSoportada) return Promise.resolve(false)
-        if (this._transfiriendo || this._imagenPendiente || this._areaEnCurso) return Promise.resolve(false)
-        this._areaEnCurso = true
-        const self = this
-        return this._ejecutar(async function () {
-            const dispositivo = self.device
-            const cab = new Uint8Array(9), dv = new DataView(cab.buffer)
-            cab[0] = self.config.imageFormat24BGR
-            dv.setUint16(1, x1, true); dv.setUint16(3, y1, true); dv.setUint16(5, x2, true); dv.setUint16(7, y2, true)
-            try {
-                await dispositivo.sendFeatureReport(0x22, cab)
-            } catch (e) {
-                self.areaNoSoportada = true
-                return false
-            }
-            const tam = self.config.chunkSize
-            const total = Math.ceil(data.length / tam)
-            for (let i = 0; i < total; i++) {
-                if (self.device !== dispositivo || !dispositivo.opened) throw new Error('Conexión cerrada durante el envío')
-                if (self._imagenPendiente) break                 // llegó una pantalla real: se corta la animación
-                const trozo = data.subarray(i * tam, Math.min((i + 1) * tam, data.length))
-                const pk = new Uint8Array(tam + 2)
-                pk[0] = trozo.length
-                pk.set(trozo, 2)
-                await dispositivo.sendFeatureReport(self.command.writeImageData, pk)
-            }
-            await dispositivo.sendFeatureReport(self.command.writeImageEnd, new Uint8Array([0]))
-            self._ultimaImagen = null             // la pantalla ya no es igual a la última imagen completa
-            self.ultimaActividad = Date.now()
-            return true
-        }, 20000).catch(function (e) { self._reportarError(e); return false })
-          .finally(function () { self._areaEnCurso = false })
-    }.bind(this)
     this._iguales = function (a, b) {
         if (a.length !== b.length) return false
         for (let i = 0; i < a.length; i += 3) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) return false
         return true
     }
-    this._transferirImagen = async function (img) {
+    this._transferirImagen = async function (img, baja) {
         if (!this.checkConnected()) return
         const tam = this.config.chunkSize
         const total = Math.ceil(img.length / tam)
         const progreso = this.config.onImageProgressCb
+        const dispositivo = this.device
+        const inicio = performance.now()
+        const enVuelo = []
+        let cancelada = false
         try {
             this._pantallaSucia = false
             if (progreso) progreso(0, total)
-            await this.device.sendFeatureReport(this.command.writeImageStart, new Uint8Array([this.config.imageFormat24BGR]))
-            const dispositivo = this.device
+            await dispositivo.sendFeatureReport(this.command.writeImageStart, new Uint8Array([this.config.imageFormat24BGR]))
             for (let i = 0; i < total; i++) {
                 if (this.device !== dispositivo || !dispositivo.opened) throw new Error('Conexión cerrada durante el envío')
+                // una pantalla de prioridad baja (reloj) se corta si llega una pantalla real
+                if (baja && this._imagenPendiente && !this._pendienteBaja) { cancelada = true; break }
                 const ini = i * tam
                 const trozo = img.subarray(ini, Math.min(ini + tam, img.length))
                 const pk = new Uint8Array(tam + 2)
                 pk[0] = trozo.length
                 pk.set(trozo, 2)
-                await dispositivo.sendFeatureReport(this.command.writeImageData, pk)
+                // varios paquetes en vuelo a la vez (el navegador los entrega en orden): mucho más rápido
+                const envio = dispositivo.sendFeatureReport(this.command.writeImageData, pk)
+                envio.catch(function () { })
+                enVuelo.push(envio)
+                if (enVuelo.length >= this.enVueloMax) await enVuelo.shift()
                 if (progreso && (i & 127) === 0) progreso(i, total)
             }
-            await this.device.sendFeatureReport(this.command.writeImageEnd, new Uint8Array([0]))
+            await Promise.all(enVuelo)
+            await dispositivo.sendFeatureReport(this.command.writeImageEnd, new Uint8Array([0]))
+            this.ultimaActividad = Date.now()
+            if (cancelada) {
+                this._ultimaImagen = null
+                this.estadisticas.canceladas++
+                return
+            }
             this._ultimaImagen = img
             this._ultimaImagenDatos = img
-            this.ultimaActividad = Date.now()
+            const ms = Math.round(performance.now() - inicio)
+            const st = this.estadisticas
+            st.imagenes++; st.paquetes = total; st.ultimaMs = ms
+            st.promedioMs = st.promedioMs ? Math.round(st.promedioMs * 0.7 + ms * 0.3) : ms
         } catch (e) {
             this._ultimaImagen = null
+            this.estadisticas.errores++
+            try { await Promise.allSettled(enVuelo) } catch (x) { }
             this._reportarError(e)
         } finally {
             if (progreso) progreso(total, total)
