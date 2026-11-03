@@ -515,6 +515,11 @@ canvas#myCanvas { width: 100%; height: auto; display: block; }
 #etiquetaZonas span { display: inline-flex; align-items: center; gap: 6px; }
 
 #acciones, #accionesCD, #accionesMS { display: flex; gap: 8px; }
+#accionesUN { gap: 8px; }
+#accionesUN button { padding: 12px 14px; border-radius: var(--r-sm); font-size: 14px; font-weight: 600; }
+#btnLimpiarUN { flex: none; background: var(--surface); color: var(--text-2); border: 1px solid var(--border-strong); }
+#btnConfirmarUN { flex: 1; background: var(--success); color: #fff; border: 1px solid var(--success); box-shadow: 0 6px 16px -8px rgba(21,128,61,.7); }
+#btnConfirmarUN:disabled { background: var(--surface-3); border-color: var(--border); color: var(--subtle); box-shadow: none; cursor: not-allowed; }
 #accionesCD, #accionesMS { display: none; }
 #acciones button, #accionesCD button, #accionesMS button {
     padding: 12px 14px;
@@ -1261,6 +1266,148 @@ body:not([data-modo="documento"]) #btnVerMaterialesPad { display: none !importan
 .coloresPluma button:hover { transform: scale(1.1); }
 select.campo { appearance: auto; }
 @media (max-width: 520px) { .presetsPad { grid-template-columns: 1fr 1fr; } .coloresPad { grid-template-columns: 1fr; } }
+
+/* =====================================================================
+   Módulo: Entrega de uniformes
+   ===================================================================== */
+#uniformesSection { display: none; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); animation: subir .22s var(--ease); }
+#uniformesSection h3 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
+.numUN { background: var(--primary-soft); color: var(--primary); font-family: 'Inter', monospace; letter-spacing: .02em; }
+body[data-modo="uniformes"] .hintModo[data-para="uniformes"] { display: block; }
+.subTabs { display: flex; gap: 4px; margin: 0 0 16px; padding: 3px; border-radius: var(--r-sm); background: var(--surface-3); overflow-x: auto; }
+.subTabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.subTabs button:hover { color: var(--text); }
+.subTabs button.activa { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-xs); }
+.unVista { display: none; }
+.unVista.activa { display: block; animation: subir .18s var(--ease); }
+.enlaceSuave { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.enlaceSuave:hover { color: var(--primary); }
+.btnGrande { width: 100%; margin-top: 14px; padding: 13px 16px; font-size: 14.5px; font-weight: 600; box-shadow: 0 8px 20px -10px var(--primary); }
+.infoFirmaModulo { display: none; margin-top: 4px; padding: 14px 16px; border-radius: var(--r-md); border: 1px solid var(--border-strong); background: var(--primary-soft); font-size: 13.5px; }
+.infoFirmaModulo.visible { display: block; }
+.infoFirmaModulo a { font-size: 13px; font-weight: 500; color: var(--primary); cursor: pointer; }
+#unTextoInfoFirma { color: var(--text); font-weight: 500; }
+
+/* tarjeta del empleado y buscador (mismo estilo que Materiales) */
+.tarjetaEmpleado { display: none; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px; border-radius: var(--r-md); border: 1px solid var(--border-strong); background: var(--primary-soft); animation: subir .2s var(--ease); }
+.tarjetaEmpleado.visible { display: flex; }
+.listaSugerencias { display: none; position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 6px); max-height: 290px; overflow-y: auto; padding: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--shadow-lg); }
+.listaSugerencias.abierto { display: block; animation: subir .15s var(--ease); }
+.chipsRecientes { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.chipsRecientes:empty { display: none; }
+.filaEmpleadoMS textarea, #unObservaciones { width: 100%; resize: vertical; font-family: inherit; }
+
+/* artículos */
+#unArticulos { display: grid; gap: 10px; }
+.unArt { padding: 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.unArt.alerta { border-color: rgba(217,119,6,.55); background: var(--warning-soft); }
+.unArtHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.unArtNombre { font-size: 14px; font-weight: 600; color: var(--text); }
+.unArtNombre small { margin-left: 6px; font-weight: 500; color: var(--subtle); font-size: 11.5px; }
+.unAviso { font-size: 12px; font-weight: 500; color: var(--warning); }
+.unColores { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.unColor { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px 5px 6px; border: 1px solid var(--border); border-radius: var(--r-full); background: var(--surface-2); color: var(--text-2); font-size: 12.5px; font-weight: 500; }
+.unColor i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); }
+.unColor.activo { border-color: var(--primary); background: var(--primary-soft); color: var(--text); box-shadow: 0 0 0 2px var(--primary-ring); }
+.unTallas { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+.unTalla { position: relative; padding: 9px 4px 7px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13.5px; font-weight: 600; text-align: center; transition: border-color .12s, background .12s; }
+.unTalla:hover { border-color: var(--primary); }
+.unTalla.activo { border-color: var(--primary); background: var(--primary); color: #fff; }
+.unTalla.preferida:not(.activo)::after { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+.unTalla small { display: block; margin-top: 2px; font-size: 10px; font-weight: 500; opacity: .75; }
+.unTalla.agotado:not(.activo) { color: var(--subtle); background: var(--surface-2); border-style: dashed; }
+.unTalla.bajo:not(.activo) small { color: var(--warning); opacity: 1; }
+.unAgregar { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.contador { display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--r-sm); overflow: hidden; }
+.contador button { width: 32px; height: 34px; border: none; background: var(--surface-2); color: var(--text); font-size: 16px; font-weight: 600; }
+.contador button:hover { background: var(--surface-3); }
+.contador input { width: 44px; height: 34px; border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); background: var(--surface); color: var(--text); text-align: center; font-weight: 600; -moz-appearance: textfield; }
+.contador input::-webkit-outer-spin-button, .contador input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.unAgregar .btn:disabled { opacity: .45; }
+.leyendaTallas { font-size: 11.5px; color: var(--subtle); }
+
+/* carrito */
+.unCarritoVacio { padding: 18px; text-align: center; font-size: 13px; color: var(--muted); border: 1px dashed var(--border-strong); border-radius: var(--r-md); background: var(--surface-2); }
+.unLinea { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); }
+.unLinea + .unLinea { margin-top: 6px; }
+.unLinea b { font-size: 13.5px; color: var(--text); }
+.unLinea small { display: block; font-size: 12px; color: var(--muted); }
+.unLinea .chipTalla { padding: 2px 9px; border-radius: var(--r-full); background: var(--surface-3); font-size: 12px; font-weight: 600; color: var(--text-2); }
+.unLinea .alertaLinea { color: var(--warning); }
+
+/* historial */
+.unStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.statUN { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+.statUN span { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.statUN b { display: block; margin-top: 4px; font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.unHistLayout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+.filaFiltroUN { display: flex; gap: 6px; margin: -2px 0 10px; }
+.filaFiltroUN label { flex: 1; display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.filaFiltroUN input { width: 100%; padding: 6px 8px; font-size: 12.5px; }
+#unListaPersonas { display: flex; flex-direction: column; gap: 6px; max-height: 520px; overflow-y: auto; padding: 2px; margin: 0 -2px; }
+.personaUN { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); cursor: pointer; transition: border-color .12s, background .12s; }
+.personaUN:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.personaUN.activa { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 2px var(--primary-ring); }
+.personaUN .textoFila b { font-size: 13.5px; }
+.personaUN .textoFila small { font-size: 12px; color: var(--muted); }
+.personaUN .contadorP { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface-3); padding: 2px 8px; border-radius: var(--r-full); }
+.unDetalle { min-height: 300px; padding: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+.detalleHead { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.detalleHead .empNombre { font-size: 17px; }
+.miniStats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.miniStats div { flex: 1; min-width: 110px; padding: 9px 12px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--border); }
+.miniStats span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+.miniStats b { font-size: 16px; color: var(--text); }
+.tituloBloque { margin: 16px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.conduceUN { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.conduceUN + .conduceUN { margin-top: 6px; }
+.conduceUN { flex-wrap: wrap; }
+.conduceUN .textoFila { flex: 1 1 280px; min-width: 0; }
+.conduceUN .textoFila b { font-size: 13.5px; white-space: normal; }
+.conduceUN .accionesFila { margin-left: auto; }
+body[data-modo="uniformes"]:not([data-unvista="despacho"]) #layout { grid-template-columns: minmax(0, 1fr); }
+body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display: none; }
+.conduceUN .textoFila small { font-size: 12px; color: var(--muted); white-space: normal; }
+.conduceUN.anulado { opacity: .7; }
+.conduceUN.anulado .textoFila b { text-decoration: line-through; }
+.badgeEstado { padding: 2px 8px; border-radius: var(--r-full); font-size: 11px; font-weight: 700; letter-spacing: .03em; }
+.badgeEstado.ok { background: var(--success-soft); color: var(--success); }
+.badgeEstado.anulado { background: var(--danger-soft); color: var(--danger); }
+.tablaResumen { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
+.tablaResumen th { text-align: left; padding: 8px 10px; background: var(--surface-3); color: var(--muted); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.tablaResumen td { padding: 8px 10px; border-top: 1px solid var(--border); color: var(--text-2); }
+.tablaResumen td:last-child, .tablaResumen th:last-child { text-align: right; }
+
+/* catálogo */
+.unConfig { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+.catUN { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.catUN + .catUN { margin-top: 10px; }
+.catUN.inactivo { opacity: .6; }
+.catUNHead { display: grid; grid-template-columns: 1fr 130px 120px auto; gap: 8px; align-items: end; padding: 12px; border-bottom: 1px solid var(--border); }
+.catUNHead .campo { padding: 7px 9px; font-size: 13px; }
+.catUNHead .acciones { display: flex; gap: 6px; align-items: center; }
+.varUN { padding: 10px 12px; }
+.varUN + .varUN { border-top: 1px dashed var(--border); }
+.varUNFila { display: grid; grid-template-columns: 150px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.varUNFila .campo { padding: 7px 9px; font-size: 13px; }
+.stockGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.stockCelda { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2); }
+.stockCelda span { font-size: 12px; font-weight: 700; color: var(--text); }
+.stockCelda input { width: 100%; padding: 4px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface); color: var(--text); text-align: center; font-size: 12.5px; }
+.stockCelda.bajo { border-color: rgba(217,119,6,.6); background: var(--warning-soft); }
+.stockCelda.negativo { border-color: rgba(220,38,38,.6); background: var(--danger-soft); }
+.agregarColor { margin: 0 12px 12px; }
+.labelMini { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+
+@media (max-width: 1100px) { .unHistLayout { grid-template-columns: 1fr; } #unListaPersonas { max-height: 280px; } }
+@media (max-width: 640px) {
+    #uniformesSection { padding: 16px; }
+    .unStats { grid-template-columns: 1fr 1fr; }
+    .catUNHead { grid-template-columns: 1fr 1fr; }
+    .varUNFila { grid-template-columns: 1fr; }
+    .unLinea { grid-template-columns: 1fr auto auto; }
+    .unLinea .chipTalla { display: none; }
+}
 </style>
 </head>
 <body data-modo="documento">
@@ -1278,6 +1425,7 @@ select.campo { appearance: auto; }
     <symbol id="i-usb" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6"/><path d="M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/></symbol>
     <symbol id="i-tarjeta" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h3"/></symbol>
     <symbol id="i-lista" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-camisa" viewBox="0 0 24 24"><path d="M8 3 4 5.5 2.5 10l3 1.2V21h13V11.2l3-1.2L20 5.5 16 3c-.6 1.6-2.1 2.6-4 2.6S8.6 4.6 8 3z"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 </svg>
 
@@ -1299,6 +1447,7 @@ select.campo { appearance: auto; }
         <div id="tabEditor" class="modoTab" onclick="cambiarModo('editor')" role="tab"><svg class="icon"><use href="#i-firma"/></svg>Firmar PDF</div>
         <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')" role="tab"><svg class="icon"><use href="#i-pluma"/></svg>Cargo Directo</div>
         <div id="tabMateriales" class="modoTab" onclick="cambiarModo('materiales')" role="tab"><svg class="icon"><use href="#i-escudo"/></svg>Materiales Seguridad</div>
+        <div id="tabUniformes" class="modoTab" onclick="cambiarModo('uniformes')" role="tab"><svg class="icon"><use href="#i-camisa"/></svg>Uniformes</div>
         <div id="tabFirmados" class="modoTab" onclick="cambiarModo('firmados')" role="tab"><svg class="icon"><use href="#i-carpeta"/></svg>Firmados</div>
     </nav>
 
@@ -1440,6 +1589,126 @@ select.campo { appearance: auto; }
                 </div>
             </div>
 
+            <!-- ================= Módulo: Entrega de uniformes ================= -->
+            <div id="uniformesSection">
+                <div class="seccionHead">
+                    <div>
+                        <h3>Entrega de uniformes <span id="unNumeroActual" class="badgePendientes numUN">UN-0001</span></h3>
+                        <p class="seccionSub">Despacha uniformes con conduce firmado y lleva el historial de cada persona.</p>
+                    </div>
+                </div>
+                <div class="subTabs" id="unSubTabs" role="tablist">
+                    <button data-vista="despacho" class="activa" onclick="cambiarVistaUN('despacho')"><svg class="icon sm"><use href="#i-pluma"/></svg>Despacho</button>
+                    <button data-vista="historial" onclick="cambiarVistaUN('historial')"><svg class="icon sm"><use href="#i-lista"/></svg>Historial por persona</button>
+                    <button data-vista="catalogo" onclick="cambiarVistaUN('catalogo')"><svg class="icon sm"><use href="#i-ajustes"/></svg>Catálogo e inventario</button>
+                </div>
+
+                <!-- ===== Despacho ===== -->
+                <div class="unVista activa" data-vista="despacho">
+                    <div class="estadoCarpetaLinea"><svg class="icon sm"><use href="#i-carpeta"/></svg> Carpeta de uniformes: <strong id="estadoCarpetaUniformesTexto">no conectada</strong>
+                        <button class="btn sm" id="btnConectarCarpetaUN" style="margin-left:auto;" onclick="conectarCarpetaUniformes()">Conectar carpeta</button></div>
+
+                    <div id="unFormulario">
+                        <div class="pasoMS">
+                            <div class="pasoMSHead"><div class="pasoMSTitulo"><span class="pasoNum">1</span>Empleado</div></div>
+                            <div id="unEmpleadoCard" class="tarjetaEmpleado">
+                                <div class="avatarEmp lg" id="unEmpAvatar">—</div>
+                                <div class="empInfo">
+                                    <div class="empNombre" id="unEmpNombre"></div>
+                                    <div class="empMeta">
+                                        <span class="chipTarjeta" title="No. de tarjeta"><svg class="icon sm"><use href="#i-tarjeta"/></svg><span id="unEmpTarjeta"></span></span>
+                                        <span id="unEmpArea"></span>
+                                        <span id="unEmpResumen"></span>
+                                    </div>
+                                </div>
+                                <div class="empAcciones">
+                                    <button class="btn sm" id="btnRepetirUN" onclick="repetirUltimaEntregaUN()"><svg class="icon sm"><use href="#i-refresh"/></svg>Repetir última</button>
+                                    <button class="btn sm" id="btnHistorialEmpUN" onclick="verHistorialEmpleadoActualUN()"><svg class="icon sm"><use href="#i-lista"/></svg>Historial</button>
+                                    <button class="btn sm" onclick="editarEmpleadoUN()">Editar</button>
+                                    <button class="btn sm fantasma" onclick="cambiarEmpleadoUN()">Cambiar</button>
+                                </div>
+                            </div>
+                            <div id="unEmpleadoEntrada">
+                                <div class="comboEmpleado">
+                                    <input type="text" id="unBuscarEmpleado" class="buscarInput" placeholder="Buscar empleado por nombre o No. de tarjeta…" autocomplete="off"
+                                           oninput="renderizarSugerenciasUN()" onfocus="renderizarSugerenciasUN()" onkeydown="navegarSugerenciasUN(event)">
+                                    <div id="unSugerencias" class="listaSugerencias" role="listbox"></div>
+                                </div>
+                                <div id="unRecientes" class="chipsRecientes"></div>
+                                <div class="separadorTexto">o escribe los datos de un empleado nuevo</div>
+                                <div class="filaEmpleadoMS">
+                                    <label class="campoEtiquetado" style="flex:2;"><span>Nombre del empleado</span>
+                                        <input type="text" id="unNombre" placeholder="Ej. Juan Pérez" autocomplete="off"></label>
+                                    <label class="campoEtiquetado" style="flex:1;"><span>No. de tarjeta</span>
+                                        <input type="text" id="unTarjeta" placeholder="Ej. 12345" autocomplete="off" inputmode="numeric" onblur="autocompletarPorTarjetaUN()"></label>
+                                    <label class="campoEtiquetado" style="flex:1.3;"><span>Área / departamento</span>
+                                        <input type="text" id="unArea" placeholder="Ej. Mantenimiento Este" autocomplete="off" list="unListaAreas"></label>
+                                    <datalist id="unListaAreas"></datalist>
+                                </div>
+                                <label class="checkRecordar"><input type="checkbox" id="unRecordar" checked> Recordar este empleado para próximas entregas</label>
+                            </div>
+                        </div>
+
+                        <div class="pasoMS">
+                            <div class="pasoMSHead">
+                                <div class="pasoMSTitulo"><span class="pasoNum">2</span>Artículos</div>
+                                <span class="enlaceSuave" onclick="cambiarVistaUN('catalogo')"><svg class="icon sm"><use href="#i-ajustes"/></svg>Editar catálogo</span>
+                            </div>
+                            <div id="unArticulos"></div>
+                        </div>
+
+                        <div class="pasoMS">
+                            <div class="pasoMSHead">
+                                <div class="pasoMSTitulo"><span class="pasoNum">3</span>Lista de entrega <span id="unTotalPiezas" class="badgePendientes" style="display:none;"></span></div>
+                                <span class="enlaceSuave" id="unVaciarCarrito" onclick="vaciarCarritoUN()" style="display:none;">Vaciar</span>
+                            </div>
+                            <div id="unCarrito"></div>
+                            <label class="campoEtiquetado" style="margin-top:12px;"><span>Observaciones (opcional, salen en el conduce)</span>
+                                <textarea id="unObservaciones" class="campo" rows="2" maxlength="300" placeholder="Ej. Reposición por desgaste"></textarea></label>
+                        </div>
+                        <button id="btnGenerarFirmarUN" class="btn primario btnGrande" onclick="iniciarFirmaUniformes()"><svg class="icon"><use href="#i-pluma"/></svg>Generar conduce y firmar</button>
+                    </div>
+
+                    <div id="unInfoFirma" class="infoFirmaModulo">
+                        <div class="infoEtiqueta">Listo para firmar en el pad</div>
+                        <div id="unTextoInfoFirma"></div>
+                        <p class="seccionSub" style="margin:6px 0 10px;">La persona firma arriba y escribe su No. de tarjeta abajo. La fecha se coloca sola.</p>
+                        <a onclick="cancelarFirmaUniformes()">Cancelar y volver al formulario</a>
+                    </div>
+                </div>
+
+                <!-- ===== Historial ===== -->
+                <div class="unVista" data-vista="historial">
+                    <div class="unStats" id="unStats"></div>
+                    <div class="unHistLayout">
+                        <div class="unPersonas">
+                            <input type="text" id="unBuscarPersona" class="buscarInput" placeholder="Buscar por nombre, tarjeta o área…" oninput="renderizarPersonasUN()">
+                            <div class="filaFiltroUN">
+                                <label>Desde <input type="date" id="unDesde" class="fechaInputFirmados" oninput="renderizarHistorialUN()"></label>
+                                <label>Hasta <input type="date" id="unHasta" class="fechaInputFirmados" oninput="renderizarHistorialUN()"></label>
+                            </div>
+                            <div id="unListaPersonas"></div>
+                            <button class="btn sm" style="width:100%;margin-top:10px;" onclick="exportarUniformesCSV()"><svg class="icon sm"><use href="#i-descarga"/></svg>Exportar todo a Excel (CSV)</button>
+                        </div>
+                        <div class="unDetalle" id="unDetallePersona"></div>
+                    </div>
+                </div>
+
+                <!-- ===== Catálogo e inventario ===== -->
+                <div class="unVista" data-vista="catalogo">
+                    <div class="unConfig">
+                        <label class="checkRecordar" style="margin:0;"><input type="checkbox" id="unControlarStock" onchange="cambiarConfigUN('controlarStock', this.checked)"> Controlar existencias (descuenta al despachar)</label>
+                        <label class="campoEtiquetado"><span>Alerta de existencia baja</span><input type="number" id="unUmbral" class="campo" min="0" style="width:90px;" onchange="cambiarConfigUN('umbral', Number(this.value) || 0)"></label>
+                        <label class="campoEtiquetado" style="flex:1;"><span>"Entregado por" en el conduce</span><input type="text" id="unEntregadoPor" class="campo" maxlength="60" onchange="cambiarConfigUN('entregadoPor', this.value.trim())"></label>
+                    </div>
+                    <div id="unCatalogo"></div>
+                    <div class="filaBotonesLat" style="grid-template-columns: 1fr auto; margin-top: 12px;">
+                        <button class="btn primario" onclick="agregarArticuloUN()">+ Nuevo artículo de uniforme</button>
+                        <button class="btn" onclick="restablecerCatalogoUN()">Restablecer catálogo</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="firmadosSection">
                 <div id="docSectionHeaderRow">
                     <div>
@@ -1537,6 +1806,7 @@ select.campo { appearance: auto; }
             </div>
             <p class="hintModo" data-para="documento">Carga un documento de la lista para habilitar el pad. Firma arriba y escribe el No. de tarjeta abajo.</p>
             <p class="hintModo" data-para="cargoDirecto">El pad está listo: la persona puede firmar directamente.</p>
+            <p class="hintModo" data-para="uniformes">Elige el empleado y los uniformes, y pulsa <b>Generar conduce y firmar</b>. La persona firma arriba y escribe su No. de tarjeta abajo.</p>
             <p class="hintModo" data-para="materiales">Completa el empleado y los artículos, y pulsa <b>Generar conduce y firmar</b> para habilitar el pad.</p>
 
             <button id="btnConnect" onclick="connect()" disabled>Conectar pad de firma</button>
@@ -1559,6 +1829,10 @@ select.campo { appearance: auto; }
             <div id="accionesCD">
                 <button id="btnLimpiarCD" onclick="clearscreen()">Limpiar</button>
                 <button id="btnConfirmarCD" onclick="confirmarFirmaCD()" disabled>Confirmar y guardar firma</button>
+            </div>
+            <div id="accionesUN" style="display:none;">
+                <button id="btnLimpiarUN" onclick="clearscreen()">Limpiar</button>
+                <button id="btnConfirmarUN" onclick="confirmarFirmaUN()" disabled>Confirmar y guardar conduce</button>
             </div>
             <div id="accionesMS">
                 <button id="btnLimpiarMS" onclick="clearscreen()">Limpiar</button>
@@ -1598,6 +1872,10 @@ select.campo { appearance: auto; }
             <div class="adminRow">
                 <button class="btnCarpetaAdmin" onclick="conectarCarpetaMateriales()">Elegir carpeta de materiales</button>
                 <span class="estadoCarpetaAdmin" id="estadoCarpetaMateriales">No conectada</span>
+            </div>
+            <div class="adminRow">
+                <button class="btnCarpetaAdmin" onclick="conectarCarpetaUniformes()">Elegir carpeta de uniformes</button>
+                <span class="estadoCarpetaAdmin" id="estadoCarpetaUniformes">No conectada</span>
             </div>
             <button id="btnReconectarCarpetas" onclick="reconectarCarpetasGuardadas()">Reconectar carpetas guardadas</button>
             <h3>Firma de documentos SAP</h3>
@@ -1645,6 +1923,7 @@ select.campo { appearance: auto; }
                 <button data-valor="revision">Revisión</button>
                 <button data-valor="cd">Cargo Directo</button>
                 <button data-valor="ms">Seguridad</button>
+                <button data-valor="un">Uniformes</button>
                 <button data-valor="editor">Firmar PDF</button>
             </div>
             <p class="latAyuda" style="margin:6px 0 0;">Vista previa de cada pantalla. Los cambios se envían al pad al momento.</p>
@@ -2029,9 +2308,15 @@ select.campo { appearance: auto; }
             var ok3 = await verificarPermiso(handleMaterialesPendienteDeConfirmar, 'readwrite');
             if (ok3) { carpetaMateriales = handleMaterialesPendienteDeConfirmar; handleMaterialesPendienteDeConfirmar = null; await cargarHistorialMateriales(); }
         }
+        if (handleUniformesPendienteDeConfirmar) {
+            if (await verificarPermiso(handleUniformesPendienteDeConfirmar, 'readwrite')) {
+                carpetaUniformes = handleUniformesPendienteDeConfirmar; handleUniformesPendienteDeConfirmar = null;
+                await cargarDatosUN(); actualizarEstadoCarpetaUN(); if (modoActual === 'uniformes') renderizarUniformes();
+            }
+        }
         actualizarEstadoCarpetas();
         document.getElementById('btnReconectarCarpetas').style.display =
-            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar || handleMaterialesPendienteDeConfirmar) ? 'block' : 'none';
+            (handleEntradaPendienteDeConfirmar || handleSalidaPendienteDeConfirmar || handleMaterialesPendienteDeConfirmar || handleUniformesPendienteDeConfirmar) ? 'block' : 'none';
         mostrarToast('Carpetas reconectadas', 'success');
         if (modoActual === 'firmados') await listarFirmados();
     }
@@ -2568,6 +2853,7 @@ select.campo { appearance: auto; }
         cargarCatalogoMateriales();
         renderizarAdminCatalogoMateriales();
         await cargarHistorialMateriales();
+        await iniciarModuloUniformes();
         iniciarAutoRefresh();
         await conexion;
         if (!wacom.checkConnected()) dibujarPantallaSegunModo();   // al menos dibuja la vista previa en la PC
@@ -2588,6 +2874,11 @@ select.campo { appearance: auto; }
             document.getElementById('formularioMS').style.display = 'block';
             document.getElementById('infoModoMateriales').style.display = 'none';
         }
+        if (modoActual === 'uniformes' && uniformesListoParaFirmar) {
+            uniformesListoParaFirmar = false; datosFirmaUN = null;
+            document.getElementById('unFormulario').style.display = '';
+            document.getElementById('unInfoFirma').classList.remove('visible');
+        }
         seleccionMultipleActiva.clear();
         modoActual = nuevoModo;
         estadoBotonesConfirmar = {};
@@ -2601,6 +2892,10 @@ select.campo { appearance: auto; }
         document.getElementById('tabMateriales').classList.toggle('active', modoActual === 'materiales');
         document.getElementById('tabFirmados').classList.toggle('active', modoActual === 'firmados');
         document.getElementById('tabEditor').classList.toggle('active', modoActual === 'editor');
+        document.getElementById('tabUniformes').classList.toggle('active', modoActual === 'uniformes');
+        document.getElementById('uniformesSection').style.display = modoActual === 'uniformes' ? 'block' : 'none';
+        document.getElementById('accionesUN').style.display = modoActual === 'uniformes' ? 'flex' : 'none';
+        document.getElementById('btnConfirmarUN').disabled = true;
         document.getElementById('editorSection').style.display = modoActual === 'editor' ? 'block' : 'none';
         document.getElementById('documentoSection').style.display = modoActual === 'documento' ? 'block' : 'none';
         document.getElementById('cargoDirectoSection').style.display = modoActual === 'cargoDirecto' ? 'block' : 'none';
@@ -2609,7 +2904,7 @@ select.campo { appearance: auto; }
         document.getElementById('acciones').style.display = modoActual === 'documento' ? 'flex' : 'none';
         document.getElementById('accionesCD').style.display = modoActual === 'cargoDirecto' ? 'flex' : 'none';
         document.getElementById('accionesMS').style.display = modoActual === 'materiales' ? 'flex' : 'none';
-        document.getElementById('etiquetaZonaTarjeta').style.display = modoActual === 'documento' ? 'inline' : 'none';
+        document.getElementById('etiquetaZonaTarjeta').style.display = (modoActual === 'documento' || modoActual === 'uniformes') ? 'inline' : 'none';
         document.getElementById('btnConfirmar').disabled = true;
         document.getElementById('btnConfirmarCD').disabled = true;
         document.getElementById('btnConfirmarMS').disabled = true;
@@ -2627,6 +2922,9 @@ select.campo { appearance: auto; }
             document.getElementById('firmaBox').style.display = 'block';
             if (modoActual === 'cargoDirecto') {
                 document.getElementById('btnConnect').disabled = false;
+            } else if (modoActual === 'uniformes') {
+                document.getElementById('btnConnect').disabled = !uniformesListoParaFirmar;
+                renderizarUniformes();
             } else if (modoActual === 'materiales') {
                 document.getElementById('btnConnect').disabled = !materialesListoParaFirmar;
                 renderizarFormularioMateriales();
@@ -2646,6 +2944,8 @@ select.campo { appearance: auto; }
             dibujarPantallaFirmaCD();
         } else if (modoActual === 'materiales') {
             if (materialesListoParaFirmar) dibujarPantallaFirmaMS(); else dibujarPantallaReposo();
+        } else if (modoActual === 'uniformes') {
+            if (uniformesListoParaFirmar) dibujarPantallaFirmaUN(); else dibujarPantallaReposo();
         } else if (documentoListoParaFirmar || modoMultipleActivo) {
             if (revisionMaterialesActiva && materialesDocActual.length) dibujarPantallaRevisionMateriales();
             else dibujarPantallaFirma();
@@ -2835,7 +3135,8 @@ select.campo { appearance: auto; }
         botonRevision: ['Botón de revisión', 'CORRECTO  ·  FIRMAR  ›'],
         tituloCD: ['Título Cargo Directo', 'FIRMA · CARGO DIRECTO'],
         subCD: ['Subtítulo Cargo Directo', 'Entrega de materiales sin reserva SAP'],
-        tituloMS: ['Título Materiales de seguridad', 'MATERIALES DE SEGURIDAD']
+        tituloMS: ['Título Materiales de seguridad', 'MATERIALES DE SEGURIDAD'],
+        tituloUN: ['Título Uniformes', 'ENTREGA DE UNIFORMES']
     };
     var FUENTES_PAD = ['Arial', 'Verdana', 'Tahoma', 'Segoe UI', 'Calibri', 'Trebuchet MS', 'Georgia'];
     var PAD_BASE = { preset: 'corporativo', colores: Object.assign({}, PRESETS_PAD.corporativo), textos: {}, fuente: 'Arial', escala: '1',
@@ -3153,6 +3454,13 @@ select.campo { appearance: auto; }
                 case 'revision': materialesDocActual = MATERIALES_EJEMPLO; numeroDocumentoDetectado = '4949505750'; modoMultipleActivo = false; paginaRevision = 0; dibujarPantallaRevisionMateriales(); break;
                 case 'cd': dibujarPantallaFirmaCD(); break;
                 case 'ms': dibujarPantallaFirmaMS(); break;
+                case 'un':
+                    g.datosUN = datosFirmaUN;
+                    datosFirmaUN = { nombre: 'Juan Pérez', fecha: Date.now(), articulos: [
+                        { nombre: 'T-shirt (Poloshirt Foxin)', color: 'Blanco', talla: 'L', cantidad: 2 },
+                        { nombre: 'T-shirt (Poloshirt Foxin)', color: 'Gris', talla: 'L', cantidad: 1 },
+                        { nombre: 'Pantalón', color: '', talla: '34', cantidad: 2 }] };
+                    dibujarPantallaFirmaUN(); break;
                 case 'editor': capturaEditor = { tipo: 'libre', trazos: [], fondo: null }; dibujarPantallaCapturaEditor(); break;
                 default: pintarReloj(context, new Date(), apariencia);
             }
@@ -3160,6 +3468,7 @@ select.campo { appearance: auto; }
         finally {
             context = g.context; materialesDocActual = g.mat; numeroDocumentoDetectado = g.num; modoMultipleActivo = g.mult;
             paginaRevision = g.pag; capturaEditor = g.cap; vistaPreviaActiva = false;
+            if ('datosUN' in g) datosFirmaUN = g.datosUN;
         }
     }
     // Refresca el pad (con un pequeño retraso, para no mandar una pantalla por cada tecla o color)
@@ -3324,6 +3633,7 @@ select.campo { appearance: auto; }
     }
     async function clearscreen() {
         estadoBotonesConfirmar = {};
+        var bUN = document.getElementById('btnConfirmarUN'); if (bUN) bUN.disabled = true;
         await wacom.setInking(false)
         document.getElementById('ssvvggFirma').innerHTML = ''
         document.getElementById('ssvvggTarjeta').innerHTML = ''
@@ -3388,6 +3698,7 @@ select.campo { appearance: auto; }
         if (modoActual === 'editor') return;
         if (modoActual === 'documento' && !documentoListoParaFirmar && !modoMultipleActivo) return;
         if (modoActual === 'materiales' && !materialesListoParaFirmar) return;
+        if (modoActual === 'uniformes' && !uniformesListoParaFirmar) return;
         if (modoActual === 'firmados') return;
         // Revisión de materiales en el pad: solo botones, sin tinta
         if (modoActual === 'documento' && revisionMaterialesActiva) {
@@ -3422,8 +3733,8 @@ select.campo { appearance: auto; }
         if (z) {
             if (esTarjeta) { hayTrazosTarjeta = true; } else { hayTrazosFirma = true; }
             // solo toca el DOM cuando el estado cambia (antes se escribía en cada punto del lápiz)
-            var idBtn = modoActual === 'documento' ? 'btnConfirmar' : modoActual === 'materiales' ? 'btnConfirmarMS' : 'btnConfirmarCD';
-            var deshabilitar = modoActual === 'documento' ? !(hayTrazosFirma && hayTrazosTarjeta) : !hayTrazosFirma;
+            var idBtn = modoActual === 'documento' ? 'btnConfirmar' : modoActual === 'materiales' ? 'btnConfirmarMS' : modoActual === 'uniformes' ? 'btnConfirmarUN' : 'btnConfirmarCD';
+            var deshabilitar = (modoActual === 'documento' || modoActual === 'uniformes') ? !(hayTrazosFirma && hayTrazosTarjeta) : !hayTrazosFirma;
             var btnC = estadoBotonesConfirmar[idBtn] || (estadoBotonesConfirmar[idBtn] = document.getElementById(idBtn));
             if (btnC.disabled !== deshabilitar) btnC.disabled = deshabilitar;
             if (pressdiff(p, lastPressure) > 0.02) {
@@ -3759,6 +4070,7 @@ select.campo { appearance: auto; }
         }
     }
     function documentoVisorAnterior() {
+        if (contextoVisorPdf === 'uniformes') { if (indiceVisorUN > 0) abrirVisorUN(indiceVisorUN - 1); return; }
         if (contextoVisorPdf === 'materiales') {
             if (indiceVisorMateriales > 0) abrirVisorMateriales(indiceVisorMateriales - 1);
             return;
@@ -3766,6 +4078,7 @@ select.campo { appearance: auto; }
         if (indiceVisorActual > 0) abrirVisorPdf(indiceVisorActual - 1);
     }
     function documentoVisorSiguiente() {
+        if (contextoVisorPdf === 'uniformes') { if (indiceVisorUN < listaVisorUN.length - 1) abrirVisorUN(indiceVisorUN + 1); return; }
         if (contextoVisorPdf === 'materiales') {
             if (indiceVisorMateriales < listaVisorMateriales.length - 1) abrirVisorMateriales(indiceVisorMateriales + 1);
             return;
@@ -4750,6 +5063,903 @@ select.campo { appearance: auto; }
                 context.stroke();
             });
         });
+    }
+
+    // =====================================================================
+    // MÓDULO: ENTREGA DE UNIFORMES
+    // ---------------------------------------------------------------------
+    // - Catálogo editable: artículo → colores → tallas (con existencias).
+    // - Despacho: empleado (con memoria), artículos con color/talla/cantidad,
+    //   lista de entrega, firma + No. de tarjeta manuscrito en el pad.
+    // - Conduce PDF numerado UN-#### con firma, tarjeta y fecha.
+    // - Historial por persona con todos sus conduces (copia en la carpeta de
+    //   uniformes y respaldo en el navegador), anulación con motivo, CSV.
+    // Datos: localStorage + archivo "_uniformes.json" en la carpeta (compartido).
+    // =====================================================================
+    var CLAVE_CAT_UN = 'catalogoUniformes', CLAVE_HIST_UN = 'historialUniformes', CLAVE_INV_UN = 'inventarioUniformes', CLAVE_CONF_UN = 'configUniformes';
+    var carpetaUniformes = null, handleUniformesPendienteDeConfirmar = null;
+    var catalogoUN = [], historialUN = [], inventarioUN = {}, configUN = {};
+    var carritoUN = [];                       // [{artId, nombre, codigo, color, talla, cantidad}]
+    var seleccionUN = {};                     // por artículo: {color, talla, cantidad}
+    var empleadoUN = null;                    // entrada del directorio elegida
+    var uniformesListoParaFirmar = false, datosFirmaUN = null;
+    var siguienteNumeroUN = 1;
+    var personaSeleccionadaUN = null;         // clave de tarjeta en el historial
+    var listaVisorUN = [], indiceVisorUN = -1;
+    var sugerenciasUN = [], indiceSugUN = -1;
+
+    var COLORES_CONOCIDOS = { blanco: '#FFFFFF', gris: '#9CA3AF', negro: '#111827', azul: '#1D4ED8', 'azul marino': '#1E3A8A', marino: '#1E3A8A', rojo: '#DC2626', verde: '#15803D', amarillo: '#FACC15', naranja: '#EA580C', beige: '#D6C7A1', caqui: '#B8A77A', kaki: '#B8A77A', celeste: '#7DD3FC' };
+    function colorMuestra(nombre) {
+        var k = String(nombre || '').trim().toLowerCase();
+        return COLORES_CONOCIDOS[k] || (k ? '#CBD5E1' : 'transparent');
+    }
+    function catalogoUNDefault() {
+        var tallasPant = []; for (var t = 30; t <= 45; t++) tallasPant.push(String(t));
+        return [
+            { id: 'polo', nombre: 'T-shirt (Poloshirt Foxin)', codigo: '', diasReposicion: 180, activo: true,
+              variantes: [{ color: 'Blanco', tallas: ['M', 'L', 'XL', '3XL'] }, { color: 'Gris', tallas: ['M', 'L', 'XL'] }] },
+            { id: 'pantalon', nombre: 'Pantalón', codigo: '', diasReposicion: 180, activo: true,
+              variantes: [{ color: '', tallas: tallasPant }] }
+        ];
+    }
+    function leerJSON(clave, defecto) { try { var v = localStorage.getItem(clave); return v ? JSON.parse(v) : defecto; } catch (e) { return defecto; } }
+    function guardarJSON(clave, v) { try { localStorage.setItem(clave, JSON.stringify(v)); } catch (e) { mostrarToast('No se pudo guardar en este navegador (almacenamiento lleno)', 'error'); } }
+    function claveInv(artId, color, talla) { return artId + '|' + (color || '') + '|' + talla; }
+    function formatearNumeroUN(n) { return 'UN-' + String(n).padStart(4, '0'); }
+    function fechaCorta(ms) { return new Date(ms).toLocaleDateString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+    function fechaHora(ms) { return new Date(ms).toLocaleString('es-DO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+    function descArticulo(a) { return a.nombre + (a.color ? ' ' + a.color : '') + ' · Talla ' + a.talla; }
+
+    // ---------- carga / guardado ----------
+    async function cargarDatosUN() {
+        catalogoUN = leerJSON(CLAVE_CAT_UN, null) || catalogoUNDefault();
+        historialUN = leerJSON(CLAVE_HIST_UN, []);
+        inventarioUN = leerJSON(CLAVE_INV_UN, {});
+        configUN = Object.assign({ controlarStock: true, umbral: 3, entregadoPor: 'Almacén' }, leerJSON(CLAVE_CONF_UN, {}));
+        if (carpetaUniformes) {
+            try {
+                if (await verificarPermiso(carpetaUniformes, 'readwrite')) {
+                    var fh = await carpetaUniformes.getFileHandle('_uniformes.json');
+                    var d = JSON.parse(await (await fh.getFile()).text());
+                    if (Array.isArray(d.historial)) historialUN = d.historial;
+                    if (Array.isArray(d.catalogo) && d.catalogo.length) catalogoUN = d.catalogo;
+                    if (d.inventario && typeof d.inventario === 'object') inventarioUN = d.inventario;
+                    if (d.config) configUN = Object.assign(configUN, d.config);
+                    guardarLocalUN();
+                }
+            } catch (e) { console.log('Aún no hay datos de uniformes en la carpeta (se crean al primer despacho)'); }
+        }
+        recalcularNumeroUN();
+    }
+    function guardarLocalUN() {
+        guardarJSON(CLAVE_CAT_UN, catalogoUN); guardarJSON(CLAVE_HIST_UN, historialUN);
+        guardarJSON(CLAVE_INV_UN, inventarioUN); guardarJSON(CLAVE_CONF_UN, configUN);
+    }
+    async function guardarDatosUN() {
+        guardarLocalUN();
+        if (!carpetaUniformes) return;
+        try {
+            if (!(await verificarPermiso(carpetaUniformes, 'readwrite'))) throw new Error('Sin permiso');
+            var fh = await carpetaUniformes.getFileHandle('_uniformes.json', { create: true });
+            var w = await fh.createWritable();
+            await w.write(JSON.stringify({ version: 1, actualizado: new Date().toISOString(), catalogo: catalogoUN, inventario: inventarioUN, config: configUN, historial: historialUN }, null, 2));
+            await w.close();
+        } catch (e) {
+            console.warn('No se pudo guardar en la carpeta de uniformes', e);
+            mostrarToast('⚠ No se pudo guardar en la carpeta de uniformes (queda guardado en este navegador)', 'error');
+        }
+    }
+    function recalcularNumeroUN() {
+        var max = 0;
+        historialUN.forEach(function (r) { var n = parseInt(String(r.numero).replace('UN-', ''), 10); if (!isNaN(n) && n > max) max = n; });
+        siguienteNumeroUN = max + 1;
+        var b = document.getElementById('unNumeroActual'); if (b) b.textContent = formatearNumeroUN(siguienteNumeroUN);
+    }
+    // conduces en IndexedDB (respaldo: siempre se pueden ver, aunque no haya carpeta)
+    function abrirDBConduces() {
+        return new Promise(function (ok, mal) {
+            var r = indexedDB.open('firmaDigitalConduces', 1);
+            r.onupgradeneeded = function () { r.result.createObjectStore('conduces'); };
+            r.onsuccess = function () { ok(r.result); };
+            r.onerror = function () { mal(r.error); };
+        });
+    }
+    async function guardarConduceDB(numero, bytes) {
+        try {
+            var db = await abrirDBConduces();
+            await new Promise(function (ok, mal) { var tx = db.transaction('conduces', 'readwrite'); tx.objectStore('conduces').put(bytes, numero); tx.oncomplete = ok; tx.onerror = function () { mal(tx.error); }; });
+        } catch (e) { console.warn('No se pudo respaldar el conduce en el navegador', e); }
+    }
+    async function obtenerConduceDB(numero) {
+        try {
+            var db = await abrirDBConduces();
+            return await new Promise(function (ok) { var tx = db.transaction('conduces', 'readonly'); var q = tx.objectStore('conduces').get(numero); q.onsuccess = function () { ok(q.result || null); }; q.onerror = function () { ok(null); }; });
+        } catch (e) { return null; }
+    }
+    async function bytesConduceUN(numero) {
+        if (carpetaUniformes) {
+            try {
+                if (await verificarPermiso(carpetaUniformes, 'readwrite')) {
+                    var fh = await carpetaUniformes.getFileHandle(numero + '.pdf');
+                    return new Uint8Array(await (await fh.getFile()).arrayBuffer());
+                }
+            } catch (e) { }
+        }
+        var b = await obtenerConduceDB(numero);
+        return b ? new Uint8Array(b) : null;
+    }
+
+    // ---------- carpeta ----------
+    async function conectarCarpetaUniformes() {
+        try {
+            var h = await window.showDirectoryPicker({ mode: 'readwrite' });
+            if (!(await verificarPermiso(h, 'readwrite'))) { mostrarToast('Permiso de escritura denegado', 'error'); return; }
+            carpetaUniformes = h;
+            await guardarHandleEnDB('uniformes', h);
+            var localHist = historialUN.slice();
+            await cargarDatosUN();
+            if (!historialUN.length && localHist.length) { historialUN = localHist; await guardarDatosUN(); }   // primera vez: sube lo que había en el navegador
+            actualizarEstadoCarpetaUN();
+            renderizarUniformes();
+            mostrarToast('✓ Carpeta de uniformes conectada: ' + h.name, 'success');
+        } catch (e) { console.log('Selección de carpeta de uniformes cancelada', e); }
+    }
+    async function restaurarCarpetaUniformes() {
+        try {
+            var h = await obtenerHandleDeDB('uniformes');
+            if (h) {
+                if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') carpetaUniformes = h;
+                else handleUniformesPendienteDeConfirmar = h;
+            }
+        } catch (e) { }
+    }
+    function actualizarEstadoCarpetaUN() {
+        var t = document.getElementById('estadoCarpetaUniformesTexto');
+        if (t) t.textContent = carpetaUniformes ? carpetaUniformes.name : (handleUniformesPendienteDeConfirmar ? 'pendiente de reconectar' : 'no conectada (los conduces se guardan en este navegador y se descargan)');
+        var b = document.getElementById('btnConectarCarpetaUN');
+        if (b) b.textContent = carpetaUniformes ? 'Cambiar' : (handleUniformesPendienteDeConfirmar ? 'Reconectar' : 'Conectar carpeta');
+        if (b && handleUniformesPendienteDeConfirmar && !carpetaUniformes) b.onclick = async function () {
+            if (await verificarPermiso(handleUniformesPendienteDeConfirmar, 'readwrite')) {
+                carpetaUniformes = handleUniformesPendienteDeConfirmar; handleUniformesPendienteDeConfirmar = null;
+                await cargarDatosUN(); actualizarEstadoCarpetaUN(); renderizarUniformes();
+            }
+        }; else if (b) b.onclick = conectarCarpetaUniformes;
+        var a = document.getElementById('estadoCarpetaUniformes');
+        if (a) a.textContent = carpetaUniformes ? ('✓ ' + carpetaUniformes.name) : 'No conectada';
+    }
+
+    // ---------- directorio de empleados (uniformes + materiales de seguridad) ----------
+    function directorioUN() {
+        var ocultos = leerOcultosMS(), mapa = {};
+        function sumar(r, esUN) {
+            var k = claveTarjeta(r.tarjeta);
+            if (!k || ocultos.indexOf(k) !== -1) return;
+            var e = mapa[k] || (mapa[k] = { nombre: r.nombre, tarjeta: String(r.tarjeta).trim(), area: '', ultimaFecha: 0, entregasUN: 0, ultimoUN: null, fechaUN: 0 });
+            if (r.fecha >= e.ultimaFecha) { e.ultimaFecha = r.fecha; e.nombre = r.nombre; }
+            if (esUN) {
+                if (r.anulado) return;
+                e.entregasUN++;
+                if (r.fecha >= e.fechaUN) { e.fechaUN = r.fecha; e.ultimoUN = r; if (r.area) e.area = r.area; }
+            }
+        }
+        (historialMateriales || []).forEach(function (r) { sumar(r, false); });
+        historialUN.forEach(function (r) { sumar(r, true); });
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (a, b) { return b.ultimaFecha - a.ultimaFecha; });
+    }
+    function empleadoPorTarjetaUN(t) { var k = claveTarjeta(t); return k ? directorioUN().filter(function (e) { return claveTarjeta(e.tarjeta) === k; })[0] || null : null; }
+    function renderizarRecientesUN() {
+        var cont = document.getElementById('unRecientes'); if (!cont) return;
+        cont.innerHTML = '';
+        var lista = directorioUN().slice(0, 6);
+        if (!lista.length) return;
+        var et = document.createElement('span'); et.className = 'etiquetaRecientes'; et.textContent = 'Recientes'; cont.appendChild(et);
+        lista.forEach(function (emp) {
+            var chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipEmp';
+            chip.title = emp.nombre + ' · Tarjeta ' + emp.tarjeta;
+            chip.appendChild(crearAvatar(emp.nombre));
+            var s = document.createElement('span'); s.textContent = emp.nombre; chip.appendChild(s);
+            chip.onclick = function () { seleccionarEmpleadoUN(emp); };
+            cont.appendChild(chip);
+        });
+    }
+    function renderizarSugerenciasUN() {
+        var input = document.getElementById('unBuscarEmpleado'), lista = document.getElementById('unSugerencias');
+        var q = (input.value || '').trim().toLowerCase(), dir = directorioUN();
+        if (!dir.length && !q) { lista.classList.remove('abierto'); return; }
+        sugerenciasUN = dir.filter(function (e) { return !q || e.nombre.toLowerCase().indexOf(q) !== -1 || claveTarjeta(e.tarjeta).indexOf(q) !== -1; }).slice(0, 8);
+        indiceSugUN = sugerenciasUN.length ? 0 : -1;
+        lista.innerHTML = sugerenciasUN.length ? '' : '<div class="sugerenciaVacia">No hay empleados guardados con "' + escaparHtml(input.value.trim()) + '". Escríbelo abajo como empleado nuevo.</div>';
+        sugerenciasUN.forEach(function (emp, i) {
+            var f = document.createElement('div'); f.className = 'sugerenciaEmp' + (i === 0 ? ' activa' : '');
+            f.appendChild(crearAvatar(emp.nombre));
+            var t = document.createElement('span'); t.className = 'textoFila';
+            t.innerHTML = '<b>' + resaltarCoincidencia(emp.nombre, q) + '</b><small>Tarjeta ' + resaltarCoincidencia(emp.tarjeta, q) +
+                (emp.area ? ' · ' + escaparHtml(emp.area) : '') + (emp.entregasUN ? ' · ' + emp.entregasUN + ' entrega(s) de uniformes' : '') + '</small>';
+            f.appendChild(t);
+            f.onmousedown = function (ev) { ev.preventDefault(); seleccionarEmpleadoUN(emp); };
+            lista.appendChild(f);
+        });
+        lista.classList.add('abierto');
+    }
+    function navegarSugerenciasUN(ev) {
+        var filas = document.querySelectorAll('#unSugerencias .sugerenciaEmp');
+        if (ev.key === 'Escape') { document.getElementById('unSugerencias').classList.remove('abierto'); return; }
+        if (ev.key === 'Enter') { ev.preventDefault(); if (sugerenciasUN[indiceSugUN]) seleccionarEmpleadoUN(sugerenciasUN[indiceSugUN]); return; }
+        if ((ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') || !filas.length) return;
+        ev.preventDefault();
+        indiceSugUN = (indiceSugUN + (ev.key === 'ArrowDown' ? 1 : -1) + filas.length) % filas.length;
+        filas.forEach(function (f, i) { f.classList.toggle('activa', i === indiceSugUN); });
+        filas[indiceSugUN].scrollIntoView({ block: 'nearest' });
+    }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target.closest || !ev.target.closest('#unEmpleadoEntrada .comboEmpleado')) { var l = document.getElementById('unSugerencias'); if (l) l.classList.remove('abierto'); }
+    });
+    function seleccionarEmpleadoUN(emp) {
+        empleadoUN = emp;
+        document.getElementById('unNombre').value = emp.nombre;
+        document.getElementById('unTarjeta').value = emp.tarjeta;
+        document.getElementById('unArea').value = emp.area || '';
+        document.getElementById('unRecordar').checked = true;
+        document.getElementById('unBuscarEmpleado').value = '';
+        document.getElementById('unSugerencias').classList.remove('abierto');
+        mostrarTarjetaEmpleadoUN();
+        seleccionUN = {};
+        renderizarArticulosUN();
+    }
+    function mostrarTarjetaEmpleadoUN() {
+        var e = empleadoUN; if (!e) return;
+        var av = document.getElementById('unEmpAvatar'); av.textContent = inicialesEmpleado(e.nombre); av.style.background = colorAvatar(e.nombre);
+        document.getElementById('unEmpNombre').textContent = e.nombre;
+        document.getElementById('unEmpTarjeta').textContent = e.tarjeta;
+        document.getElementById('unEmpArea').textContent = e.area || '';
+        document.getElementById('unEmpResumen').textContent = e.entregasUN ? (e.entregasUN + ' entrega(s) de uniformes · última ' + haceCuanto(e.fechaUN)) : 'Sin entregas de uniformes';
+        document.getElementById('btnRepetirUN').style.display = e.ultimoUN ? '' : 'none';
+        document.getElementById('btnHistorialEmpUN').style.display = e.entregasUN ? '' : 'none';
+        document.getElementById('unEmpleadoCard').classList.add('visible');
+        document.getElementById('unEmpleadoEntrada').style.display = 'none';
+    }
+    function cambiarEmpleadoUN(sinFoco) {
+        empleadoUN = null;
+        ['unNombre', 'unTarjeta', 'unArea'].forEach(function (id) { document.getElementById(id).value = ''; });
+        document.getElementById('unRecordar').checked = true;
+        document.getElementById('unEmpleadoCard').classList.remove('visible');
+        document.getElementById('unEmpleadoEntrada').style.display = '';
+        seleccionUN = {};
+        renderizarRecientesUN(); renderizarArticulosUN();
+        if (!sinFoco) document.getElementById('unBuscarEmpleado').focus();
+    }
+    function editarEmpleadoUN() {
+        empleadoUN = null;
+        document.getElementById('unEmpleadoCard').classList.remove('visible');
+        document.getElementById('unEmpleadoEntrada').style.display = '';
+        document.getElementById('unNombre').focus();
+    }
+    function autocompletarPorTarjetaUN() {
+        var emp = empleadoPorTarjetaUN(document.getElementById('unTarjeta').value);
+        if (emp && !document.getElementById('unNombre').value.trim()) { seleccionarEmpleadoUN(emp); mostrarToast('Empleado reconocido: ' + emp.nombre, 'info'); }
+        else renderizarArticulosUN();
+    }
+    function tarjetaActualUN() { return claveTarjeta(document.getElementById('unTarjeta').value); }
+    function verHistorialEmpleadoActualUN() { personaSeleccionadaUN = tarjetaActualUN(); cambiarVistaUN('historial'); }
+
+    // ---------- existencias ----------
+    function stockDe(artId, color, talla) { var v = inventarioUN[claveInv(artId, color, talla)]; return (v === undefined || v === null || v === '') ? null : Number(v); }
+    function enCarrito(artId, color, talla) { return carritoUN.filter(function (l) { return l.artId === artId && l.color === color && l.talla === talla; }).reduce(function (s, l) { return s + l.cantidad; }, 0); }
+    // última entrega (no anulada) de un artículo a una persona
+    function ultimaEntregaArticulo(tarjeta, artId) {
+        var mejor = null;
+        historialUN.forEach(function (r) {
+            if (r.anulado || claveTarjeta(r.tarjeta) !== tarjeta) return;
+            r.articulos.forEach(function (a) { if (a.artId === artId && (!mejor || r.fecha > mejor.fecha)) mejor = { fecha: r.fecha, numero: r.numero, color: a.color, talla: a.talla }; });
+        });
+        return mejor;
+    }
+
+    // ---------- artículos del despacho ----------
+    function renderizarArticulosUN() {
+        var cont = document.getElementById('unArticulos'); if (!cont) return;
+        cont.innerHTML = '';
+        var tarjeta = tarjetaActualUN();
+        var activos = catalogoUN.filter(function (a) { return a.activo !== false; });
+        if (!activos.length) { cont.innerHTML = '<div class="unCarritoVacio">No hay artículos activos en el catálogo. Agrégalos en <b>Catálogo e inventario</b>.</div>'; return; }
+        activos.forEach(function (art) {
+            var sel = seleccionUN[art.id] || (seleccionUN[art.id] = { color: null, talla: null, cantidad: 1 });
+            var ultima = tarjeta ? ultimaEntregaArticulo(tarjeta, art.id) : null;
+            if (!sel.color) sel.color = (ultima && art.variantes.some(function (v) { return v.color === ultima.color; })) ? ultima.color : (art.variantes[0] ? art.variantes[0].color : '');
+            var variante = art.variantes.filter(function (v) { return v.color === sel.color; })[0] || art.variantes[0];
+            if (!variante) return;
+            var dias = ultima ? Math.floor((Date.now() - ultima.fecha) / 86400000) : null;
+            var alerta = ultima && art.diasReposicion && dias < art.diasReposicion;
+            var caja = document.createElement('div');
+            caja.className = 'unArt' + (alerta ? ' alerta' : '');
+            caja.innerHTML = '<div class="unArtHead"><div class="unArtNombre">' + escaparHtml(art.nombre) + (art.codigo ? '<small>Cód. ' + escaparHtml(art.codigo) + '</small>' : '') + '</div>' +
+                (ultima ? '<span class="unAviso">' + (alerta ? '⚠ ' : '') + 'Última entrega hace ' + dias + ' día(s) · ' + escaparHtml((ultima.color ? ultima.color + ' ' : '') + 'talla ' + ultima.talla) + ' (' + ultima.numero + ')</span>' : '') + '</div>';
+            if (art.variantes.length > 1 || variante.color) {
+                var fila = document.createElement('div'); fila.className = 'unColores';
+                art.variantes.forEach(function (v) {
+                    var b = document.createElement('button'); b.type = 'button'; b.className = 'unColor' + (v.color === sel.color ? ' activo' : '');
+                    b.innerHTML = '<i style="background:' + colorMuestra(v.color) + '"></i>' + escaparHtml(v.color || 'Único');
+                    b.onclick = function () { sel.color = v.color; sel.talla = null; renderizarArticulosUN(); };
+                    fila.appendChild(b);
+                });
+                caja.appendChild(fila);
+            }
+            var grid = document.createElement('div'); grid.className = 'unTallas';
+            variante.tallas.forEach(function (t) {
+                var st = configUN.controlarStock ? stockDe(art.id, variante.color, t) : null;
+                var disp = st === null ? null : st - enCarrito(art.id, variante.color, t);
+                var b = document.createElement('button'); b.type = 'button';
+                b.className = 'unTalla' + (sel.talla === t ? ' activo' : '') + (ultima && ultima.talla === t && ultima.color === variante.color ? ' preferida' : '') +
+                    (disp !== null && disp <= 0 ? ' agotado' : (disp !== null && disp <= configUN.umbral ? ' bajo' : ''));
+                b.innerHTML = escaparHtml(t) + (disp !== null ? '<small>' + (disp <= 0 ? 'agotado' : disp + ' disp.') + '</small>' : '');
+                b.title = ultima && ultima.talla === t ? 'Talla de su última entrega' : '';
+                b.onclick = function () { sel.talla = t; renderizarArticulosUN(); };
+                grid.appendChild(b);
+            });
+            caja.appendChild(grid);
+            var acc = document.createElement('div'); acc.className = 'unAgregar';
+            acc.innerHTML = '<div class="contador"><button type="button" data-d="-1">−</button><input type="number" min="1" max="99" value="' + sel.cantidad + '"><button type="button" data-d="1">+</button></div>';
+            var input = acc.querySelector('input');
+            acc.querySelectorAll('button[data-d]').forEach(function (b) { b.onclick = function () { sel.cantidad = limitarNum((Number(input.value) || 1) + Number(b.dataset.d), 1, 99); input.value = sel.cantidad; }; });
+            input.onchange = function () { sel.cantidad = limitarNum(Number(input.value) || 1, 1, 99); input.value = sel.cantidad; };
+            var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn primario sm';
+            btn.textContent = sel.talla ? ('Agregar ' + (variante.color ? variante.color + ' ' : '') + 'talla ' + sel.talla) : 'Elige una talla';
+            btn.disabled = !sel.talla;
+            btn.onclick = function () { agregarAlCarritoUN(art, variante.color, sel.talla, sel.cantidad); };
+            acc.appendChild(btn);
+            if (ultima && ultima.talla) {
+                var ley = document.createElement('span'); ley.className = 'leyendaTallas'; ley.textContent = '• = talla de su última entrega'; acc.appendChild(ley);
+            }
+            caja.appendChild(acc);
+            cont.appendChild(caja);
+        });
+    }
+    function agregarAlCarritoUN(art, color, talla, cantidad) {
+        var st = configUN.controlarStock ? stockDe(art.id, color, talla) : null;
+        if (st !== null && enCarrito(art.id, color, talla) + cantidad > st) {
+            if (!confirm('Solo hay ' + Math.max(0, st - enCarrito(art.id, color, talla)) + ' en existencia de ' + art.nombre + ' ' + (color || '') + ' talla ' + talla + '. ¿Agregar de todas formas?')) return;
+        }
+        var linea = carritoUN.filter(function (l) { return l.artId === art.id && l.color === color && l.talla === talla; })[0];
+        if (linea) linea.cantidad += cantidad;
+        else carritoUN.push({ artId: art.id, nombre: art.nombre, codigo: art.codigo || '', color: color || '', talla: talla, cantidad: cantidad });
+        seleccionUN[art.id].cantidad = 1;
+        renderizarCarritoUN(); renderizarArticulosUN();
+    }
+    function renderizarCarritoUN() {
+        var cont = document.getElementById('unCarrito'); if (!cont) return;
+        var total = carritoUN.reduce(function (s, l) { return s + l.cantidad; }, 0);
+        var b = document.getElementById('unTotalPiezas');
+        b.style.display = total ? '' : 'none'; b.textContent = total + (total === 1 ? ' pieza' : ' piezas');
+        document.getElementById('unVaciarCarrito').style.display = total ? '' : 'none';
+        if (!carritoUN.length) { cont.innerHTML = '<div class="unCarritoVacio">Elige color y talla arriba y pulsa <b>Agregar</b>.</div>'; return; }
+        cont.innerHTML = '';
+        var tarjeta = tarjetaActualUN();
+        carritoUN.forEach(function (l, i) {
+            var art = catalogoUN.filter(function (a) { return a.id === l.artId; })[0];
+            var ult = tarjeta ? ultimaEntregaArticulo(tarjeta, l.artId) : null;
+            var dias = ult ? Math.floor((Date.now() - ult.fecha) / 86400000) : null;
+            var aviso = art && ult && art.diasReposicion && dias < art.diasReposicion ? '<small class="alertaLinea">⚠ Recibió este artículo hace ' + dias + ' día(s)</small>' : '';
+            var f = document.createElement('div'); f.className = 'unLinea';
+            f.innerHTML = '<span><b>' + escaparHtml(l.nombre + (l.color ? ' · ' + l.color : '')) + '</b>' + (l.codigo ? '<small>Cód. ' + escaparHtml(l.codigo) + '</small>' : '') + aviso + '</span>' +
+                '<span class="chipTalla">Talla ' + escaparHtml(l.talla) + '</span>' +
+                '<div class="contador"><button type="button" data-d="-1">−</button><input type="number" min="1" value="' + l.cantidad + '"><button type="button" data-d="1">+</button></div>' +
+                '<button type="button" class="btnEliminarArticulo" title="Quitar"><svg class="icon sm"><use href="#i-x"/></svg></button>';
+            var inp = f.querySelector('input');
+            f.querySelectorAll('button[data-d]').forEach(function (b) { b.onclick = function () { l.cantidad = limitarNum(l.cantidad + Number(b.dataset.d), 1, 99); renderizarCarritoUN(); renderizarArticulosUN(); }; });
+            inp.onchange = function () { l.cantidad = limitarNum(Number(inp.value) || 1, 1, 99); renderizarCarritoUN(); renderizarArticulosUN(); };
+            f.querySelector('.btnEliminarArticulo').onclick = function () { carritoUN.splice(i, 1); renderizarCarritoUN(); renderizarArticulosUN(); };
+            cont.appendChild(f);
+        });
+    }
+    function vaciarCarritoUN() { carritoUN = []; renderizarCarritoUN(); renderizarArticulosUN(); }
+    function repetirUltimaEntregaUN() {
+        if (!empleadoUN || !empleadoUN.ultimoUN) return;
+        var r = empleadoUN.ultimoUN, n = 0;
+        carritoUN = [];
+        r.articulos.forEach(function (a) {
+            var art = catalogoUN.filter(function (x) { return x.id === a.artId && x.activo !== false; })[0];
+            if (!art || !art.variantes.some(function (v) { return v.color === a.color && v.tallas.indexOf(a.talla) !== -1; })) return;
+            carritoUN.push({ artId: art.id, nombre: art.nombre, codigo: art.codigo || '', color: a.color, talla: a.talla, cantidad: a.cantidad });
+            n++;
+        });
+        renderizarCarritoUN(); renderizarArticulosUN();
+        mostrarToast(n ? ('Se cargaron ' + n + ' artículo(s) de su última entrega (' + r.numero + ')') : 'Los artículos de su última entrega ya no están en el catálogo', n ? 'success' : 'info');
+    }
+
+    // ---------- firma ----------
+    function validarDespachoUN() {
+        var nombre = document.getElementById('unNombre').value.trim(), tarjeta = document.getElementById('unTarjeta').value.trim();
+        if (!nombre) { mostrarToast('Escribe o elige el nombre del empleado', 'error'); return null; }
+        if (!tarjeta) { mostrarToast('Escribe el número de tarjeta del empleado', 'error'); return null; }
+        if (!carritoUN.length) { mostrarToast('Agrega al menos un artículo a la lista de entrega', 'error'); return null; }
+        return { nombre: nombre, tarjeta: tarjeta, area: document.getElementById('unArea').value.trim(), observaciones: document.getElementById('unObservaciones').value.trim(),
+            articulos: carritoUN.map(function (l) { return Object.assign({}, l); }), fecha: Date.now() };
+    }
+    function iniciarFirmaUniformes() {
+        var d = validarDespachoUN(); if (!d) return;
+        datosFirmaUN = d;
+        uniformesListoParaFirmar = true;
+        document.getElementById('unFormulario').style.display = 'none';
+        document.getElementById('unInfoFirma').classList.add('visible');
+        var piezas = d.articulos.reduce(function (s, a) { return s + a.cantidad; }, 0);
+        document.getElementById('unTextoInfoFirma').textContent = formatearNumeroUN(siguienteNumeroUN) + ' — ' + d.nombre + ' (' + d.tarjeta + ') · ' + piezas + ' pieza(s): ' +
+            d.articulos.map(function (a) { return a.cantidad + '× ' + a.nombre + (a.color ? ' ' + a.color : '') + ' ' + a.talla; }).join(', ');
+        document.getElementById('btnConnect').disabled = false;
+        hayTrazosFirma = false; hayTrazosTarjeta = false;
+        document.getElementById('ssvvggFirma').innerHTML = ''; document.getElementById('ssvvggTarjeta').innerHTML = '';
+        document.getElementById('btnConfirmarUN').disabled = true;
+        dibujarPantallaSegunModo();
+        if (window.innerWidth < 1024) setTimeout(function () { document.getElementById('panelFirma').scrollIntoView({ behavior: 'smooth' }); }, 50);
+    }
+    function cancelarFirmaUniformes(sinPreguntar) {
+        if (!sinPreguntar && (hayTrazosFirma || hayTrazosTarjeta) && !confirm('Hay una firma sin guardar. ¿Cancelar de todas formas?')) return;
+        uniformesListoParaFirmar = false; datosFirmaUN = null;
+        document.getElementById('unFormulario').style.display = '';
+        document.getElementById('unInfoFirma').classList.remove('visible');
+        document.getElementById('ssvvggFirma').innerHTML = ''; document.getElementById('ssvvggTarjeta').innerHTML = '';
+        hayTrazosFirma = false; hayTrazosTarjeta = false;
+        document.getElementById('btnConfirmarUN').disabled = true;
+        document.getElementById('btnConnect').disabled = true;
+        dibujarPantallaSegunModo();
+    }
+    // Pantalla del pad: firma + No. de tarjeta, con fecha y resumen de lo que recibe
+    function dibujarPantallaFirmaUN() {
+        var t = temaPad(), c = t.colores, d = datosFirmaUN || { articulos: [], fecha: Date.now() };
+        context.fillStyle = c.fondo; context.fillRect(0, 0, 800, 480);
+        encabezadoPad({ alto: 70, titulo: t.textos.tituloUN, sub: formatearNumeroUN(siguienteNumeroUN) + '  ·  ' + fechaCorta(d.fecha) + (d.nombre ? '  ·  ' + d.nombre : ''), centroX: 350, derecha: zonaReintentar.x1 - 14 });
+        botonPad(zonaReintentar, t.textos.reintentar, c.peligro);
+        zonaFirmaPad(zonaFirmaDocumento, t.textos.etiquetaFirma, 30);
+        zonaFirmaPad(zonaTarjetaDocumento, t.textos.etiquetaTarjeta, 25);
+        // caja de resumen (a la derecha de la tarjeta)
+        var x = 420, y = zonaTarjetaDocumento.y1, w = 330, h = zonaTarjetaDocumento.y2 - zonaTarjetaDocumento.y1;
+        context.fillStyle = alfa(c.acento, 0.07); context.beginPath(); context.roundRect(x, y, w, h, 10); context.fill();
+        context.fillStyle = c.etiqueta; context.font = fp('', 13); context.textAlign = 'left';
+        context.fillText('RECIBE  ·  FECHA ' + fechaCorta(d.fecha), x + 4, y - 8);
+        context.fillStyle = c.texto; context.font = fp('', 13);
+        var lineas = d.articulos.map(function (a) { return a.cantidad + '× ' + a.nombre + (a.color ? ' ' + a.color : '') + ' · ' + a.talla; });
+        var max = 4;
+        lineas.slice(0, lineas.length > max ? max - 1 : max).forEach(function (l, i) { context.fillText(textoAjustado(l, w - 24), x + 12, y + 20 + i * 17); });
+        if (lineas.length > max) { context.fillStyle = c.textoSec; context.fillText('+ ' + (lineas.length - max + 1) + ' artículo(s) más', x + 12, y + 20 + (max - 1) * 17); }
+        if (!vistaPreviaActiva) dibujarTintaExistente();
+        areaPad(areaTotalDocumento);
+        empujarImagenAlPad();
+    }
+    // PNG recortado de una zona del lienzo de firma (alta resolución, fondo transparente)
+    function rasterizarZona(svgEl, zona, escala) {
+        escala = escala || 3;
+        return new Promise(function (resolve, reject) {
+            svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            var url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svgEl)], { type: 'image/svg+xml;charset=utf-8' }));
+            var img = new Image();
+            img.onload = function () {
+                var w = (zona.x2 - zona.x1) * escala, h = (zona.y2 - zona.y1) * escala;
+                var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                cv.getContext('2d').drawImage(img, zona.x1, zona.y1, zona.x2 - zona.x1, zona.y2 - zona.y1, 0, 0, w, h);
+                URL.revokeObjectURL(url);
+                resolve({ bytes: dataUrlABytes(cv.toDataURL('image/png')), w: w, h: h });
+            };
+            img.onerror = function (e) { URL.revokeObjectURL(url); reject(e); };
+            img.src = url;
+        });
+    }
+    async function confirmarFirmaUN() {
+        if (!hayTrazosFirma || !hayTrazosTarjeta || !datosFirmaUN) return;
+        var btn = document.getElementById('btnConfirmarUN'), texto = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Guardando…';
+        try {
+            var d = datosFirmaUN;
+            var numero = formatearNumeroUN(siguienteNumeroUN);
+            d.fecha = Date.now();
+            var firma = await rasterizarZona(document.getElementById('ssvvggFirma'), zonaFirmaDocumento);
+            var tarjetaImg = await rasterizarZona(document.getElementById('ssvvggTarjeta'), zonaTarjetaDocumento);
+            var bytes = await generarConduceUniformes(numero, d, firma, tarjetaImg);
+            await guardarConduceDB(numero, bytes);
+            var enCarpeta = false;
+            if (carpetaUniformes) {
+                try {
+                    if (!(await verificarPermiso(carpetaUniformes, 'readwrite'))) throw new Error('Sin permiso');
+                    var fh = await carpetaUniformes.getFileHandle(numero + '.pdf', { create: true });
+                    var w = await fh.createWritable(); await w.write(bytes); await w.close();
+                    enCarpeta = true;
+                } catch (e) { console.warn(e); }
+            }
+            if (!enCarpeta) guardarArchivoDescarga(numero + '.pdf', bytes);
+            // registro + existencias
+            historialUN.push({ numero: numero, fecha: d.fecha, nombre: d.nombre, tarjeta: d.tarjeta, area: d.area, observaciones: d.observaciones,
+                entregadoPor: configUN.entregadoPor || '', articulos: d.articulos, anulado: false });
+            if (configUN.controlarStock) d.articulos.forEach(function (a) {
+                var k = claveInv(a.artId, a.color, a.talla);
+                if (inventarioUN[k] !== undefined && inventarioUN[k] !== null && inventarioUN[k] !== '') inventarioUN[k] = Number(inventarioUN[k]) - a.cantidad;
+            });
+            marcarRecordarEmpleadoMS(d.tarjeta, document.getElementById('unRecordar').checked);
+            await guardarDatosUN();
+            recalcularNumeroUN();
+            // limpiar
+            carritoUN = []; seleccionUN = {};
+            document.getElementById('unObservaciones').value = '';
+            cancelarFirmaUniformes(true);
+            cambiarEmpleadoUN(true);
+            renderizarCarritoUN(); actualizarListaAreasUN();
+            mostrarToast('✓ Conduce ' + numero + ' firmado' + (enCarpeta ? ' y guardado en la carpeta' : ' (descargado y guardado en este navegador)'), 'success');
+        } catch (e) {
+            console.error(e);
+            mostrarToast('No se pudo generar el conduce: ' + e.message, 'error');
+            btn.disabled = false;
+        } finally { btn.textContent = texto; }
+    }
+    function guardarArchivoDescarga(nombre, bytes) {
+        var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        var a = document.createElement('a'); a.href = url; a.download = nombre;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }
+
+    // ---------- conduce PDF ----------
+    async function generarConduceUniformes(numero, d, firma, tarjetaImg) {
+        var doc = await PDFLib.PDFDocument.create();
+        doc.setTitle('Conduce de uniformes ' + numero); doc.setAuthor('Sistema de Autogestión · Almacén'); doc.setSubject(d.nombre + ' (' + d.tarjeta + ')');
+        var f = await doc.embedFont(PDFLib.StandardFonts.Helvetica), fb = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        var rgb = PDFLib.rgb, marino = rgb(11 / 255, 31 / 255, 74 / 255), rojo = rgb(218 / 255, 41 / 255, 28 / 255), gris = rgb(0.3, 0.34, 0.4), tenue = rgb(0.55, 0.59, 0.65), claro = rgb(0.95, 0.96, 0.98), borde = rgb(0.85, 0.87, 0.9), blanco = rgb(1, 1, 1);
+        var W = 612, H = 792, M = 48;
+        var T = function (s) { return textoCompatibleWinAnsi(String(s == null ? '' : s)); };
+        var logo = null;
+        try { var dl = localStorage.getItem('logoPad'); if (dl) logo = await doc.embedPng(dataUrlABytes(dl)); } catch (e) { }
+        var pag, y, numPag = 0;
+        function derecha(p, txt, x, yy, font, size, color) { p.drawText(txt, { x: x - font.widthOfTextAtSize(txt, size), y: yy, size: size, font: font, color: color }); }
+        function nuevaPagina() {
+            pag = doc.addPage([W, H]); numPag++;
+            pag.drawRectangle({ x: 0, y: H - 78, width: W, height: 78, color: marino });
+            pag.drawRectangle({ x: 0, y: H - 81, width: W, height: 3, color: rojo });
+            var xt = M;
+            if (logo) {
+                var k = Math.min(110 / logo.width, 46 / logo.height);
+                pag.drawImage(logo, { x: M, y: H - 39 - logo.height * k / 2, width: logo.width * k, height: logo.height * k });
+                xt = M + logo.width * k + 14;
+            }
+            pag.drawText('TALLER AUTOMOTRIZ CLARO', { x: xt, y: H - 36, size: 15, font: fb, color: blanco });
+            pag.drawText('Conduce de entrega de uniformes', { x: xt, y: H - 54, size: 10, font: f, color: rgb(0.8, 0.85, 0.95) });
+            derecha(pag, numero, W - M, H - 36, fb, 15, blanco);
+            derecha(pag, fechaHora(d.fecha), W - M, H - 54, f, 9.5, rgb(0.8, 0.85, 0.95));
+            y = H - 112;
+        }
+        nuevaPagina();
+        // datos del empleado
+        pag.drawRectangle({ x: M, y: y - 62, width: W - 2 * M, height: 70, color: claro, borderColor: borde, borderWidth: 0.7 });
+        function campo(etq, val, x, yy) { pag.drawText(etq.toUpperCase(), { x: x, y: yy, size: 7.5, font: fb, color: tenue }); pag.drawText(T(val || '—'), { x: x, y: yy - 14, size: 11, font: fb, color: gris }); }
+        campo('Recibe', d.nombre, M + 14, y - 8);
+        campo('No. de tarjeta', d.tarjeta, M + 300, y - 8);
+        campo('Área / departamento', d.area, M + 14, y - 40);
+        campo('Fecha de entrega', fechaCorta(d.fecha), M + 300, y - 40);
+        campo('Entregado por', configUN.entregadoPor || 'Almacén', M + 410, y - 40);
+        y -= 92;
+        // tabla
+        var cols = [{ t: '#', x: M + 8 }, { t: 'CÓDIGO', x: M + 34 }, { t: 'ARTÍCULO', x: M + 110 }, { t: 'COLOR', x: M + 318 }, { t: 'TALLA', x: M + 398 }];
+        function cabeceraTabla() {
+            pag.drawRectangle({ x: M, y: y - 6, width: W - 2 * M, height: 22, color: marino });
+            cols.forEach(function (c) { pag.drawText(T(c.t), { x: c.x, y: y + 1, size: 8.5, font: fb, color: blanco }); });
+            derecha(pag, 'CANTIDAD', W - M - 10, y + 1, fb, 8.5, blanco);
+            y -= 24;
+        }
+        cabeceraTabla();
+        var total = 0;
+        d.articulos.forEach(function (a, i) {
+            if (y < 300 && i < d.articulos.length) {           // deja espacio para firmas en la última página
+                if (y < 90) { nuevaPagina(); cabeceraTabla(); }
+            }
+            if (i % 2 === 0) pag.drawRectangle({ x: M, y: y - 6, width: W - 2 * M, height: 20, color: claro });
+            pag.drawText(String(i + 1), { x: cols[0].x, y: y, size: 9.5, font: f, color: gris });
+            pag.drawText(T(a.codigo || '—'), { x: cols[1].x, y: y, size: 9.5, font: f, color: gris });
+            var nom = T(a.nombre); while (f.widthOfTextAtSize(nom, 9.5) > 200 && nom.length > 4) nom = nom.slice(0, -2);
+            pag.drawText(nom + (nom !== T(a.nombre) ? '…' : ''), { x: cols[2].x, y: y, size: 9.5, font: f, color: gris });
+            pag.drawText(T(a.color || '—'), { x: cols[3].x, y: y, size: 9.5, font: f, color: gris });
+            pag.drawText(T(a.talla), { x: cols[4].x, y: y, size: 9.5, font: fb, color: gris });
+            derecha(pag, String(a.cantidad), W - M - 10, y, fb, 9.5, gris);
+            total += a.cantidad;
+            y -= 20;
+        });
+        pag.drawLine({ start: { x: M, y: y + 12 }, end: { x: W - M, y: y + 12 }, thickness: 0.8, color: marino });
+        derecha(pag, 'TOTAL DE PIEZAS: ' + total, W - M - 10, y - 2, fb, 10, marino);
+        y -= 26;
+        if (d.observaciones) {
+            pag.drawText('OBSERVACIONES', { x: M, y: y, size: 7.5, font: fb, color: tenue });
+            var palabras = T(d.observaciones).split(/\s+/), linea = '', yy = y - 13;
+            palabras.forEach(function (p) {
+                var prueba = linea ? linea + ' ' + p : p;
+                if (f.widthOfTextAtSize(prueba, 9.5) > W - 2 * M) { pag.drawText(linea, { x: M, y: yy, size: 9.5, font: f, color: gris }); yy -= 12; linea = p; } else linea = prueba;
+            });
+            if (linea) pag.drawText(linea, { x: M, y: yy, size: 9.5, font: f, color: gris });
+            y = yy - 18;
+        }
+        if (y < 250) { nuevaPagina(); }
+        // declaración + firmas
+        var decl = 'Recibí conforme los uniformes descritos en este conduce, en buen estado y en las tallas indicadas. Me comprometo a darles el uso adecuado.';
+        var pal = T(decl).split(' '), ln = '', yd = y;
+        pal.forEach(function (p) { var pr = ln ? ln + ' ' + p : p; if (f.widthOfTextAtSize(pr, 9) > W - 2 * M) { pag.drawText(ln, { x: M, y: yd, size: 9, font: f, color: tenue }); yd -= 12; ln = p; } else ln = pr; });
+        if (ln) pag.drawText(ln, { x: M, y: yd, size: 9, font: f, color: tenue });
+        var yf = yd - 26;
+        var anchoF = 300, altoF = anchoF * firma.h / firma.w;
+        var anchoT = 170, altoT = anchoT * tarjetaImg.h / tarjetaImg.w;
+        var altoCaja = Math.max(altoF, altoT) + 10;
+        var imgF = await doc.embedPng(firma.bytes), imgT = await doc.embedPng(tarjetaImg.bytes);
+        pag.drawRectangle({ x: M, y: yf - altoCaja, width: anchoF, height: altoCaja, borderColor: borde, borderWidth: 0.8, color: blanco });
+        pag.drawImage(imgF, { x: M, y: yf - altoCaja + 5, width: anchoF, height: altoF });
+        pag.drawRectangle({ x: W - M - anchoT, y: yf - altoCaja, width: anchoT, height: altoCaja, borderColor: borde, borderWidth: 0.8, color: blanco });
+        pag.drawImage(imgT, { x: W - M - anchoT, y: yf - altoCaja + (altoCaja - altoT) / 2, width: anchoT, height: altoT });
+        var yl = yf - altoCaja - 14;
+        pag.drawText('FIRMA DE QUIEN RECIBE', { x: M, y: yl, size: 8, font: fb, color: gris });
+        pag.drawText(T(d.nombre), { x: M, y: yl - 12, size: 9, font: f, color: tenue });
+        pag.drawText('NO. DE TARJETA (MANUSCRITO)', { x: W - M - anchoT, y: yl, size: 8, font: fb, color: gris });
+        pag.drawText('FECHA: ' + fechaCorta(d.fecha), { x: W - M - anchoT, y: yl - 12, size: 9, font: f, color: tenue });
+        // pie en todas las páginas
+        doc.getPages().forEach(function (p, i) {
+            p.drawLine({ start: { x: M, y: 46 }, end: { x: W - M, y: 46 }, thickness: 0.5, color: borde });
+            p.drawText('Documento generado por el Sistema de Autogestión · Almacén · Taller Automotriz Claro', { x: M, y: 32, size: 7.5, font: f, color: tenue });
+            derecha(p, numero + '  ·  Página ' + (i + 1) + ' de ' + numPag, W - M, 32, f, 7.5, tenue);
+        });
+        return await doc.save();
+    }
+
+    // ---------- historial ----------
+    function cambiarVistaUN(v) {
+        document.body.setAttribute('data-unvista', v);      // historial y catálogo usan todo el ancho (sin columna del pad)
+        document.querySelectorAll('#unSubTabs button').forEach(function (b) { b.classList.toggle('activa', b.dataset.vista === v); });
+        document.querySelectorAll('#uniformesSection .unVista').forEach(function (s) { s.classList.toggle('activa', s.dataset.vista === v); });
+        if (v === 'historial') renderizarHistorialUN();
+        if (v === 'catalogo') renderizarCatalogoUN();
+        if (v === 'despacho') { renderizarArticulosUN(); renderizarCarritoUN(); }
+    }
+    function registrosFiltradosUN() {
+        var d = document.getElementById('unDesde').value, h = document.getElementById('unHasta').value;
+        var dm = d ? new Date(d + 'T00:00:00').getTime() : null, hm = h ? new Date(h + 'T23:59:59').getTime() : null;
+        return historialUN.filter(function (r) { return (dm === null || r.fecha >= dm) && (hm === null || r.fecha <= hm); });
+    }
+    function personasUN(registros) {
+        var mapa = {};
+        registros.forEach(function (r) {
+            var k = claveTarjeta(r.tarjeta);
+            var p = mapa[k] || (mapa[k] = { clave: k, nombre: r.nombre, tarjeta: r.tarjeta, area: r.area || '', registros: [], ultima: 0, piezas: 0 });
+            p.registros.push(r);
+            if (r.fecha >= p.ultima) { p.ultima = r.fecha; p.nombre = r.nombre; if (r.area) p.area = r.area; }
+            if (!r.anulado) p.piezas += r.articulos.reduce(function (s, a) { return s + a.cantidad; }, 0);
+        });
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (a, b) { return b.ultima - a.ultima; });
+    }
+    function renderizarHistorialUN() {
+        var regs = registrosFiltradosUN();
+        var ahora = new Date(), iniMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1).getTime();
+        var mes = historialUN.filter(function (r) { return !r.anulado && r.fecha >= iniMes; });
+        var stats = [
+            ['Entregas este mes', mes.length],
+            ['Piezas este mes', mes.reduce(function (s, r) { return s + r.articulos.reduce(function (x, a) { return x + a.cantidad; }, 0); }, 0)],
+            ['Personas atendidas', personasUN(historialUN.filter(function (r) { return !r.anulado; })).length],
+            ['Conduces anulados', historialUN.filter(function (r) { return r.anulado; }).length]
+        ];
+        document.getElementById('unStats').innerHTML = stats.map(function (s) { return '<div class="statUN"><span>' + s[0] + '</span><b>' + s[1] + '</b></div>'; }).join('');
+        renderizarPersonasUN(regs);
+    }
+    function renderizarPersonasUN(regs) {
+        regs = regs || registrosFiltradosUN();
+        var q = (document.getElementById('unBuscarPersona').value || '').trim().toLowerCase();
+        var lista = personasUN(regs).filter(function (p) { return !q || p.nombre.toLowerCase().indexOf(q) !== -1 || claveTarjeta(p.tarjeta).indexOf(q) !== -1 || (p.area || '').toLowerCase().indexOf(q) !== -1; });
+        var cont = document.getElementById('unListaPersonas');
+        cont.innerHTML = '';
+        if (!lista.length) {
+            cont.innerHTML = '<div class="estadoVacio">' + (historialUN.length ? 'Sin resultados para la búsqueda o fechas' : 'Todavía no hay entregas de uniformes') + '</div>';
+            renderizarDetalleUN(null);
+            return;
+        }
+        if (!personaSeleccionadaUN || !lista.some(function (p) { return p.clave === personaSeleccionadaUN; })) personaSeleccionadaUN = lista[0].clave;
+        lista.forEach(function (p) {
+            var f = document.createElement('div'); f.className = 'personaUN' + (p.clave === personaSeleccionadaUN ? ' activa' : '');
+            f.appendChild(crearAvatar(p.nombre));
+            var t = document.createElement('span'); t.className = 'textoFila';
+            t.innerHTML = '<b>' + escaparHtml(p.nombre) + '</b><small>Tarjeta ' + escaparHtml(p.tarjeta) + ' · ' + haceCuanto(p.ultima) + '</small>';
+            f.appendChild(t);
+            var c = document.createElement('span'); c.className = 'contadorP'; c.textContent = p.registros.length; c.title = 'Conduces'; f.appendChild(c);
+            f.onclick = function () { personaSeleccionadaUN = p.clave; renderizarPersonasUN(regs); };
+            cont.appendChild(f);
+        });
+        renderizarDetalleUN(lista.filter(function (p) { return p.clave === personaSeleccionadaUN; })[0]);
+    }
+    function renderizarDetalleUN(p) {
+        var cont = document.getElementById('unDetallePersona');
+        if (!p) { cont.innerHTML = '<div class="estadoVacio" style="background:transparent;border:none;">Elige una persona para ver su historial de uniformes.</div>'; return; }
+        var validos = p.registros.filter(function (r) { return !r.anulado; });
+        var resumen = {};
+        validos.forEach(function (r) { r.articulos.forEach(function (a) {
+            var k = a.nombre + '|' + a.color + '|' + a.talla;
+            var e = resumen[k] || (resumen[k] = { nombre: a.nombre, color: a.color, talla: a.talla, cantidad: 0, ultima: 0 });
+            e.cantidad += a.cantidad; if (r.fecha > e.ultima) e.ultima = r.fecha;
+        }); });
+        var filasRes = Object.keys(resumen).map(function (k) { return resumen[k]; }).sort(function (a, b) { return b.ultima - a.ultima; });
+        var regs = p.registros.slice().sort(function (a, b) { return b.fecha - a.fecha; });
+        listaVisorUN = regs;
+        var html = '<div class="detalleHead"><span class="avatarEmp lg" style="background:' + colorAvatar(p.nombre) + '">' + escaparHtml(inicialesEmpleado(p.nombre)) + '</span>' +
+            '<div class="empInfo"><div class="empNombre">' + escaparHtml(p.nombre) + '</div><div class="empMeta"><span class="chipTarjeta"><svg class="icon sm"><use href="#i-tarjeta"/></svg>' + escaparHtml(p.tarjeta) + '</span>' + (p.area ? '<span>' + escaparHtml(p.area) + '</span>' : '') + '</div></div>' +
+            '<div class="empAcciones"><button class="btn sm" id="unBtnDespacharA"><svg class="icon sm"><use href="#i-pluma"/></svg>Nuevo despacho</button><button class="btn sm" id="unBtnCsvPersona"><svg class="icon sm"><use href="#i-descarga"/></svg>CSV</button></div></div>' +
+            '<div class="miniStats"><div><span>Conduces</span><b>' + validos.length + '</b></div><div><span>Piezas recibidas</span><b>' + p.piezas + '</b></div><div><span>Última entrega</span><b>' + (validos.length ? fechaCorta(validos[0] ? Math.max.apply(null, validos.map(function (r) { return r.fecha; })) : 0) : '—') + '</b></div></div>' +
+            '<div class="tituloBloque">Conduces</div><div id="unListaConduces"></div>' +
+            (filasRes.length ? '<div class="tituloBloque">Resumen por artículo</div><table class="tablaResumen"><thead><tr><th>Artículo</th><th>Talla</th><th>Última</th><th>Total</th></tr></thead><tbody>' +
+                filasRes.map(function (e) { return '<tr><td>' + escaparHtml(e.nombre + (e.color ? ' · ' + e.color : '')) + '</td><td>' + escaparHtml(e.talla) + '</td><td>' + fechaCorta(e.ultima) + '</td><td><b>' + e.cantidad + '</b></td></tr>'; }).join('') + '</tbody></table>' : '');
+        cont.innerHTML = html;
+        var lc = document.getElementById('unListaConduces');
+        regs.forEach(function (r, i) {
+            var piezas = r.articulos.reduce(function (s, a) { return s + a.cantidad; }, 0);
+            var f = document.createElement('div'); f.className = 'conduceUN' + (r.anulado ? ' anulado' : '');
+            f.innerHTML = '<span class="icoDoc ms"></span><span class="textoFila"><b>' + r.numero + ' · ' + fechaHora(r.fecha) + '</b><small>' + piezas + ' pieza(s): ' +
+                escaparHtml(r.articulos.map(function (a) { return a.cantidad + '× ' + a.nombre + (a.color ? ' ' + a.color : '') + ' ' + a.talla; }).join(', ')) +
+                (r.anulado ? '<br>Anulado el ' + fechaCorta(r.fechaAnulacion) + ': ' + escaparHtml(r.motivoAnulacion || '') : '') + '</small></span>' +
+                '<span class="badgeEstado ' + (r.anulado ? 'anulado">ANULADO' : 'ok">VÁLIDO') + '</span>' +
+                '<span class="accionesFila"><button class="btnVerDoc">Ver</button><button class="btnCopiarDoc">Descargar</button>' + (r.anulado ? '' : '<button class="btnEliminarArticulo" title="Anular conduce">⊘</button>') + '</span>';
+            f.querySelector('.btnVerDoc').onclick = function () { abrirVisorUN(i); };
+            f.querySelector('.btnCopiarDoc').onclick = async function () {
+                var b = await bytesConduceUN(r.numero);
+                if (b) guardarArchivoDescarga(r.numero + '.pdf', b); else mostrarToast('No se encontró el PDF de ' + r.numero + ' (conecta la carpeta de uniformes)', 'error');
+            };
+            var an = f.querySelector('.btnEliminarArticulo'); if (an) an.onclick = function () { anularConduceUN(r); };
+            lc.appendChild(f);
+        });
+        document.getElementById('unBtnDespacharA').onclick = function () {
+            var emp = empleadoPorTarjetaUN(p.tarjeta) || { nombre: p.nombre, tarjeta: p.tarjeta, area: p.area, entregasUN: validos.length, fechaUN: p.ultima, ultimoUN: validos.slice().sort(function (a, b) { return b.fecha - a.fecha; })[0] || null };
+            cambiarVistaUN('despacho'); seleccionarEmpleadoUN(emp);
+        };
+        document.getElementById('unBtnCsvPersona').onclick = function () { exportarUniformesCSV(p.registros, 'uniformes_' + p.tarjeta); };
+    }
+    async function anularConduceUN(r) {
+        var motivo = prompt('¿Por qué se anula el conduce ' + r.numero + ' de ' + r.nombre + '?\n(El registro se conserva como ANULADO; las piezas vuelven al inventario)');
+        if (motivo === null) return;
+        if (!motivo.trim()) { mostrarToast('Escribe el motivo para anular', 'error'); return; }
+        r.anulado = true; r.motivoAnulacion = motivo.trim(); r.fechaAnulacion = Date.now();
+        if (configUN.controlarStock) r.articulos.forEach(function (a) {
+            var k = claveInv(a.artId, a.color, a.talla);
+            if (inventarioUN[k] !== undefined && inventarioUN[k] !== null && inventarioUN[k] !== '') inventarioUN[k] = Number(inventarioUN[k]) + a.cantidad;
+        });
+        await guardarDatosUN();
+        renderizarHistorialUN();
+        mostrarToast('Conduce ' + r.numero + ' anulado', 'success');
+    }
+    async function abrirVisorUN(i) {
+        if (i < 0 || i >= listaVisorUN.length) return;
+        var r = listaVisorUN[i];
+        var b = await bytesConduceUN(r.numero);
+        if (!b) { mostrarToast('No se encontró el PDF de ' + r.numero + '. Conecta la carpeta de uniformes donde se guardó.', 'error'); return; }
+        contextoVisorPdf = 'uniformes'; indiceVisorUN = i;
+        try {
+            var pdf = await pdfjsLib.getDocument({ data: b.slice() }).promise;
+            document.getElementById('tituloVisorPdf').innerText = r.numero + ' · ' + r.nombre + (r.anulado ? ' (ANULADO)' : '');
+            document.getElementById('modalVisorPdf').classList.add('visible');
+            document.getElementById('paginacionVisorPdf').innerText = 'Conduce ' + (i + 1) + ' de ' + listaVisorUN.length;
+            document.getElementById('btnVisorAnterior').disabled = i <= 0;
+            document.getElementById('btnVisorSiguiente').disabled = i >= listaVisorUN.length - 1;
+            var cont = document.getElementById('contenedorPaginasVisor'); cont.innerHTML = '';
+            for (var n = 1; n <= pdf.numPages; n++) {
+                var pg = await pdf.getPage(n), vp = pg.getViewport({ scale: 1.4 }), cv = document.createElement('canvas');
+                cv.width = vp.width; cv.height = vp.height;
+                await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+                cont.appendChild(cv);
+            }
+        } catch (e) { mostrarToast('No se pudo abrir el conduce: ' + e.message, 'error'); }
+    }
+    function exportarUniformesCSV(registros, nombre) {
+        registros = registros || historialUN;
+        if (!registros.length) { mostrarToast('No hay entregas registradas', 'info'); return; }
+        var filas = [['Conduce', 'Fecha', 'Nombre', 'Tarjeta', 'Area', 'Articulo', 'Codigo', 'Color', 'Talla', 'Cantidad', 'Estado', 'Motivo anulacion', 'Observaciones', 'Entregado por']];
+        registros.slice().sort(function (a, b) { return b.fecha - a.fecha; }).forEach(function (r) {
+            r.articulos.forEach(function (a) {
+                filas.push([r.numero, fechaHora(r.fecha), r.nombre, r.tarjeta, r.area || '', a.nombre, a.codigo || '', a.color || '', a.talla, a.cantidad,
+                    r.anulado ? 'ANULADO' : 'VALIDO', r.motivoAnulacion || '', r.observaciones || '', r.entregadoPor || '']);
+            });
+        });
+        var csv = filas.map(function (f) { return f.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+        var url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+        var a = document.createElement('a'); a.href = url; a.download = (nombre || 'historial_uniformes') + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }
+
+    // ---------- catálogo e inventario ----------
+    function cambiarConfigUN(k, v) { configUN[k] = v; guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN(); }
+    var timerGuardarCatUN = null;
+    function guardarCatalogoDiferido() { clearTimeout(timerGuardarCatUN); timerGuardarCatUN = setTimeout(function () { guardarDatosUN(); renderizarArticulosUN(); }, 500); }
+    function agregarArticuloUN() {
+        catalogoUN.push({ id: 'art' + Date.now().toString(36), nombre: 'Nuevo artículo', codigo: '', diasReposicion: 180, activo: true, variantes: [{ color: '', tallas: ['S', 'M', 'L', 'XL'] }] });
+        guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN();
+        setTimeout(function () { var ins = document.querySelectorAll('#unCatalogo .catUN:last-child input'); if (ins[0]) { ins[0].focus(); ins[0].select(); } }, 30);
+    }
+    function restablecerCatalogoUN() {
+        if (!confirm('¿Volver al catálogo original (T-shirt blanco/gris y pantalón 30–45)? Los artículos que agregaste se quitan; el historial y las existencias se conservan.')) return;
+        catalogoUN = catalogoUNDefault(); guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN();
+    }
+    function renderizarCatalogoUN() {
+        var c = document.getElementById('unControlarStock'); if (!c) return;
+        c.checked = !!configUN.controlarStock;
+        document.getElementById('unUmbral').value = configUN.umbral;
+        document.getElementById('unEntregadoPor').value = configUN.entregadoPor || '';
+        var cont = document.getElementById('unCatalogo'); cont.innerHTML = '';
+        catalogoUN.forEach(function (art, ia) {
+            var caja = document.createElement('div'); caja.className = 'catUN' + (art.activo === false ? ' inactivo' : '');
+            caja.innerHTML = '<div class="catUNHead">' +
+                '<label class="campoEtiquetado"><span class="labelMini">Artículo</span><input class="campo" data-k="nombre" value="' + escaparHtml(art.nombre) + '"></label>' +
+                '<label class="campoEtiquetado"><span class="labelMini">Código SAP</span><input class="campo" data-k="codigo" value="' + escaparHtml(art.codigo || '') + '" placeholder="Opcional"></label>' +
+                '<label class="campoEtiquetado"><span class="labelMini">Días para reponer</span><input class="campo" type="number" min="0" data-k="diasReposicion" value="' + (art.diasReposicion || 0) + '"></label>' +
+                '<div class="acciones"><label class="checkRecordar" style="margin:0;" title="Mostrar en despacho"><input type="checkbox" data-k="activo"' + (art.activo !== false ? ' checked' : '') + '> Activo</label>' +
+                '<button class="btnEliminarArticulo" title="Eliminar artículo"><svg class="icon sm"><use href="#i-x"/></svg></button></div></div>';
+            caja.querySelectorAll('.catUNHead [data-k]').forEach(function (inp) {
+                var k = inp.dataset.k;
+                if (inp.type === 'checkbox') inp.onchange = function () { art.activo = inp.checked; caja.classList.toggle('inactivo', !inp.checked); guardarCatalogoDiferido(); };
+                else inp.oninput = function () { art[k] = k === 'diasReposicion' ? (Number(inp.value) || 0) : inp.value.trim(); guardarCatalogoDiferido(); };
+            });
+            caja.querySelector('.catUNHead .btnEliminarArticulo').onclick = function () {
+                if (!confirm('¿Eliminar "' + art.nombre + '" del catálogo? El historial de entregas se conserva.')) return;
+                catalogoUN.splice(ia, 1); guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN();
+            };
+            art.variantes.forEach(function (v, iv) {
+                var bloque = document.createElement('div'); bloque.className = 'varUN';
+                bloque.innerHTML = '<div class="varUNFila">' +
+                    '<label class="campoEtiquetado"><span class="labelMini">Color</span><input class="campo" data-v="color" value="' + escaparHtml(v.color || '') + '" placeholder="Sin color"></label>' +
+                    '<label class="campoEtiquetado"><span class="labelMini">Tallas (separadas por coma)</span><input class="campo" data-v="tallas" value="' + escaparHtml(v.tallas.join(', ')) + '"></label>' +
+                    '<button class="btnEliminarArticulo" title="Quitar este color"' + (art.variantes.length < 2 ? ' disabled style="visibility:hidden"' : '') + '><svg class="icon sm"><use href="#i-x"/></svg></button></div>' +
+                    '<span class="labelMini">Existencias' + (configUN.controlarStock ? '' : ' (control desactivado)') + ' — deja vacío para no controlar</span><div class="stockGrid"></div>';
+                var colorAnt = v.color;
+                bloque.querySelector('[data-v=color]').onchange = function () {
+                    var nuevo = this.value.trim();
+                    v.tallas.forEach(function (t) {                 // mueve las existencias al nuevo nombre de color
+                        var ka = claveInv(art.id, colorAnt, t), kn = claveInv(art.id, nuevo, t);
+                        if (inventarioUN[ka] !== undefined) { inventarioUN[kn] = inventarioUN[ka]; delete inventarioUN[ka]; }
+                    });
+                    v.color = nuevo; colorAnt = nuevo; guardarDatosUN(); renderizarArticulosUN();
+                };
+                bloque.querySelector('[data-v=tallas]').onchange = function () {
+                    var t = this.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+                    if (!t.length) { mostrarToast('Escribe al menos una talla', 'error'); this.value = v.tallas.join(', '); return; }
+                    v.tallas = t.filter(function (x, i) { return t.indexOf(x) === i; });
+                    guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN();
+                };
+                var quitar = bloque.querySelector('.varUNFila .btnEliminarArticulo');
+                quitar.onclick = function () { if (art.variantes.length < 2) return; if (!confirm('¿Quitar el color "' + (v.color || 'sin color') + '"?')) return; art.variantes.splice(iv, 1); guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN(); };
+                var grid = bloque.querySelector('.stockGrid');
+                v.tallas.forEach(function (t) {
+                    var st = stockDe(art.id, v.color, t);
+                    var celda = document.createElement('label');
+                    celda.className = 'stockCelda' + (st !== null && st < 0 ? ' negativo' : (st !== null && st <= configUN.umbral ? ' bajo' : ''));
+                    celda.innerHTML = '<span>' + escaparHtml(t) + '</span><input type="number" step="1" value="' + (st === null ? '' : st) + '" placeholder="—">';
+                    celda.querySelector('input').onchange = function () {
+                        var val = this.value === '' ? null : Math.round(Number(this.value));
+                        if (val === null) delete inventarioUN[claveInv(art.id, v.color, t)]; else inventarioUN[claveInv(art.id, v.color, t)] = val;
+                        celda.className = 'stockCelda' + (val !== null && val < 0 ? ' negativo' : (val !== null && val <= configUN.umbral ? ' bajo' : ''));
+                        guardarCatalogoDiferido();
+                    };
+                    grid.appendChild(celda);
+                });
+                caja.appendChild(bloque);
+            });
+            var agr = document.createElement('button'); agr.className = 'btn sm agregarColor'; agr.type = 'button'; agr.textContent = '+ Agregar color';
+            agr.onclick = function () { art.variantes.push({ color: 'Nuevo color', tallas: art.variantes[0] ? art.variantes[0].tallas.slice() : ['M'] }); guardarDatosUN(); renderizarCatalogoUN(); renderizarArticulosUN(); };
+            caja.appendChild(agr);
+            cont.appendChild(caja);
+        });
+    }
+    function actualizarListaAreasUN() {
+        var dl = document.getElementById('unListaAreas'); if (!dl) return;
+        var areas = {};
+        historialUN.forEach(function (r) { if (r.area) areas[r.area] = 1; });
+        dl.innerHTML = Object.keys(areas).sort().map(function (a) { return '<option value="' + escaparHtml(a) + '">'; }).join('');
+    }
+    function renderizarUniformes() {
+        recalcularNumeroUN();
+        actualizarEstadoCarpetaUN();
+        renderizarRecientesUN();
+        actualizarListaAreasUN();
+        if (empleadoUN) { var e = empleadoPorTarjetaUN(empleadoUN.tarjeta); if (e) { empleadoUN = e; mostrarTarjetaEmpleadoUN(); } }
+        var v = document.querySelector('#unSubTabs button.activa');
+        cambiarVistaUN(v ? v.dataset.vista : 'despacho');
+    }
+    async function iniciarModuloUniformes() {
+        await restaurarCarpetaUniformes();
+        if (handleUniformesPendienteDeConfirmar) document.getElementById('btnReconectarCarpetas').style.display = 'block';
+        await cargarDatosUN();
+        actualizarEstadoCarpetaUN();
+        renderizarCarritoUN();
     }
 
     // =====================================================================
