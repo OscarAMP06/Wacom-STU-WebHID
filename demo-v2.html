@@ -1584,6 +1584,17 @@ body[data-modo="materiales"][data-msvista="panel"] #panelFirma { display: none; 
 .badgePendientes, .contadorP, .tablaResumen td, .rcTabla td, .msTabla td { font-variant-numeric: tabular-nums; }
 /* Botones deshabilitados: explican con el cursor que no se pueden usar todavía */
 button:disabled { cursor: not-allowed; }
+
+/* v3.1 · correo de recepción */
+.rcCorreoHead { grid-template-columns: 70px minmax(0, 1fr); }
+.rcCorreoHead .rcAdjunto { font-weight: 400; color: var(--text-2); }
+.rcCorreoCuerpo { padding: 22px 20px; }
+.rcCorreoVacio { font-family: Inter, sans-serif; font-size: 13px; color: #64748B; }
+.rcYaReportado { margin-top: 6px; font-size: 12px; color: var(--warning); }
+.rcAjTitulo { margin: 16px 0 0; font-size: 13px; font-weight: 600; color: var(--text); }
+.rcAjCheck { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-2); }
+.rcAjustesGrid select { padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+.rcHistorialBloque summary span { color: var(--muted); font-weight: 400; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1595,6 +1606,7 @@ button:disabled { cursor: not-allowed; }
     <symbol id="i-pluma" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
     <symbol id="i-camion" viewBox="0 0 24 24"><path d="M1 4h13v12H1zM14 8h4l3 3v5h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></symbol>
     <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/></symbol>
+    <symbol id="i-correo" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
     <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
     <symbol id="i-carpeta" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
     <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
@@ -1964,24 +1976,50 @@ button:disabled { cursor: not-allowed; }
                     <div class="rcCorreoHead">
                         <span>Para</span><b id="rcPara">—</b>
                         <span>Asunto</span><b id="rcAsunto">—</b>
+                        <span>Adjunto</span><b id="rcAdjunto" class="rcAdjunto">—</b>
                     </div>
                     <div id="rcCorreoCuerpo" class="rcCorreoCuerpo"></div>
                     <div class="rcCorreoPie">
-                        <button id="rcBtnCopiar" class="btn primario" onclick="rcCopiarCorreo()"><svg class="icon sm"><use href="#i-lista"/></svg>Copiar correo</button>
-                        <button class="btn" onclick="rcAbrirOutlook()">Abrir correo nuevo</button>
+                        <button id="rcBtnOutlook" class="btn primario" onclick="rcAbrirOutlook()"><svg class="icon sm"><use href="#i-correo"/></svg>Abrir en Outlook</button>
+                        <button id="rcBtnCopiar" class="btn" onclick="rcCopiarCorreo()"><svg class="icon sm"><use href="#i-lista"/></svg>Copiar correo</button>
                         <button class="btn fantasma" onclick="rcLimpiar()">Empezar de nuevo</button>
-                        <p id="rcNotaCorreo" class="nota">Pega el correo en Outlook (tu firma ya sale sola) y adjunta el PDF escaneado.</p>
+                        <p id="rcNotaCorreo" class="nota"></p>
                     </div>
                 </div>
 
+                <details class="rcAjustes rcHistorialBloque">
+                    <summary>Solicitudes enviadas <span id="rcHistorialConteo"></span></summary>
+                    <div id="rcHistorial" style="margin-top:12px;"></div>
+                </details>
+
                 <details class="rcAjustes">
-                    <summary>Ajustes de recepción y catálogo</summary>
+                    <summary>Ajustes de recepción, firma y catálogo</summary>
+                    <h5 class="rcAjTitulo">Correo</h5>
                     <div class="rcAjustesGrid">
-                        <label>Para (correo de Recepción Alameda)<input id="rcCfgPara" type="text" placeholder="recepcion.alameda@claro.com.do" onchange="rcGuardarConfig()"></label>
+                        <label>Para<input id="rcCfgPara" type="email" onchange="rcGuardarConfig()"></label>
+                        <label>Con copia (CC, opcional)<input id="rcCfgCc" type="text" placeholder="correo1@claro.com.do; correo2@claro.com.do" onchange="rcGuardarConfig()"></label>
                         <label>Asunto<input id="rcCfgAsunto" type="text" onchange="rcGuardarConfig()"></label>
                         <label>Centro<input id="rcCfgCentro" type="text" onchange="rcGuardarConfig()"></label>
                         <label>Almacén<input id="rcCfgAlmacen" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Abrir en Outlook crea
+                            <select id="rcCfgModo" onchange="rcGuardarConfig()">
+                                <option value="eml">Un borrador listo (con firma y PDF adjunto)</option>
+                                <option value="mailto">Un correo nuevo vacío (pegas con Ctrl+V)</option>
+                            </select>
+                        </label>
                     </div>
+                    <label class="rcAjCheck"><input id="rcCfgPedidosEnAsunto" type="checkbox" onchange="rcGuardarConfig()"> Agregar los números de pedido al asunto</label>
+                    <h5 class="rcAjTitulo">Firma</h5>
+                    <div class="rcAjustesGrid">
+                        <label>Nombre<input id="rcCfgFirmaNombre" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Cargo<input id="rcCfgFirmaCargo" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Empresa<input id="rcCfgFirmaEmpresa" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Oficina<input id="rcCfgFirmaOficina" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Celular<input id="rcCfgFirmaCelular" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Correo<input id="rcCfgFirmaCorreo" type="email" onchange="rcGuardarConfig()"></label>
+                    </div>
+                    <label class="rcAjCheck"><input id="rcCfgFirmaAlCopiar" type="checkbox" onchange="rcGuardarConfig()"> Incluir la firma también al usar Copiar correo (déjalo apagado si Outlook ya pone tu firma)</label>
+                    <h5 class="rcAjTitulo">Catálogo</h5>
                     <div class="rcAjustesBotones">
                         <button class="btn sm" onclick="document.getElementById('rcArchivoCatalogo').click()"><svg class="icon sm"><use href="#i-descarga"/></svg>Cargar catálogo (Excel)</button>
                         <button class="btn sm" onclick="rcExportarAprendidos()">Respaldar lo aprendido</button>
@@ -1990,7 +2028,7 @@ button:disabled { cursor: not-allowed; }
                         <input type="file" id="rcArchivoAprendidos" accept=".json" hidden>
                     </div>
                     <p id="rcInfoAprendidos"></p>
-                    <p>El catálogo y lo aprendido se guardan solo en este navegador; no se suben a internet. Acepta el Excel exportado de SAP (columnas Material y Texto breve de material) o Catalogo_Materiales_D954.xlsx.</p>
+                    <p>El catálogo, lo aprendido y el historial se guardan solo en este navegador; no se suben a internet. Acepta el Excel exportado de SAP (columnas Material y Texto breve de material) o Catalogo_Materiales_D954.xlsx.</p>
                 </details>
             </div>
             <dialog id="rcVisor"><div class="visorHead"><span id="rcVisorTitulo">Página</span><button class="btn sm fantasma" onclick="document.getElementById('rcVisor').close()" aria-label="Cerrar"><svg class="icon sm"><use href="#i-x"/></svg></button></div><img id="rcVisorImg" alt="Página escaneada"></dialog>
@@ -7328,7 +7366,10 @@ button:disabled { cursor: not-allowed; }
     var RC_IDIOMA = 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa@1.0.0/4.0.0_best_int';
     var RC_XLSX = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
     var rcIndice = null, rcCatalogoInfo = null, rcAprendidos = { descripciones: {}, codigos: {} };
-    var rcConfig = { para: '', asunto: 'Solicitud de entrada de materiales', centro: 'D954', almacen: 'U001' };
+    var RC_CONFIG_BASE = { para: 'Recepcion_Alameda@claro.com.do', cc: '', asunto: 'Solicitud de entrada de materiales', centro: 'D954', almacen: 'U001', modo: 'eml', pedidosEnAsunto: true,
+        firmaNombre: 'Oscar Amparo', firmaCargo: 'Almacenista Fleet Tracker, Transportación', firmaEmpresa: 'Opitel', firmaOficina: '809-220-6159', firmaCelular: '829-960-7558', firmaCorreo: 'oscar_amparo@claro.com.do', firmaAlCopiar: false };
+    var rcConfig = JSON.parse(JSON.stringify(RC_CONFIG_BASE)), rcArchivosOriginales = [];
+    var RC_LOGO = 'data:image/png;base64,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';
     var rcFilas = [], rcPaginas = [], rcWorker = null, rcProcesando = false, rcSigId = 1;
 
     function rcLeerJSON(clave, defecto) { try { var v = localStorage.getItem(clave); return v ? JSON.parse(v) : defecto; } catch (e) { return defecto; } }
@@ -7350,8 +7391,10 @@ button:disabled { cursor: not-allowed; }
         if (cat && cat.items && cat.items.length) { rcCatalogoInfo = cat; rcIndice = rcConstruirIndice(cat.items.map(function (r) { return { codigo: r[0], desc: r[1], um: r[2], alt: r[3] ? String(r[3]).split('|') : [] }; })); }
         rcAprendidos = rcLeerJSON('recepcionAprendidos', rcAprendidos);
         rcAprendidos.descripciones = rcAprendidos.descripciones || {}; rcAprendidos.codigos = rcAprendidos.codigos || {};
-        var cfg = rcLeerJSON('recepcionConfig', null); if (cfg) Object.keys(cfg).forEach(function (k) { rcConfig[k] = cfg[k]; });
-        ['para', 'asunto', 'centro', 'almacen'].forEach(function (k) { document.getElementById('rcCfg' + k.charAt(0).toUpperCase() + k.slice(1)).value = rcConfig[k] || ''; });
+        var cfg = rcLeerJSON('recepcionConfig', null);
+        if (cfg) Object.keys(cfg).forEach(function (k) { if (cfg[k] !== '' && cfg[k] != null) rcConfig[k] = cfg[k]; });
+        rcPintarConfig();
+        rcRenderizarHistorial();
 
         var zona = document.getElementById('rcZona'), input = document.getElementById('rcArchivo');
         zona.onclick = function () { if (!rcProcesando) input.click(); };
@@ -7363,12 +7406,6 @@ button:disabled { cursor: not-allowed; }
         document.getElementById('rcArchivoCatalogo').onchange = function () { if (this.files[0]) rcImportarCatalogo(this.files[0]); this.value = ''; };
         document.getElementById('rcArchivoAprendidos').onchange = function () { if (this.files[0]) rcImportarAprendidos(this.files[0]); this.value = ''; };
         rcRenderizar();
-    }
-    function rcGuardarConfig() {
-        ['para', 'asunto', 'centro', 'almacen'].forEach(function (k) { rcConfig[k] = document.getElementById('rcCfg' + k.charAt(0).toUpperCase() + k.slice(1)).value.trim(); });
-        if (!rcConfig.asunto) rcConfig.asunto = 'Solicitud de entrada de materiales';
-        rcEscribirJSON('recepcionConfig', rcConfig);
-        rcRenderizarCorreo();
     }
 
     // ---------- catálogo ----------
@@ -7443,7 +7480,7 @@ button:disabled { cursor: not-allowed; }
     async function rcProcesarArchivos(archivos) {
         if (!rcIndice) { mostrarToast('Primero carga el catálogo de materiales (Ajustes de recepción)', 'error'); document.querySelector('.rcAjustes').open = true; return; }
         if (rcFilas.length && !confirm('Ya hay materiales en pantalla. ¿Reemplazarlos con el nuevo escaneo?')) return;
-        rcProcesando = true; rcFilas = []; rcPaginas = []; rcRenderizarFilas();
+        rcProcesando = true; rcFilas = []; rcPaginas = []; rcArchivosOriginales = archivos.slice(); rcRenderizarFilas();
         document.getElementById('rcZonaTitulo').textContent = archivos.map(function (a) { return a.name; }).join(', ');
         try {
             rcProgreso(0.03, 'Abriendo el archivo…');
@@ -7602,44 +7639,118 @@ button:disabled { cursor: not-allowed; }
     }
     function rcLimpiar() {
         if (rcFilas.length && !confirm('¿Borrar los materiales de pantalla y empezar con otro escaneo?')) return;
-        rcFilas = []; rcPaginas = [];
+        rcFilas = []; rcPaginas = []; rcArchivosOriginales = [];
         document.getElementById('rcZonaTitulo').textContent = 'Elige o arrastra el PDF escaneado';
         rcRenderizarFilas();
     }
 
-    // ---------- correo ----------
+    // ---------- correo (v3.1: diseño profesional, firma, borrador .eml con adjunto) ----------
+    var RC_CAMPOS_CFG = ['para', 'cc', 'asunto', 'centro', 'almacen', 'modo', 'pedidosEnAsunto', 'firmaNombre', 'firmaCargo', 'firmaEmpresa', 'firmaOficina', 'firmaCelular', 'firmaCorreo', 'firmaAlCopiar'];
+    function rcCfgId(k) { return 'rcCfg' + k.charAt(0).toUpperCase() + k.slice(1); }
+    function rcPintarConfig() {
+        RC_CAMPOS_CFG.forEach(function (k) {
+            var el = document.getElementById(rcCfgId(k)); if (!el) return;
+            if (el.type === 'checkbox') el.checked = !!rcConfig[k]; else el.value = rcConfig[k] == null ? '' : rcConfig[k];
+        });
+    }
+    function rcGuardarConfig() {
+        RC_CAMPOS_CFG.forEach(function (k) {
+            var el = document.getElementById(rcCfgId(k)); if (!el) return;
+            rcConfig[k] = el.type === 'checkbox' ? el.checked : el.value.trim();
+        });
+        if (!rcConfig.asunto) rcConfig.asunto = RC_CONFIG_BASE.asunto;
+        if (!rcConfig.para) rcConfig.para = RC_CONFIG_BASE.para;
+        rcEscribirJSON('recepcionConfig', rcConfig);
+        rcPintarConfig();
+        rcRenderizarCorreo();
+    }
+    function rcSaludo() { var h = new Date().getHours(); return h < 12 ? 'Buenos días' : (h < 19 ? 'Buenas tardes' : 'Buenas noches'); }
+    function rcFechaLarga(d) { return d.toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }); }
+
     function rcFilasCorreo() {
-        // Agrupa material + pedido repetidos sumando la cantidad
+        // Agrupa material + pedido repetidos sumando la cantidad; ordena por pedido
         var mapa = {}, orden = [];
         rcFilas.forEach(function (f) {
             if (!f.codigo) return;
             var k = f.codigo + '|' + f.pedido;
-            if (!mapa[k]) { var it = rcItemPorCodigo(f.codigo); mapa[k] = { codigo: f.codigo, desc: it ? it.desc : '', cant: 0, pedido: f.pedido }; orden.push(k); }
+            if (!mapa[k]) { var it = rcItemPorCodigo(f.codigo); mapa[k] = { codigo: f.codigo, desc: it ? it.desc : '', um: it && it.um ? it.um : 'PZA', cant: 0, pedido: f.pedido, dudoso: false }; orden.push(k); }
             mapa[k].cant += Number(f.cantidad) || 0;
+            if (!f.confirmado) mapa[k].dudoso = true;
         });
-        return orden.map(function (k) { return mapa[k]; });
+        return orden.map(function (k) { return mapa[k]; }).sort(function (a, b) { return a.pedido < b.pedido ? -1 : (a.pedido > b.pedido ? 1 : 0); });
     }
-    function rcFormatoCant(v) { return Math.round(v * 1000) / 1000; }
-    function rcCorreoHTML(filas) {
-        var th = 'style="background:#1F5C7A;color:#ffffff;font-weight:bold;text-align:left;padding:3px 8px;border:1px solid #5B9BD5;"';
-        var td = 'style="padding:3px 8px;border:1px solid #5B9BD5;color:#000000;"';
-        var tdN = 'style="padding:3px 8px;border:1px solid #5B9BD5;color:#000000;text-align:right;"';
-        return '<div style="font-family:Aptos,Calibri,Arial,sans-serif;font-size:11pt;color:#000000;">' +
-            '<p style="margin:0 0 12px;">Buenos días.</p><p style="margin:0 0 12px;">Favor dar entrada al siguiente material recibido.</p>' +
-            '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-family:Aptos,Calibri,Arial,sans-serif;font-size:10.5pt;">' +
-            '<tr><th ' + th + '>Codigo</th><th ' + th + '>Descripcion</th><th ' + th + '>Cant</th><th ' + th + '>Pedido</th><th ' + th + '>Centro</th><th ' + th + '>Almacen</th></tr>' +
-            filas.map(function (f) {
-                return '<tr><td ' + td + '>' + escaparHtml(f.codigo) + '</td><td ' + td + '>' + escaparHtml(f.desc) + '</td><td ' + tdN + '>' + rcFormatoCant(f.cant) + '</td><td ' + td + '>' + escaparHtml(f.pedido) + '</td><td ' + td + '>' + escaparHtml(rcConfig.centro) + '</td><td ' + td + '>' + escaparHtml(rcConfig.almacen) + '</td></tr>';
-            }).join('') + '</table><p style="margin:12px 0 0;">Saludos,</p></div>';
+    function rcFormatoCant(v) { return (Math.round(v * 1000) / 1000).toLocaleString('es-DO'); }
+    function rcPedidosDe(filas) { var v = {}; filas.forEach(function (f) { if (f.pedido) v[f.pedido] = 1; }); return Object.keys(v).sort(); }
+    function rcAsuntoFinal(filas) {
+        var peds = rcPedidosDe(filas || rcFilasCorreo());
+        return rcConfig.asunto + (rcConfig.pedidosEnAsunto && peds.length ? ' – Pedido' + (peds.length > 1 ? 's ' : ' ') + peds.join(', ') : '');
+    }
+    function rcNombresAdjuntos() { return rcArchivosOriginales.map(function (a) { return a.name; }); }
+
+    // HTML con estilos en línea y tablas: así lo respeta Outlook (clásico, nuevo y web)
+    function rcCorreoHTML(filas, opciones) {
+        opciones = opciones || {};
+        var F = "font-family:'Segoe UI',Calibri,Arial,sans-serif;";
+        var azul = '#0B1F4A', rojo = '#DA291C', gris = '#5B6576', linea = '#DCE2EB', suave = '#F5F7FA';
+        var peds = rcPedidosDe(filas), piezas = filas.reduce(function (s, f) { return s + (Number(f.cant) || 0); }, 0);
+        var th = function (t, al, w) { return '<th align="' + (al || 'left') + '"' + (w ? ' width="' + w + '"' : '') + ' style="' + F + 'background:' + azul + ';color:#FFFFFF;font-size:12px;font-weight:600;padding:9px 10px;text-align:' + (al || 'left') + ';border:1px solid ' + azul + ';white-space:nowrap;">' + t + '</th>'; };
+        var td = function (t, i, al, extra) { return '<td align="' + (al || 'left') + '" style="' + F + 'font-size:13px;color:#1F2937;padding:8px 10px;border:1px solid ' + linea + ';background:' + (i % 2 ? suave : '#FFFFFF') + ';text-align:' + (al || 'left') + ';' + (extra || '') + '">' + t + '</td>'; };
+        var dato = function (etq, val) { return '<td style="' + F + 'padding:10px 18px 10px 0;"><div style="font-size:11.5px;color:' + gris + ';">' + etq + '</div><div style="font-size:18px;font-weight:700;color:' + azul + ';line-height:1.3;">' + val + '</div></td>'; };
+        var adj = opciones.adjuntos || rcNombresAdjuntos();
+
+        var html = '<div style="' + F + 'font-size:14px;color:#1F2937;line-height:1.5;">' +
+            '<p style="margin:0 0 14px;">' + rcSaludo() + ',</p>' +
+            '<p style="margin:0 0 16px;">Favor dar entrada en SAP al siguiente material recibido en el almacén <b>' + escaparHtml(rcConfig.centro) + ' · ' + escaparHtml(rcConfig.almacen) + '</b>.</p>' +
+            '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;margin:0 0 14px;border-left:3px solid ' + rojo + ';"><tr>' +
+                '<td style="padding:0 0 0 12px;"></td>' +
+                dato('Fecha', rcFechaLarga(new Date())) +
+                dato('Pedido' + (peds.length === 1 ? '' : 's'), peds.length) +
+                dato('Materiales', filas.length) +
+                dato('Piezas', rcFormatoCant(piezas)) +
+            '</tr></table>' +
+            '<table cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;min-width:560px;">' +
+                '<tr>' + th('#', 'center', 28) + th('Código') + th('Descripción') + th('Cant.', 'right') + th('UM', 'center') + th('Pedido') + th('Centro', 'center') + th('Almacén', 'center') + '</tr>' +
+                filas.map(function (f, i) {
+                    var alerta = f.dudoso && opciones.marcarDudosos ? 'background:#FFF4D6;' : '';
+                    return '<tr>' + td(i + 1, i, 'center', 'color:' + gris + ';' + alerta) + td('<b>' + escaparHtml(f.codigo) + '</b>', i, 'left', alerta) + td(escaparHtml(f.desc), i, 'left', alerta) +
+                        td('<b>' + rcFormatoCant(f.cant) + '</b>', i, 'right', alerta) + td(escaparHtml(f.um), i, 'center', 'color:' + gris + ';' + alerta) + td(escaparHtml(f.pedido), i, 'left', 'white-space:nowrap;' + alerta) +
+                        td(escaparHtml(rcConfig.centro), i, 'center', alerta) + td(escaparHtml(rcConfig.almacen), i, 'center', alerta) + '</tr>';
+                }).join('') +
+                '<tr><td colspan="3" align="right" style="' + F + 'font-size:12.5px;font-weight:600;color:' + gris + ';padding:9px 10px;border:1px solid ' + linea + ';background:#EEF2F7;text-align:right;">Total de piezas</td>' +
+                '<td align="right" style="' + F + 'font-size:13px;font-weight:700;color:' + azul + ';padding:9px 10px;border:1px solid ' + linea + ';background:#EEF2F7;text-align:right;">' + rcFormatoCant(piezas) + '</td>' +
+                '<td colspan="4" style="border:1px solid ' + linea + ';background:#EEF2F7;"></td></tr>' +
+            '</table>' +
+            (adj.length ? '<p style="margin:14px 0 0;font-size:12.5px;color:' + gris + ';">Se adjunta' + (adj.length > 1 ? 'n los conduces escaneados' : ' el conduce escaneado') + ': ' + adj.map(escaparHtml).join(', ') + '.</p>' : '') +
+            '<p style="margin:16px 0 0;">Quedo atento a la confirmación de la entrada. Gracias.</p>' +
+            '<p style="margin:14px 0 0;">Saludos,</p>' +
+            (opciones.firma ? rcFirmaHTML(opciones.logoSrc) : '') +
+            '</div>';
+        return html;
+    }
+    function rcFirmaHTML(logoSrc) {
+        var F = "font-family:'Segoe UI',Calibri,Arial,sans-serif;", c = rcConfig;
+        var linea = function (etq, val) { return val ? '<div style="font-size:12.5px;color:#1F2937;line-height:1.5;"><b>' + etq + ':</b> ' + val + '</div>' : ''; };
+        return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;margin:22px 0 0;"><tr>' +
+            '<td valign="middle" style="padding:0 16px 0 0;"><img src="' + logoSrc + '" width="56" height="56" alt="Claro" style="display:block;width:56px;height:56px;border:0;"></td>' +
+            '<td valign="middle" style="' + F + 'padding:0 0 0 16px;border-left:2px solid #DA291C;">' +
+                '<div style="font-size:14px;font-weight:700;color:#0B1F4A;line-height:1.4;">' + escaparHtml(c.firmaNombre) + '</div>' +
+                (c.firmaCargo ? '<div style="font-size:12.5px;color:#1F2937;line-height:1.5;">' + escaparHtml(c.firmaCargo) + '</div>' : '') +
+                (c.firmaEmpresa ? '<div style="font-size:12.5px;font-weight:700;color:#DA291C;line-height:1.5;">' + escaparHtml(c.firmaEmpresa) + '</div>' : '') +
+                linea('Oficina', escaparHtml(c.firmaOficina)) + linea('Celular', escaparHtml(c.firmaCelular)) +
+                (c.firmaCorreo ? linea('Correo', '<a href="mailto:' + escaparHtml(c.firmaCorreo) + '" style="color:#1D4ED8;text-decoration:underline;">' + escaparHtml(c.firmaCorreo) + '</a>') : '') +
+            '</td></tr></table>';
     }
     function rcCorreoTexto(filas) {
-        return 'Buenos días.\n\nFavor dar entrada al siguiente material recibido.\n\nCodigo\tDescripcion\tCant\tPedido\tCentro\tAlmacen\n' +
-            filas.map(function (f) { return [f.codigo, f.desc, rcFormatoCant(f.cant), f.pedido, rcConfig.centro, rcConfig.almacen].join('\t'); }).join('\n') + '\n\nSaludos,';
+        var piezas = filas.reduce(function (s, f) { return s + (Number(f.cant) || 0); }, 0);
+        return rcSaludo() + ',\n\nFavor dar entrada en SAP al siguiente material recibido en el almacén ' + rcConfig.centro + ' · ' + rcConfig.almacen + '.\n\n' +
+            '#\tCódigo\tDescripción\tCant.\tUM\tPedido\tCentro\tAlmacén\n' +
+            filas.map(function (f, i) { return [i + 1, f.codigo, f.desc, rcFormatoCant(f.cant), f.um, f.pedido, rcConfig.centro, rcConfig.almacen].join('\t'); }).join('\n') +
+            '\n\nTotal de piezas: ' + rcFormatoCant(piezas) + '\n\nQuedo atento a la confirmación de la entrada. Gracias.\n\nSaludos,';
     }
     function rcProblemasCorreo() {
         if (!rcFilas.length) return 'Carga un escaneo o agrega materiales para preparar el correo.';
         var pend = rcFilas.filter(function (f) { return !f.confirmado || !f.codigo; }).length;
-        if (pend) return 'Confirma ' + pend + ' material(es) en amarillo antes de copiar el correo.';
+        if (pend) return 'Confirma ' + pend + ' material(es) en amarillo antes de enviar el correo.';
         var sinPed = rcFilas.filter(function (f) { return !/^45\d{8}$/.test(f.pedido); }).length;
         if (sinPed) return sinPed + ' línea(s) no tienen un pedido válido (10 dígitos que empiezan con 45).';
         var sinCant = rcFilas.filter(function (f) { return !(Number(f.cantidad) > 0); }).length;
@@ -7647,34 +7758,160 @@ button:disabled { cursor: not-allowed; }
         return '';
     }
     function rcRenderizarCorreo() {
-        document.getElementById('rcPara').textContent = rcConfig.para || 'Recepción Alameda (agrega el correo en Ajustes)';
-        document.getElementById('rcAsunto').textContent = rcConfig.asunto;
         var filas = rcFilasCorreo();
-        document.getElementById('rcCorreoCuerpo').innerHTML = filas.length ? rcCorreoHTML(filas) : '<p style="margin:0;color:#64748B;font-family:Inter,sans-serif;font-size:13px;">El correo aparecerá aquí con la misma tabla que envías siempre.</p>';
+        document.getElementById('rcPara').textContent = rcConfig.para + (rcConfig.cc ? '  ·  CC: ' + rcConfig.cc : '');
+        document.getElementById('rcAsunto').textContent = rcAsuntoFinal(filas);
+        var adj = rcNombresAdjuntos();
+        document.getElementById('rcAdjunto').textContent = adj.length ? adj.join(', ') : 'El PDF que cargues se adjunta solo';
+        document.getElementById('rcCorreoCuerpo').innerHTML = filas.length
+            ? rcCorreoHTML(filas, { firma: true, logoSrc: RC_LOGO, marcarDudosos: true })
+            : '<div class="rcCorreoVacio">El correo aparecerá aquí, listo para Recepción Alameda, en cuanto haya materiales.</div>';
         var prob = rcProblemasCorreo(), nota = document.getElementById('rcNotaCorreo');
-        nota.textContent = prob || 'Pega el correo en Outlook (tu firma ya sale sola) y adjunta el PDF escaneado.';
+        var modoEml = rcConfig.modo !== 'mailto';
+        nota.textContent = prob || (modoEml
+            ? 'Abrir en Outlook descarga un borrador con destinatario, asunto, tabla, tu firma y el PDF adjunto. Ábrelo y pulsa Enviar.'
+            : 'Abrir en Outlook crea un correo nuevo con destinatario y asunto; pega el contenido con Ctrl+V y adjunta el PDF.');
         nota.classList.toggle('alerta', !!prob);
+        rcMarcarDuplicados();
+    }
+
+    // Portapapeles: HTML con formato (Outlook lo pega tal cual) + texto simple de respaldo
+    async function rcCopiarHTML(html, texto) {
+        try {
+            if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([texto], { type: 'text/plain' }) })]);
+            else await navigator.clipboard.writeText(texto);
+            return true;
+        } catch (e) {
+            var tmp = document.createElement('div'); tmp.innerHTML = html; tmp.style.position = 'fixed'; tmp.style.left = '-9999px'; document.body.appendChild(tmp);
+            var rango = document.createRange(), sel = window.getSelection(); rango.selectNodeContents(tmp); sel.removeAllRanges(); sel.addRange(rango);
+            var ok = document.execCommand('copy'); sel.removeAllRanges(); tmp.remove();
+            return ok;
+        }
     }
     async function rcCopiarCorreo() {
         var prob = rcProblemasCorreo();
         if (prob) { mostrarToast(prob, 'error'); return false; }
-        var filas = rcFilasCorreo(), html = rcCorreoHTML(filas), texto = rcCorreoTexto(filas);
-        try {
-            if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([texto], { type: 'text/plain' }) })]);
-            else await navigator.clipboard.writeText(texto);
-        } catch (e) {
-            var cuerpo = document.getElementById('rcCorreoCuerpo'), rango = document.createRange(), selA = window.getSelection();
-            rango.selectNodeContents(cuerpo); selA.removeAllRanges(); selA.addRange(rango);
-            var ok = document.execCommand('copy'); selA.removeAllRanges();
-            if (!ok) { mostrarToast('No se pudo copiar. Selecciona el correo con el mouse y usa Ctrl+C.', 'error'); return false; }
-        }
-        rcAprender();
+        var filas = rcFilasCorreo();
+        var html = rcCorreoHTML(filas, { firma: !!rcConfig.firmaAlCopiar, logoSrc: RC_LOGO });
+        if (!(await rcCopiarHTML(html, rcCorreoTexto(filas)))) { mostrarToast('No se pudo copiar. Selecciona el correo con el mouse y usa Ctrl+C.', 'error'); return false; }
+        rcRegistrarEnvio(filas, 'copiado');
         mostrarToast('Correo copiado. Pégalo en Outlook con Ctrl+V.', 'success');
         return true;
     }
     async function rcAbrirOutlook() {
-        if (!(await rcCopiarCorreo())) return;
-        location.href = 'mailto:' + encodeURIComponent(rcConfig.para || '') + '?subject=' + encodeURIComponent(rcConfig.asunto);
+        var prob = rcProblemasCorreo();
+        if (prob) { mostrarToast(prob, 'error'); return; }
+        var filas = rcFilasCorreo();
+        if (rcConfig.modo === 'mailto') {
+            if (!(await rcCopiarCorreo())) return;
+            location.href = 'mailto:' + rcConfig.para + '?' + (rcConfig.cc ? 'cc=' + encodeURIComponent(rcConfig.cc) + '&' : '') + 'subject=' + encodeURIComponent(rcAsuntoFinal(filas));
+            return;
+        }
+        try {
+            var eml = await rcConstruirEml(filas);
+            var nombre = 'Solicitud entrada ' + rcPedidosDe(filas).join(' ') + '.eml';
+            var url = URL.createObjectURL(new Blob([eml], { type: 'message/rfc822' }));
+            var a = document.createElement('a'); a.href = url; a.download = nombre.replace(/[\\/:*?"<>|]/g, '');
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+            rcRegistrarEnvio(filas, 'borrador');
+            mostrarToast('Borrador descargado: ábrelo y Outlook lo muestra listo para enviar.', 'success');
+        } catch (e) { mostrarToast('No se pudo crear el borrador: ' + e.message, 'error'); }
+    }
+
+    // ---------- borrador .eml (Outlook lo abre como correo nuevo gracias a X-Unsent) ----------
+    function rcB64Texto(s) { var b = new TextEncoder().encode(s), out = ''; for (var i = 0; i < b.length; i += 0x8000) out += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(out); }
+    function rcB64Bytes(buf) { var b = new Uint8Array(buf), out = ''; for (var i = 0; i < b.length; i += 0x8000) out += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(out); }
+    function rcPartir76(s) { return s.replace(/.{1,76}/g, '$&\r\n'); }
+    function rcCabecera(s) { return /^[\x20-\x7E]*$/.test(s) ? s : '=?UTF-8?B?' + rcB64Texto(s) + '?='; }
+    async function rcConstruirEml(filas) {
+        var mix = '----=_rc_mix_' + Date.now().toString(36), rel = '----=_rc_rel_' + Date.now().toString(36);
+        var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head><body style="margin:0;padding:16px;background:#FFFFFF;">' +
+            rcCorreoHTML(filas, { firma: true, logoSrc: 'cid:logo-claro@firma' }) + '</body></html>';
+        var L = [];
+        L.push('X-Unsent: 1');
+        L.push('To: ' + rcConfig.para);
+        if (rcConfig.cc) L.push('Cc: ' + rcConfig.cc);
+        L.push('Subject: ' + rcCabecera(rcAsuntoFinal(filas)));
+        L.push('MIME-Version: 1.0');
+        L.push('Content-Type: multipart/mixed; boundary="' + mix + '"');
+        L.push('');
+        L.push('--' + mix);
+        L.push('Content-Type: multipart/related; boundary="' + rel + '"; type="text/html"');
+        L.push('');
+        L.push('--' + rel);
+        L.push('Content-Type: text/html; charset="utf-8"');
+        L.push('Content-Transfer-Encoding: base64');
+        L.push('');
+        L.push(rcPartir76(rcB64Texto(html)));
+        L.push('--' + rel);
+        L.push('Content-Type: image/png; name="firma-claro.png"');
+        L.push('Content-Transfer-Encoding: base64');
+        L.push('Content-ID: <logo-claro@firma>');
+        L.push('Content-Disposition: inline; filename="firma-claro.png"');
+        L.push('');
+        L.push(rcPartir76(RC_LOGO.split(',')[1]));
+        L.push('--' + rel + '--');
+        for (var i = 0; i < rcArchivosOriginales.length; i++) {
+            var f = rcArchivosOriginales[i], tipo = f.type || 'application/octet-stream', nom = rcCabecera(f.name);
+            L.push('--' + mix);
+            L.push('Content-Type: ' + tipo + '; name="' + nom + '"');
+            L.push('Content-Transfer-Encoding: base64');
+            L.push('Content-Disposition: attachment; filename="' + nom + '"');
+            L.push('');
+            L.push(rcPartir76(rcB64Bytes(await f.arrayBuffer())));
+        }
+        L.push('--' + mix + '--');
+        return L.join('\r\n');
+    }
+
+    // ---------- historial de solicitudes enviadas ----------
+    function rcRegistrarEnvio(filas, via) {
+        var h = rcLeerJSON('recepcionHistorial', []);
+        h.unshift({ fecha: Date.now(), via: via, asunto: rcAsuntoFinal(filas), adjuntos: rcNombresAdjuntos(), items: filas.map(function (f) { return { codigo: f.codigo, desc: f.desc, cant: f.cant, pedido: f.pedido }; }) });
+        if (h.length > 300) h.length = 300;
+        rcEscribirJSON('recepcionHistorial', h);
+        rcAprender();
+        rcRenderizarHistorial();
+    }
+    function rcBuscarReportado(codigo, pedido) {
+        var h = rcLeerJSON('recepcionHistorial', []);
+        for (var i = 0; i < h.length; i++) if (h[i].items.some(function (x) { return x.codigo === codigo && x.pedido === pedido; })) return h[i];
+        return null;
+    }
+    function rcMarcarDuplicados() {
+        var filas = document.querySelectorAll('#rcFilas tr');
+        rcFilas.forEach(function (f, i) {
+            var tr = filas[i]; if (!tr) return;
+            var viejo = tr.querySelector('.rcYaReportado'); if (viejo) viejo.remove();
+            if (!f.codigo || !f.pedido) return;
+            var prev = rcBuscarReportado(f.codigo, f.pedido);
+            if (!prev) return;
+            var d = document.createElement('div'); d.className = 'rcYaReportado';
+            d.textContent = 'Ya lo reportaste el ' + fechaCorta(prev.fecha) + '. Revisa que no sea el mismo conduce.';
+            var celda = tr.querySelector('.cMat'); if (celda) celda.appendChild(d);
+        });
+    }
+    function rcRenderizarHistorial() {
+        var cont = document.getElementById('rcHistorial'); if (!cont) return;
+        var h = rcLeerJSON('recepcionHistorial', []);
+        document.getElementById('rcHistorialConteo').textContent = h.length ? '(' + h.length + ')' : '';
+        if (!h.length) { cont.innerHTML = '<div class="estadoVacio">Aquí verás cada solicitud de entrada que prepares.</div>'; return; }
+        cont.innerHTML = '<div class="msTablaWrap"><table class="msTabla"><thead><tr><th>Fecha</th><th>Pedidos</th><th>Materiales</th><th>Piezas</th><th>Cómo</th><th></th></tr></thead><tbody>' +
+            h.slice(0, 30).map(function (r, i) {
+                var peds = {}; r.items.forEach(function (x) { peds[x.pedido] = 1; });
+                var piezas = r.items.reduce(function (s, x) { return s + (Number(x.cant) || 0); }, 0);
+                return '<tr><td>' + fechaHora(r.fecha) + '</td><td>' + Object.keys(peds).map(escaparHtml).join('<br>') + '</td><td style="white-space:normal;min-width:220px;">' +
+                    r.items.map(function (x) { return '<b style="display:inline;">' + escaparHtml(x.codigo) + '</b> ' + escaparHtml(x.desc) + ' × ' + rcFormatoCant(x.cant); }).join('<br>') + '</td><td>' + rcFormatoCant(piezas) + '</td><td>' + (r.via === 'borrador' ? 'Borrador Outlook' : 'Copiado') + '</td>' +
+                    '<td><button class="btn sm fantasma" data-i="' + i + '" title="Copiar otra vez la tabla de esta solicitud">Copiar</button></td></tr>';
+            }).join('') + '</tbody></table></div>';
+        cont.querySelectorAll('button[data-i]').forEach(function (b) {
+            b.onclick = async function () {
+                var r = h[Number(b.dataset.i)];
+                var filas = r.items.map(function (x) { var it = rcItemPorCodigo(x.codigo); return { codigo: x.codigo, desc: x.desc, um: it && it.um ? it.um : 'PZA', cant: x.cant, pedido: x.pedido }; });
+                var ok = await rcCopiarHTML(rcCorreoHTML(filas, { adjuntos: r.adjuntos || [] }), rcCorreoTexto(filas));
+                mostrarToast(ok ? 'Solicitud copiada' : 'No se pudo copiar', ok ? 'success' : 'error');
+            };
+        });
     }
 
     // ---------- aprendizaje ----------
