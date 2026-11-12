@@ -1410,6 +1410,82 @@ body[data-modo="uniformes"]:not([data-unvista="despacho"]) #panelFirma { display
 }
 
 body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hidden; }
+
+/* ============ Recepción de materiales (v3) ============ */
+body[data-modo="recepcion"] #layout { grid-template-columns: minmax(0, 1fr); }
+body[data-modo="recepcion"] #panelFirma { display: none; }
+#recepcionSection { display: none; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); animation: subir .22s var(--ease); }
+#recepcionSection h3 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
+.rcChipCatalogo { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: var(--r-full); background: var(--surface-2); border: 1px solid var(--border); font-size: 12.5px; color: var(--muted); }
+.rcChipCatalogo b { color: var(--text-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.rcChipCatalogo.vacio { background: var(--warning-soft); border-color: #F5B76A; color: var(--warning); }
+.rcZona { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1.5px dashed var(--border-strong); border-radius: var(--r-md); background: var(--surface-2); cursor: pointer; transition: border-color .15s var(--ease), background .15s var(--ease); }
+.rcZona:hover, .rcZona.arrastrando { border-color: var(--primary); background: var(--primary-soft); }
+.rcZona:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--primary-ring); }
+.rcZona .icoGrande { width: 44px; height: 44px; flex: none; display: grid; place-items: center; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); color: var(--brand); }
+.rcZona .icoGrande .icon { width: 22px; height: 22px; }
+.rcZona b { display: block; font-size: 14px; color: var(--text); font-weight: 600; }
+.rcZona small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.rcProgreso { margin-top: 10px; display: none; }
+.rcProgreso.visible { display: block; }
+.rcProgreso .barra { height: 6px; border-radius: var(--r-full); background: var(--surface-3); overflow: hidden; }
+.rcProgreso .barra i { display: block; height: 100%; width: 0; background: var(--primary); transition: width .25s var(--ease); }
+.rcProgreso p { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.rcTablaWrap { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.rcTabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rcTabla th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 9px 10px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.rcTabla td { padding: 10px; border-top: 1px solid var(--border); vertical-align: top; color: var(--text-2); }
+.rcTabla tr:first-child td { border-top: none; }
+.rcTabla tr.dudoso td { background: var(--warning-soft); }
+.rcTabla .ocr { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--text-2); word-break: break-word; }
+.rcTabla .ocr small { display: block; margin-top: 3px; font-family: inherit; color: var(--muted); }
+.rcTabla select, .rcTabla input { width: 100%; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+.rcTabla input.num { text-align: right; font-variant-numeric: tabular-nums; }
+.rcTabla select:focus, .rcTabla input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+.rcEstado { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 2px 8px; border-radius: var(--r-full); font-size: 11.5px; font-weight: 500; }
+.rcEstado.ok { background: var(--success-soft); color: var(--success); }
+.rcEstado.dudoso { background: var(--surface); color: var(--warning); border: 1px solid #F5B76A; }
+.rcEstado button { border: none; background: none; padding: 0 0 0 4px; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.rcBuscar { position: relative; margin-top: 6px; }
+.rcBuscar ul { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-sm); box-shadow: var(--shadow-md); max-height: 240px; overflow: auto; }
+.rcBuscar li { padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 12.5px; color: var(--text-2); }
+.rcBuscar li b { color: var(--text); font-variant-numeric: tabular-nums; }
+.rcBuscar li:hover, .rcBuscar li.activo { background: var(--primary-soft); }
+.rcAccionesFila { display: flex; gap: 4px; justify-content: flex-end; }
+.rcVacioTabla { padding: 22px; text-align: center; color: var(--muted); font-size: 13px; }
+.rcPieTabla { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px; border-top: 1px solid var(--border); background: var(--surface-2); font-size: 12.5px; color: var(--muted); }
+.rcCorreo { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.rcCorreoHead { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px 10px; padding: 12px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 13px; }
+.rcCorreoHead span { color: var(--muted); }
+.rcCorreoHead b { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcCorreoCuerpo { padding: 16px 14px; background: #fff; color: #000; overflow-x: auto; }
+.rcCorreoPie { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface); }
+.rcCorreoPie .nota { flex-basis: 100%; margin: 0; font-size: 12.5px; color: var(--muted); }
+.rcCorreoPie .nota.alerta { color: var(--warning); }
+.rcAjustes { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+.rcAjustes summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-2); }
+.rcAjustesGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.rcAjustesGrid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.rcAjustesGrid input { padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+.rcAjustesBotones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.rcAjustes p { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+#rcVisor { border: none; padding: 0; border-radius: var(--r-lg); box-shadow: var(--shadow-lg); max-width: min(920px, 94vw); max-height: 92vh; background: var(--surface); }
+#rcVisor::backdrop { background: rgba(10, 16, 32, .55); }
+#rcVisor .visorHead { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text); }
+#rcVisor img { display: block; width: 100%; height: auto; }
+:root[data-theme="dark"] .rcCorreoCuerpo { background: #fff; }
+:root[data-theme="dark"] .rcChipCatalogo.vacio { border-color: rgba(245,158,11,.5); }
+@media (max-width: 760px) {
+    #recepcionSection { padding: 16px; }
+    .rcTabla thead { display: none; }
+    .rcTabla tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 10px; border-top: 1px solid var(--border); }
+    .rcTabla tr:first-child { border-top: none; }
+    .rcTabla td { padding: 0; border: none; }
+    .rcTabla td.cOcr, .rcTabla td.cMat { grid-column: 1 / -1; }
+    .rcTabla td.cPag { display: none; }
+    .rcTabla td[data-et]::before { content: attr(data-et); display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { #recepcionSection { animation: none; } .rcProgreso .barra i { transition: none; } }
 </style>
 </head>
 <body data-modo="documento">
@@ -1419,6 +1495,7 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
     <symbol id="i-firma" viewBox="0 0 24 24"><path d="M3 17c3-3 4-9 7-9 2 0 1 6 3 6 1.5 0 2-2 3-2s1 2 2.5 2"/><path d="M3 21h18"/></symbol>
     <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
     <symbol id="i-pluma" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+    <symbol id="i-camion" viewBox="0 0 24 24"><path d="M1 4h13v12H1zM14 8h4l3 3v5h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></symbol>
     <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
     <symbol id="i-carpeta" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
     <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
@@ -1450,6 +1527,7 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
         <div id="tabCargoDirecto" class="modoTab" onclick="cambiarModo('cargoDirecto')" role="tab"><svg class="icon"><use href="#i-pluma"/></svg>Cargo Directo</div>
         <div id="tabMateriales" class="modoTab" onclick="cambiarModo('materiales')" role="tab"><svg class="icon"><use href="#i-escudo"/></svg>Materiales Seguridad</div>
         <div id="tabUniformes" class="modoTab" onclick="cambiarModo('uniformes')" role="tab"><svg class="icon"><use href="#i-camisa"/></svg>Uniformes</div>
+        <div id="tabRecepcion" class="modoTab" onclick="cambiarModo('recepcion')" role="tab"><svg class="icon"><use href="#i-camion"/></svg>Recepción</div>
         <div id="tabFirmados" class="modoTab" onclick="cambiarModo('firmados')" role="tab"><svg class="icon"><use href="#i-carpeta"/></svg>Firmados</div>
     </nav>
 
@@ -1734,6 +1812,76 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
                 </div>
                 <div id="listaFirmados"></div>
             </div>
+
+            <!-- ================= Módulo: Recepción de materiales (v3) ================= -->
+            <div id="recepcionSection">
+                <div class="seccionHead">
+                    <div>
+                        <h3><svg class="icon"><use href="#i-camion"/></svg>Recepción de materiales</h3>
+                        <p class="seccionSub">Carga el conduce o la factura escaneada y prepara el correo para que den entrada en SAP.</p>
+                    </div>
+                    <span id="rcChipCatalogo" class="rcChipCatalogo"></span>
+                </div>
+
+                <div id="rcZona" class="rcZona" tabindex="0" role="button" aria-describedby="rcZonaAyuda">
+                    <span class="icoGrande"><svg class="icon"><use href="#i-doc"/></svg></span>
+                    <span>
+                        <b id="rcZonaTitulo">Elige o arrastra el PDF escaneado</b>
+                        <small id="rcZonaAyuda">Puede traer varios conduces, uno por página. También acepta fotos (JPG o PNG).</small>
+                    </span>
+                    <input type="file" id="rcArchivo" accept="application/pdf,image/*" multiple hidden>
+                </div>
+                <div id="rcProgreso" class="rcProgreso" role="status" aria-live="polite">
+                    <div class="barra"><i id="rcBarra"></i></div>
+                    <p id="rcProgresoTexto">Preparando…</p>
+                </div>
+
+                <div class="rcTablaWrap">
+                    <table class="rcTabla">
+                        <thead><tr><th style="width:44px">Pág.</th><th style="width:28%">En el conduce</th><th>Material SAP</th><th style="width:84px">Cant.</th><th style="width:130px">Pedido</th><th style="width:76px"></th></tr></thead>
+                        <tbody id="rcFilas"></tbody>
+                    </table>
+                    <div id="rcVacio" class="rcVacioTabla">Los materiales que la web reconozca aparecerán aquí.</div>
+                    <div class="rcPieTabla">
+                        <span id="rcResumen">Sin materiales todavía</span>
+                        <button class="btn sm" onclick="rcAgregarFila()">+ Agregar material</button>
+                    </div>
+                </div>
+
+                <div class="rcCorreo">
+                    <div class="rcCorreoHead">
+                        <span>Para</span><b id="rcPara">—</b>
+                        <span>Asunto</span><b id="rcAsunto">—</b>
+                    </div>
+                    <div id="rcCorreoCuerpo" class="rcCorreoCuerpo"></div>
+                    <div class="rcCorreoPie">
+                        <button id="rcBtnCopiar" class="btn primario" onclick="rcCopiarCorreo()"><svg class="icon sm"><use href="#i-lista"/></svg>Copiar correo</button>
+                        <button class="btn" onclick="rcAbrirOutlook()">Abrir correo nuevo</button>
+                        <button class="btn fantasma" onclick="rcLimpiar()">Empezar de nuevo</button>
+                        <p id="rcNotaCorreo" class="nota">Pega el correo en Outlook (tu firma ya sale sola) y adjunta el PDF escaneado.</p>
+                    </div>
+                </div>
+
+                <details class="rcAjustes">
+                    <summary>Ajustes de recepción y catálogo</summary>
+                    <div class="rcAjustesGrid">
+                        <label>Para (correo de Recepción Alameda)<input id="rcCfgPara" type="text" placeholder="recepcion.alameda@claro.com.do" onchange="rcGuardarConfig()"></label>
+                        <label>Asunto<input id="rcCfgAsunto" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Centro<input id="rcCfgCentro" type="text" onchange="rcGuardarConfig()"></label>
+                        <label>Almacén<input id="rcCfgAlmacen" type="text" onchange="rcGuardarConfig()"></label>
+                    </div>
+                    <div class="rcAjustesBotones">
+                        <button class="btn sm" onclick="document.getElementById('rcArchivoCatalogo').click()"><svg class="icon sm"><use href="#i-descarga"/></svg>Cargar catálogo (Excel)</button>
+                        <button class="btn sm" onclick="rcExportarAprendidos()">Respaldar lo aprendido</button>
+                        <button class="btn sm" onclick="document.getElementById('rcArchivoAprendidos').click()">Restaurar respaldo</button>
+                        <input type="file" id="rcArchivoCatalogo" accept=".xlsx,.xls,.csv" hidden>
+                        <input type="file" id="rcArchivoAprendidos" accept=".json" hidden>
+                    </div>
+                    <p id="rcInfoAprendidos"></p>
+                    <p>El catálogo y lo aprendido se guardan solo en este navegador; no se suben a internet. Acepta el Excel exportado de SAP (columnas Material y Texto breve de material) o Catalogo_Materiales_D954.xlsx.</p>
+                </details>
+            </div>
+            <dialog id="rcVisor"><div class="visorHead"><span id="rcVisorTitulo">Página</span><button class="btn sm fantasma" onclick="document.getElementById('rcVisor').close()" aria-label="Cerrar"><svg class="icon sm"><use href="#i-x"/></svg></button></div><img id="rcVisorImg" alt="Página escaneada"></dialog>
 
             <!-- ================= Módulo: Firmar PDF (editor libre) ================= -->
             <div id="editorSection">
@@ -2853,6 +3001,7 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
         var conexion = asegurarConexionPad('inicio');
         await restaurarCarpetasGuardadas();
         cargarCatalogoMateriales();
+        try { iniciarRecepcion(); } catch (e) { console.error('Recepción', e); }
         renderizarAdminCatalogoMateriales();
         await cargarHistorialMateriales();
         await iniciarModuloUniformes();
@@ -2895,6 +3044,8 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
         document.getElementById('tabFirmados').classList.toggle('active', modoActual === 'firmados');
         document.getElementById('tabEditor').classList.toggle('active', modoActual === 'editor');
         document.getElementById('tabUniformes').classList.toggle('active', modoActual === 'uniformes');
+        document.getElementById('tabRecepcion').classList.toggle('active', modoActual === 'recepcion');
+        document.getElementById('recepcionSection').style.display = modoActual === 'recepcion' ? 'block' : 'none';
         document.getElementById('uniformesSection').style.display = modoActual === 'uniformes' ? 'block' : 'none';
         document.getElementById('accionesUN').style.display = modoActual === 'uniformes' ? 'flex' : 'none';
         document.getElementById('btnConfirmarUN').disabled = true;
@@ -2911,10 +3062,10 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
         document.getElementById('btnConfirmarCD').disabled = true;
         document.getElementById('btnConfirmarMS').disabled = true;
 
-        if (modoActual === 'firmados') {
+        if (modoActual === 'firmados' || modoActual === 'recepcion') {
             document.getElementById('btnConnect').style.display = 'none';
             document.getElementById('firmaBox').style.display = 'none';
-            listarFirmados();
+            if (modoActual === 'firmados') listarFirmados();
         } else if (modoActual === 'editor') {
             // Firmar PDF: el pad se usa desde el modal de captura (columna del pad oculta)
             dibujarPantallaSegunModo();
@@ -2941,7 +3092,7 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
     function dibujarPantallaSegunModo() {
         if (capturaEditor) { dibujarPantallaCapturaEditor(); return; }   // captura del módulo Firmar PDF
         if (modoActual === 'editor') { dibujarPantallaReposoEditor(); return; }
-        if (modoActual === 'firmados') return;
+        if (modoActual === 'firmados' || modoActual === 'recepcion') return;
         if (modoActual === 'cargoDirecto') {
             dibujarPantallaFirmaCD();
         } else if (modoActual === 'materiales') {
@@ -6889,6 +7040,544 @@ body.padSinTinta #ssvvggFirma, body.padSinTinta #ssvvggTarjeta { visibility: hid
         window.addEventListener('load', function () {
             navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('No se pudo activar la caché sin conexión', e); });
         });
+    }
+    // ============ Recepción: motor de reconocimiento (catálogo + OCR) ============
+    var RC_STOP = { DE: 1, DEL: 1, LA: 1, EL: 1, LOS: 1, LAS: 1, PARA: 1, CON: 1, Y: 1, X: 1, P: 1, EN: 1, AL: 1, POR: 1 };
+    var RC_SINONIMOS = { ZETA: 'Z', AIR: 'AIRE', ACEIT: 'ACEITE', GASOL: 'GASOIL', DIESEL: 'GASOIL', BAT: 'BATERIA', FIL: 'FILTRO' };
+    var RC_ETIQUETAS = /\b(RNC|CLIENTE|TELEFONO|TEL|FAX|DIRECCION|VEHICULO|RECLAMACION|CONTACTO|CIUDAD|VENDEDOR|TOTAL|SUBTOTAL|ITBIS|COMENTARIOS|ENTREGADO|RECIBIDO|NOMBRE|FECHA|MONEDA|CONDICION|PEDIDO|ORDEN|SUCURSAL|CORREO|AVENIDA|CALLE|CEDULA|VENCE|VALIDA|RAZON|SOCIAL|DESCUENTO|PRECIO|CANT|CANTIDAD|DESCRIPCION|CODIGO|REFERENCIA\s*:?\s*$)\b/;
+
+    function rcSinAcentos(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase(); }
+    function rcTokens(s) {
+        var out = [];
+        (rcSinAcentos(s).match(/[A-Z0-9]+/g) || []).forEach(function (t) {
+            t = RC_SINONIMOS[t] || t;
+            if (RC_STOP[t]) return;
+            if (/^\d+$/.test(t)) return;               // números sueltos: cantidades, precios, códigos (se tratan aparte)
+            if (t.length < 2 && t !== 'Z') return;
+            if (t.length > 4 && /[A-Z]S$/.test(t) && !/SS$/.test(t)) t = t.slice(0, -1);   // plural simple: BOTAS → BOTA
+            out.push(t);
+        });
+        return out;
+    }
+    // Normaliza un código de suplidor para tolerar errores típicos del OCR (S/5, O/0, I/1, Z/2, B/8)
+    function rcCodigoFlex(s) {
+        return rcSinAcentos(s).replace(/[^A-Z0-9]/g, '').replace(/O/g, '0').replace(/S/g, '5').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/B/g, '8');
+    }
+
+    // indice = { items:[{codigo,desc,um,alt:[...] }], porCodigo:{}, inv:{token:[i]}, idf:{} , altFlex:[{flex,i}] }
+    function rcConstruirIndice(items) {
+        var inv = {}, df = {}, porCodigo = {}, altFlex = [];
+        items.forEach(function (it, i) {
+            porCodigo[it.codigo] = i;
+            var toks = {};
+            rcTokens(it.desc).forEach(function (t) { toks[t] = 1; });
+            it._toks = toks;
+            Object.keys(toks).forEach(function (t) { (inv[t] = inv[t] || []).push(i); df[t] = (df[t] || 0) + 1; });
+            (it.alt || []).forEach(function (a) { var f = rcCodigoFlex(a); if (f.length >= 6) altFlex.push({ flex: f, i: i }); });
+        });
+        var n = items.length, idf = {};
+        Object.keys(df).forEach(function (t) { idf[t] = Math.log((n + 1) / (df[t] + 1)) + 1; });
+        return { items: items, porCodigo: porCodigo, inv: inv, idf: idf, idfMax: Math.log(n + 1) + 1, altFlex: altFlex };
+    }
+    function rcIdf(ind, t) { return ind.idf[t] || ind.idfMax; }
+
+    // Devuelve las mejores coincidencias del catálogo para un texto [{i, score}]
+    function rcBuscar(ind, texto, k) {
+        var q = {}; rcTokens(texto).forEach(function (t) { q[t] = 1; });
+        var qt = Object.keys(q);
+        if (!qt.length) return [];
+        var total = qt.reduce(function (s, t) { return s + rcIdf(ind, t); }, 0);
+        var cand = {};
+        qt.forEach(function (t) { (ind.inv[t] || []).forEach(function (i) { cand[i] = 1; }); });
+        var res = Object.keys(cand).map(function (i) {
+            var it = ind.items[i], comun = 0, conocidos = 0, docTot = 0;
+            qt.forEach(function (t) { if (it._toks[t]) { comun += rcIdf(ind, t); conocidos++; } });
+            Object.keys(it._toks).forEach(function (t) { docTot += rcIdf(ind, t); });
+            var cobertura = comun / total, cobDoc = docTot ? comun / docTot : 0;
+            return { i: +i, score: 0.85 * cobertura + 0.15 * cobDoc, comunes: conocidos };
+        });
+        res.sort(function (a, b) { return b.score - a.score; });
+        return res.slice(0, k || 5);
+    }
+
+    function rcCantidad(lineas) {
+        for (var l = 0; l < lineas.length; l++) {
+            var partes = String(lineas[l] || '').split(/\s+/);
+            for (var p = 0; p < partes.length; p++) {
+                var t = partes[p].replace(/[;:,]+$/, '');
+                if (/^\d{1,4}([.,]\d{1,3})?$/.test(t)) {
+                    var v = parseFloat(t.replace(',', '.'));
+                    if (v > 0 && v < 10000) return Math.round(v * 1000) / 1000;
+                }
+            }
+        }
+        return 1;
+    }
+    function rcPedidos(texto) {
+        var vistos = {}, out = [];
+        var limpio = String(texto).replace(/(\d)[ .](?=\d)/g, '$1');
+        (limpio.match(/45\d{8}/g) || []).forEach(function (p) { if (!vistos[p]) { vistos[p] = 1; out.push(p); } });
+        return out;
+    }
+
+    // aprendidos = { descripciones: {clave: codigo}, codigos: {flex: codigo} }
+    function rcClaveDesc(texto) { return rcTokens(texto).join(' '); }
+
+    // Analiza el texto OCR de una página y devuelve las líneas de material encontradas
+    function rcAnalizarPagina(ind, texto, aprendidos, pagina) {
+        aprendidos = aprendidos || { descripciones: {}, codigos: {} };
+        var lineas = String(texto).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+        var pedidos = rcPedidos(texto);
+        var items = [], usadas = {};
+        var aprendFlex = Object.keys(aprendidos.codigos || {}).map(function (f) { return { flex: f, codigo: aprendidos.codigos[f] }; });
+
+        function ventana(n) { return lineas.slice(n, n + 3); }
+        function codigoClaroEn(ls) {
+            var m = (ls.join(' ').match(/\b10\d{5}\b/g) || []);
+            for (var j = 0; j < m.length; j++) if (ind.porCodigo[m[j]] !== undefined) return m[j];
+            return null;
+        }
+        function codigoSuplidorEn(ls) {
+            var flex = rcCodigoFlex(ls.join(''));
+            for (var j = 0; j < aprendFlex.length; j++) if (flex.indexOf(aprendFlex[j].flex) !== -1) return { codigo: aprendFlex[j].codigo, flex: aprendFlex[j].flex };
+            for (var k = 0; k < ind.altFlex.length; k++) if (flex.indexOf(ind.altFlex[k].flex) !== -1) return { codigo: ind.items[ind.altFlex[k].i].codigo, flex: ind.altFlex[k].flex };
+            return null;
+        }
+        function posiblesCodigosSuplidor(ls) {
+            // tokens alfanuméricos largos (con letras y números, o números de 8+ dígitos) que podrían ser el código del suplidor
+            var out = [];
+            ls.join(' ').split(/\s+/).forEach(function (t) {
+                t = t.replace(/[^A-Za-z0-9-]/g, '');
+                if (t.length >= 8 && /\d/.test(t) && !/^45\d{8}$/.test(t) && !/^10\d{5}$/.test(t)) out.push(t);
+            });
+            return out;
+        }
+
+        lineas.forEach(function (ln, n) {
+            var sa = rcSinAcentos(ln);
+            if (RC_ETIQUETAS.test(sa)) return;
+            var clave = rcClaveDesc(ln);
+            if (!clave) return;
+            var cands = rcBuscar(ind, ln, 5);
+            var aprendido = aprendidos.descripciones[clave];
+            var mejor = cands[0];
+            if (!aprendido && (!mejor || mejor.score < 0.55 || mejor.comunes < 2)) return;
+            var win = ventana(n);
+            var item = {
+                pagina: pagina, linea: n, texto: ln, clave: clave,
+                cantidad: rcCantidad(win),
+                pedido: pedidos[0] || '',
+                pedidosPagina: pedidos,
+                candidatos: cands.map(function (c) { return { codigo: ind.items[c.i].codigo, desc: ind.items[c.i].desc, um: ind.items[c.i].um, score: Math.round(c.score * 100) }; }),
+                codSuplidor: posiblesCodigosSuplidor(win)
+            };
+            var exacto = codigoClaroEn(win), sup = codigoSuplidorEn(win);
+            if (exacto) { item.codigo = exacto; item.origen = 'codigo'; }
+            else if (aprendido) { item.codigo = aprendido; item.origen = 'aprendido'; }
+            else if (sup) { item.codigo = sup.codigo; item.origen = 'suplidor'; }
+            else {
+                item.codigo = item.candidatos[0].codigo;
+                var seg = item.candidatos[1] ? item.candidatos[0].score - item.candidatos[1].score : 100;
+                item.origen = (item.candidatos[0].score >= 90 && seg >= 15) ? 'descripcion' : 'dudoso';
+            }
+            if (exacto && !item.candidatos.some(function (c) { return c.codigo === exacto; })) {
+                var it = ind.items[ind.porCodigo[exacto]];
+                item.candidatos.unshift({ codigo: exacto, desc: it.desc, um: it.um, score: 100 });
+            }
+            item.confirmado = item.origen !== 'dudoso';
+            for (var u = n; u < n + 3; u++) usadas[u] = 1;
+            items.push(item);
+        });
+        // Códigos de Claro sueltos que no quedaron junto a ninguna descripción
+        lineas.forEach(function (ln, n) {
+            if (usadas[n]) return;
+            var c = codigoClaroEn([ln]);
+            if (!c || items.some(function (x) { return x.codigo === c; })) return;
+            var it = ind.items[ind.porCodigo[c]];
+            items.push({ pagina: pagina, linea: n, texto: ln, clave: '', cantidad: rcCantidad([ln]), pedido: pedidos[0] || '', pedidosPagina: pedidos,
+                candidatos: [{ codigo: c, desc: it.desc, um: it.um, score: 100 }], codSuplidor: [], codigo: c, origen: 'codigo', confirmado: true });
+        });
+        return { pedidos: pedidos, items: items };
+    }
+
+    // ============ Recepción: pantalla ============
+    var RC_TESSERACT = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    var RC_IDIOMA = 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa@1.0.0/4.0.0_best_int';
+    var RC_XLSX = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    var rcIndice = null, rcCatalogoInfo = null, rcAprendidos = { descripciones: {}, codigos: {} };
+    var rcConfig = { para: '', asunto: 'Solicitud de entrada de materiales', centro: 'D954', almacen: 'U001' };
+    var rcFilas = [], rcPaginas = [], rcWorker = null, rcProcesando = false, rcSigId = 1;
+
+    function rcLeerJSON(clave, defecto) { try { var v = localStorage.getItem(clave); return v ? JSON.parse(v) : defecto; } catch (e) { return defecto; } }
+    function rcEscribirJSON(clave, valor) {
+        try { localStorage.setItem(clave, JSON.stringify(valor)); return true; }
+        catch (e) { mostrarToast('No se pudo guardar en este navegador (espacio lleno o modo privado)', 'error'); return false; }
+    }
+    function rcCargarScript(url, global) {
+        if (window[global]) return Promise.resolve();
+        return new Promise(function (ok, mal) {
+            var s = document.createElement('script'); s.src = url; s.onload = ok;
+            s.onerror = function () { mal(new Error('No se pudo descargar ' + url.split('/').slice(-1)[0] + '. Revisa la conexión a internet.')); };
+            document.head.appendChild(s);
+        });
+    }
+
+    function iniciarRecepcion() {
+        var cat = rcLeerJSON('recepcionCatalogo', null);
+        if (cat && cat.items && cat.items.length) { rcCatalogoInfo = cat; rcIndice = rcConstruirIndice(cat.items.map(function (r) { return { codigo: r[0], desc: r[1], um: r[2], alt: r[3] ? String(r[3]).split('|') : [] }; })); }
+        rcAprendidos = rcLeerJSON('recepcionAprendidos', rcAprendidos);
+        rcAprendidos.descripciones = rcAprendidos.descripciones || {}; rcAprendidos.codigos = rcAprendidos.codigos || {};
+        var cfg = rcLeerJSON('recepcionConfig', null); if (cfg) Object.keys(cfg).forEach(function (k) { rcConfig[k] = cfg[k]; });
+        ['para', 'asunto', 'centro', 'almacen'].forEach(function (k) { document.getElementById('rcCfg' + k.charAt(0).toUpperCase() + k.slice(1)).value = rcConfig[k] || ''; });
+
+        var zona = document.getElementById('rcZona'), input = document.getElementById('rcArchivo');
+        zona.onclick = function () { if (!rcProcesando) input.click(); };
+        zona.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zona.click(); } };
+        input.onchange = function () { if (input.files.length) rcProcesarArchivos(Array.prototype.slice.call(input.files)); input.value = ''; };
+        zona.ondragover = function (e) { e.preventDefault(); zona.classList.add('arrastrando'); };
+        zona.ondragleave = function () { zona.classList.remove('arrastrando'); };
+        zona.ondrop = function (e) { e.preventDefault(); zona.classList.remove('arrastrando'); if (!rcProcesando && e.dataTransfer.files.length) rcProcesarArchivos(Array.prototype.slice.call(e.dataTransfer.files)); };
+        document.getElementById('rcArchivoCatalogo').onchange = function () { if (this.files[0]) rcImportarCatalogo(this.files[0]); this.value = ''; };
+        document.getElementById('rcArchivoAprendidos').onchange = function () { if (this.files[0]) rcImportarAprendidos(this.files[0]); this.value = ''; };
+        rcRenderizar();
+    }
+    function rcGuardarConfig() {
+        ['para', 'asunto', 'centro', 'almacen'].forEach(function (k) { rcConfig[k] = document.getElementById('rcCfg' + k.charAt(0).toUpperCase() + k.slice(1)).value.trim(); });
+        if (!rcConfig.asunto) rcConfig.asunto = 'Solicitud de entrada de materiales';
+        rcEscribirJSON('recepcionConfig', rcConfig);
+        rcRenderizarCorreo();
+    }
+
+    // ---------- catálogo ----------
+    async function rcImportarCatalogo(archivo) {
+        try {
+            await rcCargarScript(RC_XLSX, 'XLSX');
+            var wb = XLSX.read(await archivo.arrayBuffer(), { type: 'array' });
+            var filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+            var cab = (filas[0] || []).map(function (c) { return rcSinAcentos(c).replace(/[^A-Z]/g, ''); });
+            function col(nombres) { for (var i = 0; i < cab.length; i++) if (nombres.indexOf(cab[i]) !== -1) return i; return -1; }
+            var cCod = col(['CODIGO', 'MATERIAL']), cDesc = col(['DESCRIPCION', 'TEXTOBREVEDEMATERIAL', 'TEXTOBREVE', 'TXTBRV']);
+            var cUm = col(['UM', 'UMB', 'UNIDAD']), cAlt = col(['CODIGOSSUPLIDOR', 'CODIGOSUPLIDOR', 'NUMERODEPARTE']);
+            if (cCod < 0 || cDesc < 0) { mostrarToast('El Excel necesita las columnas Codigo (o Material) y Descripcion (o Texto breve de material)', 'error'); return; }
+            var vistos = {}, items = [];
+            filas.slice(1).forEach(function (f) {
+                var cod = String(f[cCod] || '').trim().replace(/\.0+$/, ''), desc = String(f[cDesc] || '').trim();
+                if (!cod || !desc || vistos[cod]) return;
+                vistos[cod] = 1;
+                items.push([cod, desc, cUm >= 0 ? String(f[cUm] || '').trim() : '', cAlt >= 0 ? String(f[cAlt] || '').trim() : '']);
+            });
+            if (!items.length) { mostrarToast('No encontré materiales en ese Excel', 'error'); return; }
+            var info = { archivo: archivo.name, fecha: Date.now(), items: items };
+            if (!rcEscribirJSON('recepcionCatalogo', info)) return;
+            rcCatalogoInfo = info;
+            rcIndice = rcConstruirIndice(items.map(function (r) { return { codigo: r[0], desc: r[1], um: r[2], alt: r[3] ? r[3].split('|') : [] }; }));
+            rcRenderizar();
+            mostrarToast('Catálogo cargado: ' + items.length.toLocaleString('es-DO') + ' materiales', 'success');
+        } catch (e) { mostrarToast('No se pudo leer el catálogo: ' + e.message, 'error'); }
+    }
+    function rcItemPorCodigo(cod) { var i = rcIndice && rcIndice.porCodigo[cod]; return i === undefined || i === null ? null : rcIndice.items[i]; }
+
+    // ---------- lectura del PDF + OCR ----------
+    function rcProgreso(fraccion, texto) {
+        var p = document.getElementById('rcProgreso');
+        p.classList.toggle('visible', fraccion !== null);
+        if (fraccion !== null) { document.getElementById('rcBarra').style.width = Math.round(fraccion * 100) + '%'; document.getElementById('rcProgresoTexto').textContent = texto; }
+    }
+    async function rcPaginasDeArchivo(archivo) {
+        var out = [];
+        if (archivo.type === 'application/pdf' || /\.pdf$/i.test(archivo.name)) {
+            var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await archivo.arrayBuffer()) }).promise;
+            for (var n = 1; n <= pdf.numPages; n++) {
+                var pg = await pdf.getPage(n), vp = pg.getViewport({ scale: 3.4 }), cv = document.createElement('canvas');
+                cv.width = vp.width; cv.height = vp.height;
+                await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+                out.push({ archivo: archivo.name, canvas: cv });
+            }
+        } else {
+            var img = await createImageBitmap(archivo), c = document.createElement('canvas');
+            c.width = img.width; c.height = img.height; c.getContext('2d').drawImage(img, 0, 0);
+            out.push({ archivo: archivo.name, canvas: c });
+        }
+        return out;
+    }
+    function rcBlancoYNegro(origen) {
+        var c = document.createElement('canvas'); c.width = origen.width; c.height = origen.height;
+        var cx = c.getContext('2d'); cx.drawImage(origen, 0, 0);
+        var d = cx.getImageData(0, 0, c.width, c.height), a = d.data;
+        for (var i = 0; i < a.length; i += 4) {
+            var g = 0.3 * a[i] + 0.59 * a[i + 1] + 0.11 * a[i + 2];
+            g = g < 170 ? Math.max(0, g - 60) : 255;
+            a[i] = a[i + 1] = a[i + 2] = g;
+        }
+        cx.putImageData(d, 0, 0);
+        return c;
+    }
+    function rcDifDigitos(a, b) {
+        if (a.length !== b.length) return 99;
+        var d = 0; for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) d++;
+        return d;
+    }
+    async function rcProcesarArchivos(archivos) {
+        if (!rcIndice) { mostrarToast('Primero carga el catálogo de materiales (Ajustes de recepción)', 'error'); document.querySelector('.rcAjustes').open = true; return; }
+        if (rcFilas.length && !confirm('Ya hay materiales en pantalla. ¿Reemplazarlos con el nuevo escaneo?')) return;
+        rcProcesando = true; rcFilas = []; rcPaginas = []; rcRenderizarFilas();
+        document.getElementById('rcZonaTitulo').textContent = archivos.map(function (a) { return a.name; }).join(', ');
+        try {
+            rcProgreso(0.03, 'Abriendo el archivo…');
+            var paginas = [];
+            for (var a = 0; a < archivos.length; a++) paginas = paginas.concat(await rcPaginasDeArchivo(archivos[a]));
+            rcProgreso(0.08, 'Preparando el lector de texto (la primera vez tarda un poco más)…');
+            await rcCargarScript(RC_TESSERACT, 'Tesseract');
+            if (!rcWorker) rcWorker = await Tesseract.createWorker('spa', 1, { langPath: RC_IDIOMA });
+            for (var i = 0; i < paginas.length; i++) {
+                rcProgreso(0.12 + 0.85 * (i / paginas.length), 'Leyendo página ' + (i + 1) + ' de ' + paginas.length + '…');
+                var num = i + 1;
+                var r = await rcWorker.recognize(paginas[i].canvas);
+                var texto = r.data.text, an = rcAnalizarPagina(rcIndice, texto, rcAprendidos, num);
+                if (!an.items.length || an.items.some(function (x) { return !x.confirmado; })) {
+                    // Segunda lectura en blanco y negro: rescata letras pequeñas (ej. el código debajo de la descripción)
+                    rcProgreso(0.12 + 0.85 * ((i + 0.5) / paginas.length), 'Revisando de nuevo la página ' + num + '…');
+                    var bn = rcBlancoYNegro(paginas[i].canvas), textos2 = [texto];
+                    var r2 = await rcWorker.recognize(bn); textos2.push(r2.data.text);
+                    await rcWorker.setParameters({ tessedit_pageseg_mode: '11' });   // texto disperso
+                    var r3 = await rcWorker.recognize(bn); textos2.push(r3.data.text);
+                    await rcWorker.setParameters({ tessedit_pageseg_mode: '3' });
+                    var numeros = textos2.join(' ').match(/(?<!\d)\d{7}(?!\d)/g) || [];
+                    an.items.forEach(function (x) {
+                        if (x.confirmado) return;
+                        // un código de 7 dígitos del escaneo igual a uno de los candidatos; si no, que difiera en 1 dígito de uno solo
+                        var exactos = x.candidatos.filter(function (c) { return numeros.indexOf(c.codigo) !== -1; });
+                        var cercanos = x.candidatos.filter(function (c) { return numeros.some(function (nn) { return rcDifDigitos(nn, c.codigo) === 1; }); });
+                        var hit = exactos.length === 1 ? exactos[0] : (!exactos.length && cercanos.length === 1 ? cercanos[0] : null);
+                        if (hit) { x.codigo = hit.codigo; x.origen = 'codigo'; x.confirmado = true; }
+                    });
+                    if (!an.items.length) {
+                        var an2 = rcAnalizarPagina(rcIndice, r2.data.text + '\n' + r3.data.text, rcAprendidos, num);
+                        if (an2.items.length) { an = an2; texto = r2.data.text; }
+                    }
+                }
+                rcPaginas.push({ n: num, archivo: paginas[i].archivo, imagen: paginas[i].canvas.toDataURL('image/jpeg', 0.7), texto: texto });
+                if (an.items.length) an.items.forEach(function (it) { it.id = rcSigId++; rcFilas.push(it); });
+                else rcFilas.push({ id: rcSigId++, pagina: num, texto: an.pedidos.length ? 'No reconocí el material en esta página' : 'No encontré materiales ni pedido en esta página', clave: '', cantidad: 1, pedido: an.pedidos[0] || '', pedidosPagina: an.pedidos, candidatos: [], codSuplidor: [], codigo: '', origen: 'vacio', confirmado: false });
+                rcRenderizarFilas();
+            }
+            rcProgreso(null);
+            var dudosos = rcFilas.filter(function (f) { return !f.confirmado; }).length;
+            mostrarToast(dudosos ? 'Listo. Revisa ' + dudosos + ' material(es) marcado(s) en amarillo.' : 'Listo. Todos los materiales fueron reconocidos.', dudosos ? 'info' : 'success');
+        } catch (e) {
+            rcProgreso(null);
+            mostrarToast('No se pudo leer el escaneo: ' + e.message, 'error');
+        } finally { rcProcesando = false; }
+    }
+
+    // ---------- tabla ----------
+    var RC_ORIGEN = { codigo: 'Código de Claro en el conduce', suplidor: 'Código del suplidor conocido', aprendido: 'Ya lo confirmaste antes', descripcion: 'La descripción coincide', manual: 'Elegido por ti' };
+    function rcRenderizar() {
+        var chip = document.getElementById('rcChipCatalogo');
+        if (rcCatalogoInfo) { chip.className = 'rcChipCatalogo'; chip.innerHTML = 'Catálogo <b>' + rcCatalogoInfo.items.length.toLocaleString('es-DO') + '</b> materiales'; chip.title = rcCatalogoInfo.archivo + ' · ' + new Date(rcCatalogoInfo.fecha).toLocaleDateString('es-DO'); chip.onclick = null; chip.style.cursor = ''; }
+        else { chip.className = 'rcChipCatalogo vacio'; chip.textContent = 'Falta cargar el catálogo'; chip.style.cursor = 'pointer'; chip.onclick = function () { document.getElementById('rcArchivoCatalogo').click(); }; }
+        var nd = Object.keys(rcAprendidos.descripciones).length, nc = Object.keys(rcAprendidos.codigos).length;
+        document.getElementById('rcInfoAprendidos').textContent = 'Aprendido hasta ahora: ' + nd + ' descripción(es) y ' + nc + ' código(s) de suplidor.';
+        rcRenderizarFilas();
+    }
+    function rcRenderizarFilas() {
+        var tb = document.getElementById('rcFilas'); tb.innerHTML = '';
+        document.getElementById('rcVacio').style.display = rcFilas.length ? 'none' : 'block';
+        rcFilas.forEach(function (f) {
+            var tr = document.createElement('tr'); if (!f.confirmado) tr.className = 'dudoso';
+            var sup = f.codSuplidor && f.codSuplidor.length ? '<small>' + escaparHtml(f.codSuplidor.slice(0, 2).join(' · ')) + '</small>' : '';
+            tr.innerHTML =
+                '<td class="cPag">' + (f.pagina ? '<button class="btn sm fantasma" title="Ver la página escaneada">' + f.pagina + '</button>' : '—') + '</td>' +
+                '<td class="cOcr ocr" data-et="En el conduce">' + escaparHtml(f.texto || 'Agregado a mano') + sup + '</td>' +
+                '<td class="cMat" data-et="Material SAP"></td>' +
+                '<td data-et="Cant."><input class="num" type="number" min="0" step="any" value="' + f.cantidad + '" aria-label="Cantidad"></td>' +
+                '<td data-et="Pedido"><input type="text" inputmode="numeric" maxlength="10" value="' + escaparHtml(f.pedido) + '" placeholder="4500…" aria-label="Pedido"></td>' +
+                '<td><div class="rcAccionesFila"><button class="btnEliminarArticulo" title="Quitar esta línea" aria-label="Quitar esta línea"><svg class="icon sm"><use href="#i-x"/></svg></button></div></td>';
+            var bPag = tr.querySelector('.cPag button'); if (bPag) bPag.onclick = function () { rcVerPagina(f.pagina); };
+            var ins = tr.querySelectorAll('input');
+            ins[0].oninput = function () { f.cantidad = parseFloat(this.value) || 0; rcRenderizarCorreo(); };
+            ins[1].oninput = function () { f.pedido = this.value.replace(/\D/g, ''); rcRenderizarCorreo(); };
+            tr.querySelector('.btnEliminarArticulo').onclick = function () { rcFilas = rcFilas.filter(function (x) { return x !== f; }); rcRenderizarFilas(); };
+            rcCeldaMaterial(tr.querySelector('.cMat'), f);
+            tb.appendChild(tr);
+        });
+        var total = rcFilas.length, pend = rcFilas.filter(function (f) { return !f.confirmado; }).length;
+        document.getElementById('rcResumen').textContent = total ? total + ' material(es)' + (pend ? ' · ' + pend + ' por confirmar' : ' · todos confirmados') : 'Sin materiales todavía';
+        rcRenderizarCorreo();
+    }
+    function rcCeldaMaterial(td, f) {
+        td.innerHTML = '';
+        if (f.candidatos.length) {
+            var sel = document.createElement('select'); sel.setAttribute('aria-label', 'Material SAP');
+            f.candidatos.forEach(function (c) {
+                var o = document.createElement('option'); o.value = c.codigo;
+                o.textContent = c.codigo + ' · ' + c.desc + (f.origen === 'dudoso' || f.origen === 'descripcion' ? '  (' + c.score + '%)' : '');
+                if (c.codigo === f.codigo) o.selected = true; sel.appendChild(o);
+            });
+            var otro = document.createElement('option'); otro.value = '__buscar'; otro.textContent = 'Buscar otro material…'; sel.appendChild(otro);
+            sel.onchange = function () {
+                if (sel.value === '__buscar') { sel.value = f.codigo; rcMostrarBuscador(td, f); return; }
+                f.codigo = sel.value; f.origen = 'manual'; f.confirmado = true; rcRenderizarFilas();
+            };
+            td.appendChild(sel);
+        } else rcMostrarBuscador(td, f);
+        if (f.candidatos.length) {
+            var est = document.createElement('div');
+            if (f.confirmado) { est.className = 'rcEstado ok'; est.textContent = '✓ ' + (RC_ORIGEN[f.origen] || 'Confirmado'); }
+            else {
+                est.className = 'rcEstado dudoso'; est.innerHTML = 'Confirma el material<button>Es correcto</button>';
+                est.querySelector('button').onclick = function () { f.confirmado = true; f.origen = 'manual'; rcRenderizarFilas(); };
+            }
+            td.appendChild(est);
+        }
+    }
+    function rcMostrarBuscador(td, f) {
+        if (td.querySelector('.rcBuscar')) { td.querySelector('.rcBuscar input').focus(); return; }
+        var cont = document.createElement('div'); cont.className = 'rcBuscar';
+        cont.innerHTML = '<input type="search" placeholder="Busca por código o descripción" aria-label="Buscar material en el catálogo"><ul hidden></ul>';
+        var inp = cont.querySelector('input'), ul = cont.querySelector('ul'), activo = 0, resultados = [];
+        function pintar() {
+            ul.innerHTML = ''; ul.hidden = !resultados.length;
+            resultados.forEach(function (it, i) {
+                var li = document.createElement('li'); if (i === activo) li.className = 'activo';
+                li.innerHTML = '<b>' + escaparHtml(it.codigo) + '</b> · ' + escaparHtml(it.desc);
+                li.onmousedown = function (e) { e.preventDefault(); elegir(it); };
+                ul.appendChild(li);
+            });
+        }
+        function elegir(it) {
+            if (!f.candidatos.some(function (c) { return c.codigo === it.codigo; })) f.candidatos.unshift({ codigo: it.codigo, desc: it.desc, um: it.um, score: 100 });
+            f.codigo = it.codigo; f.origen = 'manual'; f.confirmado = true; rcRenderizarFilas();
+        }
+        inp.oninput = function () {
+            var q = inp.value.trim(); activo = 0;
+            if (!q) { resultados = []; pintar(); return; }
+            if (/^\d{3,}$/.test(q)) resultados = rcIndice.items.filter(function (it) { return it.codigo.indexOf(q) === 0; }).slice(0, 8);
+            else resultados = rcBuscar(rcIndice, q, 8).map(function (r) { return rcIndice.items[r.i]; });
+            pintar();
+        };
+        inp.onkeydown = function (e) {
+            if (e.key === 'ArrowDown') { activo = Math.min(activo + 1, resultados.length - 1); pintar(); e.preventDefault(); }
+            else if (e.key === 'ArrowUp') { activo = Math.max(activo - 1, 0); pintar(); e.preventDefault(); }
+            else if (e.key === 'Enter' && resultados[activo]) { elegir(resultados[activo]); e.preventDefault(); }
+            else if (e.key === 'Escape') { ul.hidden = true; }
+        };
+        inp.onblur = function () { setTimeout(function () { ul.hidden = true; }, 150); };
+        td.appendChild(cont); inp.focus();
+    }
+    function rcAgregarFila() {
+        if (!rcIndice) { mostrarToast('Primero carga el catálogo de materiales (Ajustes de recepción)', 'error'); return; }
+        var ped = rcFilas.length ? rcFilas[rcFilas.length - 1].pedido : '';
+        rcFilas.push({ id: rcSigId++, pagina: 0, texto: '', clave: '', cantidad: 1, pedido: ped, pedidosPagina: [], candidatos: [], codSuplidor: [], codigo: '', origen: 'vacio', confirmado: false });
+        rcRenderizarFilas();
+    }
+    function rcVerPagina(n) {
+        var p = rcPaginas.filter(function (x) { return x.n === n; })[0]; if (!p) return;
+        document.getElementById('rcVisorTitulo').textContent = 'Página ' + n + ' · ' + p.archivo;
+        document.getElementById('rcVisorImg').src = p.imagen;
+        document.getElementById('rcVisor').showModal();
+    }
+    function rcLimpiar() {
+        if (rcFilas.length && !confirm('¿Borrar los materiales de pantalla y empezar con otro escaneo?')) return;
+        rcFilas = []; rcPaginas = [];
+        document.getElementById('rcZonaTitulo').textContent = 'Elige o arrastra el PDF escaneado';
+        rcRenderizarFilas();
+    }
+
+    // ---------- correo ----------
+    function rcFilasCorreo() {
+        // Agrupa material + pedido repetidos sumando la cantidad
+        var mapa = {}, orden = [];
+        rcFilas.forEach(function (f) {
+            if (!f.codigo) return;
+            var k = f.codigo + '|' + f.pedido;
+            if (!mapa[k]) { var it = rcItemPorCodigo(f.codigo); mapa[k] = { codigo: f.codigo, desc: it ? it.desc : '', cant: 0, pedido: f.pedido }; orden.push(k); }
+            mapa[k].cant += Number(f.cantidad) || 0;
+        });
+        return orden.map(function (k) { return mapa[k]; });
+    }
+    function rcFormatoCant(v) { return Math.round(v * 1000) / 1000; }
+    function rcCorreoHTML(filas) {
+        var th = 'style="background:#1F5C7A;color:#ffffff;font-weight:bold;text-align:left;padding:3px 8px;border:1px solid #5B9BD5;"';
+        var td = 'style="padding:3px 8px;border:1px solid #5B9BD5;color:#000000;"';
+        var tdN = 'style="padding:3px 8px;border:1px solid #5B9BD5;color:#000000;text-align:right;"';
+        return '<div style="font-family:Aptos,Calibri,Arial,sans-serif;font-size:11pt;color:#000000;">' +
+            '<p style="margin:0 0 12px;">Buenos días.</p><p style="margin:0 0 12px;">Favor dar entrada al siguiente material recibido.</p>' +
+            '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-family:Aptos,Calibri,Arial,sans-serif;font-size:10.5pt;">' +
+            '<tr><th ' + th + '>Codigo</th><th ' + th + '>Descripcion</th><th ' + th + '>Cant</th><th ' + th + '>Pedido</th><th ' + th + '>Centro</th><th ' + th + '>Almacen</th></tr>' +
+            filas.map(function (f) {
+                return '<tr><td ' + td + '>' + escaparHtml(f.codigo) + '</td><td ' + td + '>' + escaparHtml(f.desc) + '</td><td ' + tdN + '>' + rcFormatoCant(f.cant) + '</td><td ' + td + '>' + escaparHtml(f.pedido) + '</td><td ' + td + '>' + escaparHtml(rcConfig.centro) + '</td><td ' + td + '>' + escaparHtml(rcConfig.almacen) + '</td></tr>';
+            }).join('') + '</table><p style="margin:12px 0 0;">Saludos,</p></div>';
+    }
+    function rcCorreoTexto(filas) {
+        return 'Buenos días.\n\nFavor dar entrada al siguiente material recibido.\n\nCodigo\tDescripcion\tCant\tPedido\tCentro\tAlmacen\n' +
+            filas.map(function (f) { return [f.codigo, f.desc, rcFormatoCant(f.cant), f.pedido, rcConfig.centro, rcConfig.almacen].join('\t'); }).join('\n') + '\n\nSaludos,';
+    }
+    function rcProblemasCorreo() {
+        if (!rcFilas.length) return 'Carga un escaneo o agrega materiales para preparar el correo.';
+        var pend = rcFilas.filter(function (f) { return !f.confirmado || !f.codigo; }).length;
+        if (pend) return 'Confirma ' + pend + ' material(es) en amarillo antes de copiar el correo.';
+        var sinPed = rcFilas.filter(function (f) { return !/^45\d{8}$/.test(f.pedido); }).length;
+        if (sinPed) return sinPed + ' línea(s) no tienen un pedido válido (10 dígitos que empiezan con 45).';
+        var sinCant = rcFilas.filter(function (f) { return !(Number(f.cantidad) > 0); }).length;
+        if (sinCant) return sinCant + ' línea(s) tienen la cantidad en cero.';
+        return '';
+    }
+    function rcRenderizarCorreo() {
+        document.getElementById('rcPara').textContent = rcConfig.para || 'Recepción Alameda (agrega el correo en Ajustes)';
+        document.getElementById('rcAsunto').textContent = rcConfig.asunto;
+        var filas = rcFilasCorreo();
+        document.getElementById('rcCorreoCuerpo').innerHTML = filas.length ? rcCorreoHTML(filas) : '<p style="margin:0;color:#64748B;font-family:Inter,sans-serif;font-size:13px;">El correo aparecerá aquí con la misma tabla que envías siempre.</p>';
+        var prob = rcProblemasCorreo(), nota = document.getElementById('rcNotaCorreo');
+        nota.textContent = prob || 'Pega el correo en Outlook (tu firma ya sale sola) y adjunta el PDF escaneado.';
+        nota.classList.toggle('alerta', !!prob);
+    }
+    async function rcCopiarCorreo() {
+        var prob = rcProblemasCorreo();
+        if (prob) { mostrarToast(prob, 'error'); return false; }
+        var filas = rcFilasCorreo(), html = rcCorreoHTML(filas), texto = rcCorreoTexto(filas);
+        try {
+            if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([texto], { type: 'text/plain' }) })]);
+            else await navigator.clipboard.writeText(texto);
+        } catch (e) {
+            var cuerpo = document.getElementById('rcCorreoCuerpo'), rango = document.createRange(), selA = window.getSelection();
+            rango.selectNodeContents(cuerpo); selA.removeAllRanges(); selA.addRange(rango);
+            var ok = document.execCommand('copy'); selA.removeAllRanges();
+            if (!ok) { mostrarToast('No se pudo copiar. Selecciona el correo con el mouse y usa Ctrl+C.', 'error'); return false; }
+        }
+        rcAprender();
+        mostrarToast('Correo copiado. Pégalo en Outlook con Ctrl+V.', 'success');
+        return true;
+    }
+    async function rcAbrirOutlook() {
+        if (!(await rcCopiarCorreo())) return;
+        location.href = 'mailto:' + encodeURIComponent(rcConfig.para || '') + '?subject=' + encodeURIComponent(rcConfig.asunto);
+    }
+
+    // ---------- aprendizaje ----------
+    function rcAprender() {
+        rcFilas.forEach(function (f) {
+            if (!f.codigo || !f.confirmado) return;
+            if (f.clave) rcAprendidos.descripciones[f.clave] = f.codigo;
+            (f.codSuplidor || []).forEach(function (c) { var fl = rcCodigoFlex(c); if (fl.length >= 6) rcAprendidos.codigos[fl] = f.codigo; });
+        });
+        rcEscribirJSON('recepcionAprendidos', rcAprendidos);
+        rcRenderizar();
+    }
+    function rcExportarAprendidos() {
+        var url = URL.createObjectURL(new Blob([JSON.stringify(rcAprendidos, null, 1)], { type: 'application/json' }));
+        var a = document.createElement('a'); a.href = url; a.download = 'recepcion_aprendido_' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }
+    async function rcImportarAprendidos(archivo) {
+        try {
+            var d = JSON.parse(await archivo.text());
+            if (!d || typeof d.descripciones !== 'object' || typeof d.codigos !== 'object') throw new Error('el archivo no es un respaldo de recepción');
+            Object.keys(d.descripciones).forEach(function (k) { rcAprendidos.descripciones[k] = String(d.descripciones[k]); });
+            Object.keys(d.codigos).forEach(function (k) { rcAprendidos.codigos[k] = String(d.codigos[k]); });
+            rcEscribirJSON('recepcionAprendidos', rcAprendidos); rcRenderizar();
+            mostrarToast('Respaldo restaurado', 'success');
+        } catch (e) { mostrarToast('No se pudo restaurar: ' + e.message, 'error'); }
     }
 </script>
 </body>
