@@ -1486,6 +1486,104 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
     .rcTabla td[data-et]::before { content: attr(data-et); display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { #recepcionSection { animation: none; } .rcProgreso .barra i { transition: none; } }
+
+/* ============ Materiales de seguridad: panel de consumo (v3) ============ */
+:root { --ms-barra: #3B4F7A; }
+:root[data-theme="dark"] { --ms-barra: #6F86BC; }
+.msVista { display: none; }
+.msVista.activa { display: block; animation: subir .18s var(--ease); }
+body[data-modo="materiales"][data-msvista="panel"] #layout { grid-template-columns: minmax(0, 1fr); }
+body[data-modo="materiales"][data-msvista="panel"] #panelFirma { display: none; }
+.msFiltros { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+.msFiltros label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.msFiltros select { padding: 7px 10px; min-width: 190px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+.msKpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.msKpi { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
+.msKpi span { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.msKpi b { display: block; margin-top: 6px; font-size: 28px; line-height: 1; font-weight: 700; letter-spacing: -.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+.msKpi small { display: block; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.msKpi.sube small { color: var(--text-2); }
+.msKpi.alerta { border-color: #F5B76A; background: var(--warning-soft); }
+.msKpi.alerta b, .msKpi.alerta small { color: var(--warning); }
+.msPanelGrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; }
+.msBloque { padding: 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); min-width: 0; }
+.msBloqueAncho { grid-column: 1 / -1; }
+.msDetalle { margin-top: 14px; }
+.msBloqueHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.msBloqueHead h4 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+.msBloqueHead > span { font-size: 12px; color: var(--muted); }
+.msGraficoWrap { position: relative; }
+.msGrafico { display: block; max-width: 100%; height: auto; overflow: visible; }
+.msVerTodas { margin-top: 8px; }
+.msGrafico .msEje { stroke: var(--border); stroke-width: 1; }
+.msGrafico .msEje.base { stroke: var(--border-strong); }
+.msGrafico .msEjeTxt { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.msGrafico .msValor { fill: var(--text); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.msGrafico .msBarra { fill: var(--ms-barra); }
+.msGrafico .msBarra.actual { fill: var(--primary); opacity: 1; }
+.msGrafico .msHit { fill: transparent; cursor: default; }
+.msGrafico .msHit.activo { fill: var(--primary-soft); opacity: .6; }
+.msTip { position: absolute; top: 0; padding: 6px 9px; border-radius: 6px; background: var(--text); color: var(--surface); font-size: 12px; white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-100%); transition: opacity .12s var(--ease); }
+.msTip.visible { opacity: 1; }
+.msTablaDatos { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.msTablaDatos summary { cursor: pointer; }
+.msTablaDatos .msTabla { margin-top: 8px; }
+.msTop { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.msTop li { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(60px, 1.2fr) 44px 38px; align-items: center; gap: 10px; font-size: 13px; }
+.msTopNombre { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msTopBarra { height: 8px; border-radius: var(--r-full); background: var(--surface-3); overflow: hidden; }
+.msTopBarra i { display: block; height: 100%; border-radius: var(--r-full); background: var(--ms-barra); }
+.msTop b { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+.msTop small { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.msPersonas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.msPersonas li { display: flex; align-items: center; gap: 10px; }
+.msPersonas .textoFila { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; }
+.msPersonas .textoFila b { font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msPersonas .textoFila small { color: var(--muted); font-size: 12px; }
+.msConteo { min-width: 26px; padding: 2px 8px; border-radius: var(--r-full); background: var(--warning-soft); color: var(--warning); font-size: 12.5px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.msNota { margin: -4px 0 12px; font-size: 12.5px; color: var(--muted); }
+.msTablaWrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-sm); }
+.msTabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.msTabla th { text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.msTabla td { padding: 9px 10px; border-top: 1px solid var(--border); color: var(--text-2); vertical-align: top; white-space: nowrap; }
+.msTabla tr:first-child td { border-top: none; }
+.msTabla td b { display: block; color: var(--text); font-weight: 600; }
+.msTabla td small { display: block; color: var(--muted); font-size: 12px; }
+.msUso { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.msUsoBarra { width: 56px; height: 6px; border-radius: var(--r-full); background: var(--surface-3); overflow: hidden; }
+.msUsoBarra i { display: block; height: 100%; background: var(--warning); border-radius: var(--r-full); }
+:root[data-theme="dark"] .msKpi.alerta { border-color: rgba(245,158,11,.5); }
+@media (max-width: 900px) { .msKpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .msPanelGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .msVista.activa { animation: none; } .msTip { transition: none; } }
+
+/* =====================================================================
+   v3 · Pulido general (misma marca y flujos)
+   ===================================================================== */
+/* Etiquetas en minúscula normal: se leen más rápido que en MAYÚSCULAS */
+.infoEtiqueta, .etiquetaRecientes, .latTitulo, .tituloBloque, .statUN span, .miniStats span, .tablaResumen th {
+    text-transform: none; letter-spacing: 0;
+}
+.etiquetaRecientes, .latTitulo { font-size: 12.5px; color: var(--muted); }
+.tituloBloque { font-size: 13px; color: var(--text-2); }
+.statUN span, .miniStats span { font-size: 12.5px; font-weight: 500; }
+.tablaResumen th { font-size: 12px; }
+/* Indicadores de Uniformes con la misma escala que el panel de seguridad */
+.statUN { padding: 14px 16px; }
+.statUN b { margin-top: 6px; font-size: 28px; line-height: 1; letter-spacing: -.02em; }
+#msNumeroActual { font-family: inherit; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+/* Pestañas: se pueden usar con teclado y se nota que hay más a la derecha en pantallas chicas */
+.modoTab:focus-visible { outline: 3px solid var(--primary-ring); outline-offset: -3px; }
+@media (max-width: 640px) {
+    #modoTabs { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+    #modoTabs.alFinal { -webkit-mask-image: none; mask-image: none; }
+    #status .stLargo { display: none; }
+    #status { max-width: none; }
+    #header h1 { font-size: 15px; }
+}
+/* Números alineados en tablas y contadores */
+.badgePendientes, .contadorP, .tablaResumen td, .rcTabla td, .msTabla td { font-variant-numeric: tabular-nums; }
+/* Botones deshabilitados: explican con el cursor que no se pueden usar todavía */
+button:disabled { cursor: not-allowed; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1496,6 +1594,7 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
     <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
     <symbol id="i-pluma" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
     <symbol id="i-camion" viewBox="0 0 24 24"><path d="M1 4h13v12H1zM14 8h4l3 3v5h-7"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></symbol>
+    <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/></symbol>
     <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
     <symbol id="i-carpeta" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
     <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
@@ -1588,10 +1687,15 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
             <div id="materialesSection">
                 <div class="seccionHead">
                     <div>
-                        <h3>Despacho de materiales de seguridad <span id="msNumeroActual" class="badgePendientes" style="display:inline-block;">MS-0001</span></h3>
-                        <p class="seccionSub">Selecciona el empleado y los artículos; luego firma el conduce en el pad.</p>
+                        <h3>Materiales de seguridad <span id="msNumeroActual" class="badgePendientes" style="display:inline-block;">MS-0001</span></h3>
+                        <p class="seccionSub" id="msSubtitulo">Selecciona el empleado y los artículos; luego firma el conduce en el pad.</p>
                     </div>
                 </div>
+                <div class="subTabs" id="msSubTabs" role="tablist">
+                    <button data-vista="despacho" class="activa" role="tab" aria-selected="true" onclick="cambiarVistaMS('despacho')"><svg class="icon sm"><use href="#i-pluma"/></svg>Despacho e historial</button>
+                    <button data-vista="panel" role="tab" aria-selected="false" onclick="cambiarVistaMS('panel')"><svg class="icon sm"><use href="#i-grafico"/></svg>Panel de consumo</button>
+                </div>
+                <div class="msVista activa" data-vista="despacho">
                 <div class="estadoCarpetaLinea"><svg class="icon sm"><use href="#i-carpeta"/></svg> Carpeta de materiales: <strong id="estadoCarpetaMaterialesTexto">no conectada (ve a ⚙️ para configurarla)</strong></div>
                 <div id="avisoSinCarpetaMateriales">
                     No hay una carpeta conectada para materiales de seguridad. Se puede seguir usando — los conduces se descargarán al navegador y el historial queda solo en este navegador — pero se recomienda conectar una carpeta para mantener todo centralizado.
@@ -1666,6 +1770,14 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
                     </div>
                     <input type="text" id="buscarHistorialMS" class="buscarInput" placeholder="Buscar por nombre o No. de tarjeta…" oninput="renderizarHistorialMateriales()">
                     <div id="listaHistorialMS"></div>
+                </div>
+                </div>
+                <div class="msVista" data-vista="panel">
+                    <div class="msFiltros">
+                        <label>Periodo<select id="msPanelPeriodo" onchange="periodoPanelMS = Number(this.value); renderizarPanelMS()"><option value="1">Este mes</option><option value="3">Últimos 3 meses</option><option value="6">Últimos 6 meses</option><option value="12">Últimos 12 meses</option><option value="0">Todo el historial</option></select></label>
+                        <label>Artículo<select id="msPanelArticulo" onchange="articuloPanelMS = this.value; renderizarPanelMS()"></select></label>
+                    </div>
+                    <div id="msPanelContenido"></div>
                 </div>
             </div>
 
@@ -2859,7 +2971,8 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
     function ponerEstadoPad(estado, texto) {
         var el = document.getElementById('status');
         el.className = estado;                     // connected | disconnected | reconnecting
-        el.innerText = texto;
+        var partes = String(texto).split(' · ');
+        el.innerHTML = escaparHtml(partes[0]) + (partes.length > 1 ? '<span class="stLargo"> · ' + escaparHtml(partes.slice(1).join(' · ')) + '</span>' : '');
         el.title = texto;
     }
     function padConectadoUI() {
@@ -3002,6 +3115,15 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
         await restaurarCarpetasGuardadas();
         cargarCatalogoMateriales();
         try { iniciarRecepcion(); } catch (e) { console.error('Recepción', e); }
+        document.body.setAttribute('data-msvista', 'despacho');
+        // v3: las pestañas principales se pueden usar con teclado
+        var navTabs = document.getElementById('modoTabs');
+        navTabs.querySelectorAll('.modoTab').forEach(function (t) {
+            t.tabIndex = 0;
+            t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); } });
+        });
+        var marcarFinTabs = function () { navTabs.classList.toggle('alFinal', navTabs.scrollLeft + navTabs.clientWidth >= navTabs.scrollWidth - 4); };
+        navTabs.addEventListener('scroll', marcarFinTabs); window.addEventListener('resize', marcarFinTabs); marcarFinTabs();
         renderizarAdminCatalogoMateriales();
         await cargarHistorialMateriales();
         await iniciarModuloUniformes();
@@ -4907,6 +5029,7 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
 
     // ============ Control general — historial de entregas ============
     function renderizarHistorialMateriales() {
+        if (vistaMS === 'panel') renderizarPanelMS();
         var cont = document.getElementById('listaHistorialMS');
         var badge = document.getElementById('badgeHistorialMS');
         if (!cont) return;
@@ -7578,6 +7701,201 @@ body[data-modo="recepcion"] #panelFirma { display: none; }
             rcEscribirJSON('recepcionAprendidos', rcAprendidos); rcRenderizar();
             mostrarToast('Respaldo restaurado', 'success');
         } catch (e) { mostrarToast('No se pudo restaurar: ' + e.message, 'error'); }
+    }
+
+    // ============ Materiales de seguridad: panel de consumo (v3) ============
+    var vistaMS = 'despacho', periodoPanelMS = 6, articuloPanelMS = '';
+    var MS_MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+    function cambiarVistaMS(v) {
+        vistaMS = v;
+        document.body.setAttribute('data-msvista', v);
+        document.querySelectorAll('#msSubTabs button').forEach(function (b) { b.classList.toggle('activa', b.dataset.vista === v); b.setAttribute('aria-selected', b.dataset.vista === v); });
+        document.querySelectorAll('#materialesSection .msVista').forEach(function (s) { s.classList.toggle('activa', s.dataset.vista === v); });
+        document.getElementById('msSubtitulo').textContent = v === 'panel' ? 'Cuánto se entrega cada mes y quién recibe antes de cumplir la vida útil.' : 'Selecciona el empleado y los artículos; luego firma el conduce en el pad.';
+        if (v === 'panel') renderizarPanelMS();
+    }
+    function vidaUtilMS(nombre) {
+        var a = (catalogoMateriales || []).filter(function (x) { return x.nombre === nombre; })[0];
+        return a && Number(a.diasVidaUtil) > 0 ? Number(a.diasVidaUtil) : 0;
+    }
+    function inicioMesMS(fecha, desplazar) { var d = new Date(fecha); return new Date(d.getFullYear(), d.getMonth() + (desplazar || 0), 1).getTime(); }
+    function piezasRegistroMS(r, art) {
+        return (r.articulos || []).reduce(function (s, a) { return s + (!art || a.nombre === art ? (Number(a.cantidad) || 0) : 0); }, 0);
+    }
+    // Entregas anticipadas: la misma persona recibe el mismo artículo antes de cumplir su vida útil
+    function entregasAnticipadasMS(registros) {
+        var porClave = {};
+        registros.forEach(function (r) {
+            var vistos = {};
+            (r.articulos || []).forEach(function (a) {
+                if (vistos[a.nombre]) return; vistos[a.nombre] = 1;
+                var k = claveTarjeta(r.tarjeta) + '|' + a.nombre;
+                (porClave[k] = porClave[k] || []).push({ r: r, a: a });
+            });
+        });
+        var out = [];
+        Object.keys(porClave).forEach(function (k) {
+            var lista = porClave[k].sort(function (x, y) { return x.r.fecha - y.r.fecha; });
+            var vida = vidaUtilMS(lista[0].a.nombre);
+            if (!vida) return;
+            for (var i = 1; i < lista.length; i++) {
+                var dias = Math.floor((lista[i].r.fecha - lista[i - 1].r.fecha) / 86400000);
+                if (dias < vida) out.push({ nombre: lista[i].r.nombre, tarjeta: lista[i].r.tarjeta, articulo: lista[i].a.nombre, talla: lista[i].a.talla || '', cantidad: lista[i].a.cantidad, fecha: lista[i].r.fecha, anterior: lista[i - 1].r.fecha, numero: lista[i].r.numero, dias: dias, vida: vida });
+            }
+        });
+        return out.sort(function (a, b) { return b.fecha - a.fecha; });
+    }
+
+    function renderizarPanelMS() {
+        var cont = document.getElementById('msPanelContenido');
+        if (!cont) return;
+        var selArt = document.getElementById('msPanelArticulo');
+        var nombres = {}; (catalogoMateriales || []).forEach(function (a) { nombres[a.nombre] = 1; });
+        historialMateriales.forEach(function (r) { (r.articulos || []).forEach(function (a) { nombres[a.nombre] = 1; }); });
+        selArt.innerHTML = '<option value="">Todos los artículos</option>' + Object.keys(nombres).sort().map(function (n) { return '<option' + (n === articuloPanelMS ? ' selected' : '') + '>' + escaparHtml(n) + '</option>'; }).join('');
+        document.getElementById('msPanelPeriodo').value = String(periodoPanelMS);
+
+        if (!historialMateriales.length) {
+            cont.innerHTML = '<div class="estadoVacio">El panel se llena solo con cada conduce firmado. Todavía no hay entregas registradas.</div>';
+            return;
+        }
+        var ahora = Date.now(), art = articuloPanelMS;
+        var meses = periodoPanelMS || (function () {
+            var primero = Math.min.apply(null, historialMateriales.map(function (r) { return r.fecha; }));
+            var d0 = new Date(primero), d1 = new Date(ahora);
+            return Math.max(1, (d1.getFullYear() - d0.getFullYear()) * 12 + d1.getMonth() - d0.getMonth() + 1);
+        })();
+        var desde = inicioMesMS(ahora, -(meses - 1));
+        var conArt = function (r) { return !art || (r.articulos || []).some(function (a) { return a.nombre === art; }); };
+        var regs = historialMateriales.filter(function (r) { return r.fecha >= desde && conArt(r); });
+
+        // KPIs
+        var iniMes = inicioMesMS(ahora), iniAnt = inicioMesMS(ahora, -1);
+        var piezasMes = 0, piezasAnt = 0;
+        historialMateriales.forEach(function (r) {
+            if (!conArt(r)) return;
+            if (r.fecha >= iniMes) piezasMes += piezasRegistroMS(r, art);
+            else if (r.fecha >= iniAnt) piezasAnt += piezasRegistroMS(r, art);
+        });
+        var piezas = regs.reduce(function (s, r) { return s + piezasRegistroMS(r, art); }, 0);
+        var personas = {}; regs.forEach(function (r) { personas[claveTarjeta(r.tarjeta)] = 1; });
+        var antic = entregasAnticipadasMS(historialMateriales).filter(function (x) { return x.fecha >= desde && (!art || x.articulo === art); });
+        var entregasArt = regs.length;
+        var pct = entregasArt ? Math.round(antic.length * 100 / entregasArt) : 0;
+        var delta = piezasAnt ? Math.round((piezasMes - piezasAnt) * 100 / piezasAnt) : null;
+        var textoDelta = delta === null ? (piezasMes ? 'Sin entregas el mes anterior' : 'Sin entregas este mes') : (delta === 0 ? 'Igual que el mes anterior' : (delta > 0 ? '▲ ' : '▼ ') + Math.abs(delta) + ' % vs. mes anterior');
+        var rotulo = meses === 1 ? 'este mes' : (periodoPanelMS ? 'últimos ' + meses + ' meses' : 'todo el historial');
+
+        var html = '<div class="msKpis">' +
+            kpiMS('Piezas este mes', piezasMes.toLocaleString('es-DO'), textoDelta, delta !== null && delta > 0 ? 'sube' : '') +
+            kpiMS('Piezas entregadas', piezas.toLocaleString('es-DO'), rotulo) +
+            kpiMS('Personas atendidas', Object.keys(personas).length.toLocaleString('es-DO'), regs.length + ' conduce(s)') +
+            kpiMS('Entregas anticipadas', antic.length.toLocaleString('es-DO'), pct + ' % de los conduces', antic.length ? 'alerta' : '') +
+            '</div>';
+
+        // Tendencia mensual
+        var serie = [];
+        for (var m = meses - 1; m >= 0; m--) serie.push({ ini: inicioMesMS(ahora, -m), fin: inicioMesMS(ahora, -m + 1), piezas: 0, conduces: 0 });
+        regs.forEach(function (r) {
+            for (var j = 0; j < serie.length; j++) if (r.fecha >= serie[j].ini && r.fecha < serie[j].fin) { serie[j].piezas += piezasRegistroMS(r, art); serie[j].conduces++; break; }
+        });
+        html += '<div class="msPanelGrid"><section class="msBloque msBloqueAncho"><div class="msBloqueHead"><h4>Piezas por mes</h4><span>' + escaparHtml(art || 'Todos los artículos') + '</span></div>' + graficoMesesMS(serie, Math.max(300, cont.clientWidth - 34)) + '</section>';
+
+        // Top artículos
+        var porArt = {};
+        regs.forEach(function (r) { (r.articulos || []).forEach(function (a) { if (art && a.nombre !== art) return; porArt[a.nombre] = (porArt[a.nombre] || 0) + (Number(a.cantidad) || 0); }); });
+        var top = Object.keys(porArt).map(function (k) { return { n: k, v: porArt[k] }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 8);
+        var maxTop = top.length ? top[0].v : 1;
+        html += '<section class="msBloque"><div class="msBloqueHead"><h4>Artículos más entregados</h4><span>' + rotulo + '</span></div>' +
+            (top.length ? '<ul class="msTop">' + top.map(function (t) {
+                return '<li><span class="msTopNombre">' + escaparHtml(t.n) + '</span><span class="msTopBarra"><i style="width:' + Math.max(2, Math.round(t.v * 100 / maxTop)) + '%"></i></span><b>' + t.v.toLocaleString('es-DO') + '</b><small>' + Math.round(t.v * 100 / (piezas || 1)) + ' %</small></li>';
+            }).join('') + '</ul>' : '<div class="estadoVacio">Sin entregas en este periodo</div>') + '</section>';
+
+        // Personas con más entregas anticipadas
+        var porPersona = {};
+        antic.forEach(function (x) { var k = claveTarjeta(x.tarjeta); (porPersona[k] = porPersona[k] || { nombre: x.nombre, tarjeta: x.tarjeta, n: 0 }).n++; });
+        var reinc = Object.keys(porPersona).map(function (k) { return porPersona[k]; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 6);
+        html += '<section class="msBloque"><div class="msBloqueHead"><h4>Quién recibe antes de tiempo</h4><span>' + rotulo + '</span></div>' +
+            (reinc.length ? '<ul class="msPersonas">' + reinc.map(function (p) {
+                return '<li><span class="avatarEmp" style="background:' + colorAvatar(p.nombre) + '">' + escaparHtml(inicialesEmpleado(p.nombre)) + '</span><span class="textoFila"><b>' + escaparHtml(p.nombre) + '</b><small>Tarjeta ' + escaparHtml(p.tarjeta) + '</small></span><span class="msConteo">' + p.n + '</span></li>';
+            }).join('') + '</ul>' : '<div class="estadoVacio">Nadie ha recibido antes de cumplir la vida útil en este periodo.</div>') + '</section></div>';
+
+        // Detalle de anticipadas
+        html += '<section class="msBloque msDetalle"><div class="msBloqueHead"><h4>Entregas anticipadas</h4>' +
+            (antic.length ? '<button class="btn sm" onclick="exportarAnticipadasMS()"><svg class="icon sm"><use href="#i-descarga"/></svg>Exportar CSV</button>' : '') + '</div>' +
+            '<p class="msNota">Se marca cuando la misma persona recibe el mismo artículo antes de los días de vida útil del catálogo (⚙️ › Catálogo).</p>' +
+            (antic.length ? '<div class="msTablaWrap"><table class="msTabla"><thead><tr><th>Empleado</th><th>Artículo</th><th>Entregado</th><th>Entrega anterior</th><th>Usado</th></tr></thead><tbody>' +
+                antic.map(function (x, ix) {
+                    var uso = Math.round(x.dias * 100 / x.vida);
+                    return '<tr' + (ix >= 10 ? ' class="msExtra" hidden' : '') + '><td><b>' + escaparHtml(x.nombre) + '</b><small>' + escaparHtml(x.tarjeta) + ' · ' + escaparHtml(x.numero) + '</small></td><td>' + escaparHtml(x.articulo + (x.talla ? ' · ' + x.talla : '')) + '</td><td>' + fechaCorta(x.fecha) + '</td><td>' + fechaCorta(x.anterior) + '</td>' +
+                        '<td><span class="msUso"><span class="msUsoBarra"><i style="width:' + Math.max(3, uso) + '%"></i></span>' + x.dias + ' de ' + x.vida + ' días</span></td></tr>';
+                }).join('') + '</tbody></table></div>' + (antic.length > 10 ? '<button class="btn sm fantasma msVerTodas" onclick="this.closest(\'.msDetalle\').querySelectorAll(\'.msExtra\').forEach(function (t) { t.hidden = false; }); this.remove();">Mostrar las ' + antic.length + ' entregas anticipadas</button>' : '') : '<div class="estadoVacio">Sin entregas anticipadas en este periodo.</div>') +
+            '</section>';
+        cont.innerHTML = html;
+        activarTooltipMS(cont);
+    }
+    var temporizadorPanelMS = null;
+    window.addEventListener('resize', function () {
+        if (modoActual !== 'materiales' || vistaMS !== 'panel') return;
+        clearTimeout(temporizadorPanelMS); temporizadorPanelMS = setTimeout(renderizarPanelMS, 200);
+    });
+    function kpiMS(etiqueta, valor, nota, tono) {
+        return '<div class="msKpi' + (tono ? ' ' + tono : '') + '"><span>' + etiqueta + '</span><b>' + valor + '</b><small>' + escaparHtml(nota || '') + '</small></div>';
+    }
+    function graficoMesesMS(serie, W) {
+        W = Math.round(W || 640); var H = 220, pl = 34, pr = 8, pt = 18, pb = 26, max = 0;
+        serie.forEach(function (s) { if (s.piezas > max) max = s.piezas; });
+        var paso = max <= 5 ? 1 : Math.pow(10, Math.floor(Math.log10(max))) * ([1, 2, 5, 10].filter(function (k) { return max / (Math.pow(10, Math.floor(Math.log10(max))) * k) <= 5; })[0] || 10);
+        var tope = Math.max(paso, Math.ceil(max / paso) * paso);
+        var ancho = (W - pl - pr) / serie.length, barra = Math.min(48, ancho * 0.56);
+        var y = function (v) { return pt + (H - pt - pb) * (1 - v / tope); };
+        var svg = '<svg class="msGrafico" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Piezas entregadas por mes">';
+        for (var g = 0; g <= tope; g += paso) svg += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(g) + '" y2="' + y(g) + '" class="msEje' + (g === 0 ? ' base' : '') + '"/><text x="' + (pl - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end" class="msEjeTxt">' + g + '</text>';
+        var iMax = -1; serie.forEach(function (s, i) { if (s.piezas === max && max > 0) iMax = i; });
+        serie.forEach(function (s, i) {
+            var cx = pl + ancho * i + ancho / 2, d = new Date(s.ini), h = H - pb - y(s.piezas);
+            var etiqueta = MS_MESES[d.getMonth()] + (d.getMonth() === 0 || i === 0 ? ' ' + String(d.getFullYear()).slice(2) : '');
+            var actual = i === serie.length - 1;
+            if (s.piezas > 0) {
+                var r = Math.min(4, h, barra / 2), x0 = cx - barra / 2, yt = y(s.piezas), yb = H - pb;
+                svg += '<path class="msBarra' + (actual ? ' actual' : '') + '" d="M' + x0 + ' ' + yb + 'V' + (yt + r) + 'Q' + x0 + ' ' + yt + ' ' + (x0 + r) + ' ' + yt + 'H' + (x0 + barra - r) + 'Q' + (x0 + barra) + ' ' + yt + ' ' + (x0 + barra) + ' ' + (yt + r) + 'V' + yb + 'Z"/>';
+            }
+            if (s.piezas > 0 && (i === iMax || actual)) svg += '<text x="' + cx + '" y="' + (y(s.piezas) - 6) + '" text-anchor="middle" class="msValor">' + s.piezas + '</text>';
+            if (ancho < 44) etiqueta = MS_MESES[d.getMonth()];
+            var cadaCuanto = ancho < 30 ? 3 : (ancho < 44 ? 2 : 1);
+            if ((serie.length - 1 - i) % cadaCuanto === 0) svg += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle" class="msEjeTxt">' + etiqueta + '</text>';
+            svg += '<rect class="msHit" x="' + (pl + ancho * i) + '" y="' + pt + '" width="' + ancho + '" height="' + (H - pt - pb) + '" data-top="' + y(s.piezas) + '" data-tip="' + escaparHtml(MS_MESES[d.getMonth()] + ' ' + d.getFullYear() + ': ' + s.piezas + ' pieza(s) en ' + s.conduces + ' conduce(s)') + '"/>';
+        });
+        svg += '</svg>';
+        var tabla = '<details class="msTablaDatos"><summary>Ver como tabla</summary><table class="msTabla"><thead><tr><th>Mes</th><th>Piezas</th><th>Conduces</th></tr></thead><tbody>' +
+            serie.map(function (s) { var d = new Date(s.ini); return '<tr><td>' + MS_MESES[d.getMonth()] + ' ' + d.getFullYear() + '</td><td>' + s.piezas + '</td><td>' + s.conduces + '</td></tr>'; }).join('') + '</tbody></table></details>';
+        return '<div class="msGraficoWrap">' + svg + '<div class="msTip" role="tooltip"></div></div>' + tabla;
+    }
+    function activarTooltipMS(cont) {
+        cont.querySelectorAll('.msGraficoWrap').forEach(function (w) {
+            var tip = w.querySelector('.msTip');
+            w.querySelectorAll('.msHit').forEach(function (h) {
+                h.addEventListener('mouseenter', function () {
+                    var bw = w.getBoundingClientRect(), bh = h.getBoundingClientRect();
+                    tip.textContent = h.getAttribute('data-tip'); tip.classList.add('visible');
+                    tip.style.top = Math.max(0, Number(h.getAttribute('data-top')) - 8) + 'px';
+                    tip.style.left = Math.min(bw.width - tip.offsetWidth, Math.max(0, bh.left - bw.left + bh.width / 2 - tip.offsetWidth / 2)) + 'px';
+                    h.classList.add('activo');
+                });
+                h.addEventListener('mouseleave', function () { tip.classList.remove('visible'); h.classList.remove('activo'); });
+            });
+        });
+    }
+    function exportarAnticipadasMS() {
+        var meses = periodoPanelMS, desde = meses ? inicioMesMS(Date.now(), -(meses - 1)) : 0;
+        var lista = entregasAnticipadasMS(historialMateriales).filter(function (x) { return x.fecha >= desde && (!articuloPanelMS || x.articulo === articuloPanelMS); });
+        var filas = [['Conduce', 'Fecha', 'Nombre', 'Tarjeta', 'Articulo', 'Talla', 'Cantidad', 'Entrega anterior', 'Dias transcurridos', 'Vida util (dias)']];
+        lista.forEach(function (x) { filas.push([x.numero, fechaCorta(x.fecha), x.nombre, x.tarjeta, x.articulo, x.talla, x.cantidad, fechaCorta(x.anterior), x.dias, x.vida]); });
+        var csv = filas.map(function (f) { return f.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+        var url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+        var a = document.createElement('a'); a.href = url; a.download = 'entregas_anticipadas_seguridad.csv';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
     }
 </script>
 </body>
