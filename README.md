@@ -1,70 +1,66 @@
-# Wacom-STU-WebHID
-JavaScript library to use the Wacom STU series (540) Signature pad tablets with WebHID API on the browser, without external apps or drivers.
+# Almacén D954 · Firma digital
 
-![https://i.imgur.com/H5AoTEg.png](https://i.imgur.com/H5AoTEg.png)
+Herramienta web del almacén de Transportación (Taller Automotriz Claro, centro D954) para firmar documentos con el pad **Wacom STU-540** y resolver el papeleo diario del almacén desde el navegador: conduces de SAP, despachos de EPP y uniformes, recepción de materiales y traslados desde Alameda.
 
-Library to connect the browser to a WACOM STU-540/k signature pad. It should be compatible with other STU devices as stated on the compatibility matrix, but they are untested.
-Protocol is loosely reversed with wireshack but SDK contains most of the needed info to develop missing features. Issues and PRs are welcome.
-As WebHID relies on promises all the methods return as such. Use await or set the promise callback. Only most basic features are implemented.
+**Abrir la herramienta:** https://oscaramp06.github.io/Wacom-STU-WebHID/
 
-### Demo app
-This library only offer a way to communicate with the tablet and does not provide image rendering / ink to graphics, however, a PoC-grade demo app is provided using the library. It supports image manipulation via canvas for the preview and upload of images to the tablet, and SVG polyline based renderer that somewhat supports pressure levels. The demo app has controls to test all the features implemented.
-#### [View online demo](https://amsspecialist.com/wacomstu/demo.html)  (Must have a wacom stu-540 connected by usb)
-#### [View video demo on youtube](https://youtu.be/Nkc5DdnVf1A)
+No hay que instalar programas ni drivers: el navegador se conecta al pad por USB (WebHID). Todo se procesa en la computadora; los documentos, el historial y los catálogos se guardan en las carpetas que elijas y en el navegador, no en un servidor.
 
-### Supported API
-`checkAvailable()` Check if a usb hid from wacom vid+pid is present
+## Módulos
 
-`bool connect()` Connect to the device
+| Pestaña | Para qué sirve |
+|---|---|
+| **Documento SAP** | Elige un PDF de SAP y fírmalo en el pad, o firma varios de la misma persona de una vez. |
+| **Firmar PDF** | Abre cualquier conduce o factura escaneada (PDF, JPG o PNG), coloca y ajusta tu firma, o firma en el pad viendo el documento en su pantalla. |
+| **Cargo Directo** | Toma la firma de quien recibe materiales de Cargo Directo y guarda solo la imagen de la firma para anexarla en Power Apps. |
+| **Materiales Seguridad** | Despacho de EPP con conduce firmado, historial por empleado y panel de consumo. |
+| **Uniformes** | Despacho de uniformes con conduce firmado, catálogo e inventario e historial de cada persona. |
+| **Recepción** | Carga el conduce o la factura del suplidor y prepara el correo a Recepción Alameda para que den entrada en SAP. |
+| **Traslado Alameda** | Con los export de SAP y el catálogo de capacidades, sugiere qué pedir a Alameda y genera el **FORM-PRO-1374-01** listo para el requerimiento. |
+| **Firmados** | Consulta, copia el número de documento o abre cualquier PDF ya firmado. |
 
-`object getTabletInfo()` Get an object containing info, capabilities and other data about the device
+El botón **⚙** abre la configuración: carpetas de trabajo, color y grosor de la pluma, brillo y pantalla del pad, y catálogos.
 
-`setPenColorAndWidth(color,width)` Set pen color in "#RRGGBB" format. Width can be 0-5
+## Requisitos
 
-`setBacklight(intensity)` Set backlight intensity, can be 0-3.
+- **Google Chrome o Microsoft Edge** en Windows (WebHID y acceso a carpetas solo funcionan en navegadores basados en Chromium).
+- **Pad Wacom STU-540** conectado por USB. Sin el pad se puede usar todo lo que no sea firmar en el pad.
+- Internet la primera vez, para descargar las librerías (pdf.js, pdf-lib, SheetJS, JSZip y las fuentes). Después funciona sin conexión gracias a la caché (`sw.js`).
 
-`setBackgroundColor(color)` Set background color in '#RRGGBB' format, must clear screen to take effect
+## Uso diario
 
-`setWritingArea(object)` Set writing area of the tablet. x1,y1=left top | x2,y2=right bottom
+1. Abre la herramienta y pulsa **Conectar** en el aviso del pad; Chrome pedirá elegir el dispositivo la primera vez.
+2. En **⚙**, conecta las carpetas de trabajo (documentos de SAP, firmados, materiales, uniformes). El navegador recuerda el permiso.
+3. Trabaja en la pestaña que necesites. Los PDF firmados se guardan en la carpeta conectada; si no hay carpeta, se descargan.
 
-`setWritingMode(mode)` Set writing mode (0: basic pen, 1: smooth pen with extra timing data)
+### Traslado semanal desde Alameda
 
-`setInking(enabled)` Enable or disable inking the screen. This does not stop events.
+1. Exporta de SAP el **movimiento de materiales** (con CMv, Cantidad y Fe.contab.), el **stock de D954** y el **stock de Alameda** (con Libre utiliz.).
+2. Arrástralos a la pestaña **Traslado Alameda** junto con el **catálogo de capacidades** de SharePoint (CSV). La web reconoce cada archivo; el catálogo queda guardado para las próximas semanas.
+3. Revisa el pedido sugerido (capacidad máxima − stock, sin pasar de lo que tiene Alameda), acepta los extras de alta rotación si hacen falta y pulsa **Descargar FORM-PRO-1374-01**.
+4. **Exportar reposición** baja aparte lo que Alameda no puede completar.
 
-`clearScreen()` Clear screen to background color
+## Archivos del repositorio
 
-`setImage(imageData)` Send a raw image to the pad. Image must be BGR 24bpp 800x480.
+| Archivo | Qué es |
+|---|---|
+| `index.html` | La herramienta completa: interfaz, estilos y lógica en un solo archivo, sin compilación. |
+| `wacomstu540.js` | Librería que habla con el pad por WebHID (conectar, pantalla, imágenes, datos de la pluma). |
+| `sw.js` | Caché sin conexión: librerías de CDN desde caché; archivos propios primero desde la red para recibir siempre la última versión. |
+| `demo-v2.html` | Redirige a `index.html` para que los enlaces viejos sigan funcionando. |
 
-`bool checkConnected()` Check if theres a device connected
+## Publicar cambios
 
-`onPenData(function)` Set the data callback for pen events. Callback recives an object:
-```js
-{
-        rdy: 	, // Returns TRUE if the pen is in proximity with the tablet
-        sw:  	, // Returns TRUE if the pen is in contact with the surface
-        press: 	, // Returns pen pressure in tablet units (0-1024)
-        cx: 	, // Point in X in tablet scale (/13.5)
-        cy: 	, // Point in Y in tablet scale (/13.5)
-		x:		, // Untransformed X
-		y:		, // Untransformed Y
-        time: 	, // (Only for writingMode=1) timestamp
-        seq:  	, // (Only for writingMode=1) incremental number
-}
+GitHub Pages publica la rama `main` automáticamente. Cualquier cambio subido a `main` está en línea en uno o dos minutos; si el navegador muestra la versión anterior, recarga con **Ctrl+F5**.
+
+Para probar localmente, sirve la carpeta con un servidor (WebHID y la caché necesitan `https` o `localhost`):
+
 ```
-`onHidChange(function)` Set the callback for HID connect and disconnect events from devices matching wacom stu. Callback function recives `("connect/disconnect", deviceObject)`
-### Usage:
-```js		
-const wacom = new wacomstu540()
-if (await wacom.connect()) {
-	//You are connected now to the tablet
-	wacom.onPenData(function(pen){
-	    // do something with pen.cx, pen.cy, pen.press, pen.sw...
-	})
-	await wacom.setWritingMode(1)
-	//...
-} else {
-	//Cannot connect, maybe device is already in use, or cancelled, or no device at all
-}
+python -m http.server 8000
 ```
-Note: Image updating on area and image on ROM are unimplemented yet, also special 540 features, like premade menus are also unimplemented. 
-See: http://developer-docs.wacom.com/faqs/docs/q-stu/stu-540-modes
+
+y abre http://localhost:8000.
+
+## Créditos
+
+La comunicación con el pad parte de la librería [Wacom-STU-WebHID](https://github.com/pabloko/Wacom-STU-WebHID) de Pablo García, publicada bajo licencia MIT (ver `LICENSE`).
