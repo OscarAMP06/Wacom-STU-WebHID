@@ -67,6 +67,9 @@ var wacomstu540 = function () {
     this.enVueloMax = 24              // paquetes de imagen enviados sin esperar respuesta (mantienen el orden)
     this.estadisticas = { imagenes: 0, omitidas: 0, canceladas: 0, errores: 0, ultimaMs: 0, promedioMs: 0, paquetes: 0 }
     this.ultimoError = null
+    this.erroresSeguidos = 0          // errores de comunicación sin un éxito en medio (para decidir reconectar)
+    this._gen = 0                     // sube en cada conexión/desconexión: las operaciones de una conexión vieja no tocan la nueva
+    this._exito = function () { this.ultimaActividad = Date.now(); this.erroresSeguidos = 0 }.bind(this)
     /**
      * Ejecuta fn en la cola (una operación a la vez, en orden de llegada)
      */
@@ -85,6 +88,7 @@ var wacomstu540 = function () {
     }.bind(this)
     this._reportarError = function (e) {
         this.ultimoError = e
+        this.erroresSeguidos++
         if (this.config.onErrorCb) { try { this.config.onErrorCb(e) } catch (x) { } }
     }.bind(this)
     // Methods
@@ -111,8 +115,13 @@ var wacomstu540 = function () {
     this._configurarDispositivo = async function () {
         // Open the device (si ya estaba abierto no se vuelve a abrir)
         if (!this.device.opened) await this.device.open()
+        this._gen++
         this._ultimaImagen = null
         this._pantallaSucia = true
+        this._transfiriendo = false
+        this._promesaImagen = null
+        this._cola = Promise.resolve()
+        this.erroresSeguidos = 0
         this.ultimaActividad = Date.now()
         // El escuchador del lápiz se agrega UNA sola vez por dispositivo
         // (antes se duplicaba en cada reconexión y los trazos llegaban repetidos)
@@ -120,6 +129,7 @@ var wacomstu540 = function () {
         this.device.__wacomEscuchando = true
         const self = this
         this.device.addEventListener("inputreport", function (event) {
+            if (self.device !== event.target) return      // reporte de un objeto de dispositivo viejo
             self.ultimaActividad = Date.now()
             if (self.config.onPenDataCb == null) return
             if ((event.data.getUint8(0) & 0x02) !== 0) self._pantallaSucia = true   // el lápiz tocó: hay tinta en pantalla
@@ -213,8 +223,11 @@ var wacomstu540 = function () {
     this.desconectar = async function () {
         const d = this.device
         this.device = null
+        this._gen++
         this._imagenPendiente = null
         this._ultimaImagen = null
+        this._transfiriendo = false        // una transferencia colgada no debe bloquear la próxima conexión
+        this._promesaImagen = null
         this._cola = Promise.resolve()     // descarta operaciones colgadas de la conexión anterior
         if (d && d.opened) { try { await d.close() } catch (e) { } }
     }.bind(this)
@@ -326,9 +339,10 @@ var wacomstu540 = function () {
         this._imagenPendiente = imageData
         if (this._transfiriendo) return this._promesaImagen
         this._transfiriendo = true
+        const gen = this._gen
         this._promesaImagen = (async function () {
             try {
-                while (this._imagenPendiente && this.checkConnected()) {
+                while (this._imagenPendiente && this.checkConnected() && gen === this._gen) {
                     const img = this._imagenPendiente
                     const baja = this._pendienteBaja
                     this._imagenPendiente = null
@@ -338,7 +352,7 @@ var wacomstu540 = function () {
                     } catch (e) { this._ultimaImagen = null; this._reportarError(e) }
                 }
             } finally {
-                this._transfiriendo = false
+                if (gen === this._gen) this._transfiriendo = false
             }
         }.bind(this))()
         return this._promesaImagen
@@ -379,7 +393,7 @@ var wacomstu540 = function () {
             }
             await Promise.all(enVuelo)
             await dispositivo.sendFeatureReport(this.command.writeImageEnd, new Uint8Array([0]))
-            this.ultimaActividad = Date.now()
+            this._exito()
             if (cancelada) {
                 this._ultimaImagen = null
                 this.estadisticas.canceladas++
@@ -395,6 +409,8 @@ var wacomstu540 = function () {
             this._ultimaImagen = null
             this.estadisticas.errores++
             try { await Promise.allSettled(enVuelo) } catch (x) { }
+            // Algunos USB de Windows no aguantan varios paquetes en vuelo: desde aquí se envía uno a uno
+            if (this.enVueloMax > 1 && this.device === dispositivo) { this.enVueloMax = 1; this.modoSeguro = true }
             this._reportarError(e)
         } finally {
             if (progreso) progreso(total, total)
@@ -418,7 +434,7 @@ var wacomstu540 = function () {
             if (!this.checkConnected()) return
             try {
                 await this.device.sendFeatureReport(reportId, data)
-                this.ultimaActividad = Date.now()
+                this._exito()
             } catch (e) { this._reportarError(e) }
         }.bind(this))
     }.bind(this)
@@ -433,7 +449,7 @@ var wacomstu540 = function () {
             if (!this.checkConnected()) throw new Error('Pad no conectado')
             try {
                 const r = await this.device.receiveFeatureReport(reportId)
-                this.ultimaActividad = Date.now()
+                this._exito()
                 return r
             } catch (e) { this._reportarError(e); throw e }
         }.bind(this))

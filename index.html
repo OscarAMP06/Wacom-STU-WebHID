@@ -2633,7 +2633,12 @@ button:disabled { opacity: .55; }
         <section class="adminSeccion" data-tab="pad">
             <h3>Diagnóstico del pad</h3>
             <div id="diagPad" class="diagPad"></div>
-            <p class="latAyuda" style="margin-top:6px;">Si el pad se pone lento o se desconecta, toma una captura de este cuadro: ayuda a saber qué pasó.</p>
+            <p class="latAyuda" style="margin:10px 0 4px;">Últimos eventos del pad (el más reciente arriba)</p>
+            <pre id="registroPad" style="margin:0; max-height:180px; overflow:auto; padding:8px 10px; font-size:12px; line-height:1.45; white-space:pre-wrap; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text-2);"></pre>
+            <div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+                <button type="button" class="trBtn" onclick="copiarRegistroPad()">Copiar registro</button>
+                <span class="latAyuda" style="margin:0;">Si el pad falla, copia el registro y envíalo: muestra qué pasó y cuándo.</span>
+            </div>
             <h3>Calibración — Firma</h3>
             <div class="adminRow"><span>Posición X</span><input id="posXFirma" type="number" oninput="recalcularYRedibujar()" /></div>
             <div class="adminRow"><span>Posición Y</span><input id="posYFirma" type="number" oninput="recalcularYRedibujar()" /></div>
@@ -2978,11 +2983,15 @@ button:disabled { opacity: .55; }
             ['Repetidas omitidas', st.omitidas || 0],
             ['Relojes cancelados por una pantalla real', st.canceladas || 0],
             ['Errores de envío', st.errores || 0],
+            ['Errores seguidos ahora', wacom.erroresSeguidos || 0],
+            ['Envío de pantallas', wacom.enVueloMax > 1 ? 'En paralelo (' + wacom.enVueloMax + ')' : 'Uno a uno (modo seguro)'],
             ['Reconexiones automáticas', reconexionesPad],
             ['Última comunicación', hace === null ? '—' : ('hace ' + hace + ' s')],
             ['Último error', wacom.ultimoError ? String(wacom.ultimoError.message || wacom.ultimoError).slice(0, 80) : 'ninguno']
         ];
         cont.innerHTML = filas.map(function (f) { return '<div><span>' + f[0] + '</span><b>' + escaparHtml(String(f[1])) + '</b></div>'; }).join('');
+        var reg = document.getElementById('registroPad');
+        if (reg) reg.textContent = registroPadEventos.length ? registroPadEventos.slice(-12).reverse().join('\n') : 'Sin eventos todavía.';
     }
     setInterval(function () {
         if (document.getElementById('adminPanel').classList.contains('visible')) actualizarDiagnosticoPad();
@@ -3312,6 +3321,41 @@ button:disabled { opacity: .55; }
         el.innerHTML = escaparHtml(partes[0]) + (partes.length > 1 ? '<span class="stLargo"> · ' + escaparHtml(partes.slice(1).join(' · ')) + '</span>' : '');
         el.title = texto;
     }
+    // Registro de eventos del pad (últimos 60), para ver qué pasó cuando falla
+    var registroPadEventos = (function () { try { return JSON.parse(localStorage.getItem('registroPad') || '[]'); } catch (e) { return []; } })();
+    function registrarPad(texto) {
+        var d = new Date(), ultimo = registroPadEventos[registroPadEventos.length - 1] || '';
+        var m = ultimo.match(/ · (.*?)(?: \(×(\d+)\))?$/);
+        if (m && m[1] === texto) { registroPadEventos[registroPadEventos.length - 1] = ultimo.replace(/ · .*$/, ' · ' + texto + ' (×' + ((+m[2] || 1) + 1) + ')'); }   // errores repetidos en una sola línea
+        else registroPadEventos.push(d.toLocaleDateString('es-DO') + ' ' + d.toLocaleTimeString('es-DO') + ' · ' + texto);
+        if (registroPadEventos.length > 60) registroPadEventos = registroPadEventos.slice(-60);
+        try { localStorage.setItem('registroPad', JSON.stringify(registroPadEventos)); } catch (e) { }
+    }
+    function copiarRegistroPad() {
+        var st = wacom.estadisticas || {};
+        var txt = 'Diagnóstico del pad\n' + navigator.userAgent + '\nEnvío: ' + (wacom.enVueloMax > 1 ? 'en paralelo (' + wacom.enVueloMax + ')' : 'uno a uno') +
+            '\nPantallas: ' + (st.imagenes || 0) + ' · errores: ' + (st.errores || 0) + ' · reconexiones: ' + reconexionesPad +
+            '\nÚltimo error: ' + (wacom.ultimoError ? (wacom.ultimoError.name || '') + ' ' + (wacom.ultimoError.message || wacom.ultimoError) : 'ninguno') +
+            '\n\n' + registroPadEventos.join('\n');
+        navigator.clipboard.writeText(txt).then(function () { mostrarToast('Registro del pad copiado', 'success'); }, function () { mostrarToast('No se pudo copiar el registro', 'error'); });
+    }
+    // Si alguna vez falló el envío en paralelo, este navegador sigue enviando uno a uno
+    try { if (localStorage.getItem('padModoSeguro') === '1') wacom.enVueloMax = 1; } catch (e) { }
+    var reconexionForzadaEnCurso = false, ultimaReconexionForzada = 0;
+    async function forzarReconexionPad(motivo) {
+        if (reconexionForzadaEnCurso || reconectandoPad) return;
+        if (Date.now() - ultimaReconexionForzada < 15000) return;   // evita un bucle de reconexiones si el USB sigue fallando
+        ultimaReconexionForzada = Date.now();
+        reconexionForzadaEnCurso = true;
+        try {
+            registrarPad('Reconexión forzada: ' + motivo);
+            padPreparado = false;
+            await wacom.desconectar();
+            ponerEstadoPad('reconnecting', '● Reconectando pad…');
+            await new Promise(function (r) { setTimeout(r, 600); });
+            await asegurarConexionPad(motivo);
+        } finally { reconexionForzadaEnCurso = false; }
+    }
     function padConectadoUI() {
         ponerEstadoPad('connected', '● Pad conectado');
         document.getElementById('btnConnect').innerText = 'Reconectar';
@@ -3321,10 +3365,18 @@ button:disabled { opacity: .55; }
     });
     wacom.onError(function (e) {
         console.warn('Error de comunicación con el pad:', e && e.message);
+        registrarPad('Error: ' + ((e && (e.name ? e.name + ' ' : '') + (e.message || e)) || 'desconocido').slice(0, 120));
+        if (wacom.modoSeguro && localStorage.getItem('padModoSeguro') !== '1') {
+            try { localStorage.setItem('padModoSeguro', '1'); } catch (x) { }
+            registrarPad('Envío de pantallas cambiado a uno a uno (modo seguro)');
+        }
         // si el pad dejó de estar abierto, el vigilante lo reconecta enseguida
-        if (!wacom.checkConnected()) setTimeout(function () { asegurarConexionPad('error'); }, 300);
+        if (!wacom.checkConnected()) { setTimeout(function () { asegurarConexionPad('error'); }, 300); return; }
+        // abierto pero sin responder: tras 3 errores seguidos se cierra y se vuelve a abrir
+        if (wacom.erroresSeguidos >= 3) setTimeout(function () { forzarReconexionPad('3 errores seguidos'); }, 300);
     });
     wacom.onHidChange(function (e) {
+        registrarPad(e == 'connect' ? 'USB conectado' : 'USB desconectado');
         if (e == 'connect') {
             ponerEstadoPad('reconnecting', '● Pad detectado, conectando…');
             setTimeout(function () { asegurarConexionPad('usb'); }, 700);   // da tiempo a Windows a terminar de montarlo
@@ -3359,6 +3411,7 @@ button:disabled { opacity: .55; }
                 var ok = await Promise.race([wacom.connectSilencioso(), new Promise(function (r) { setTimeout(function () { r(false); }, 10000); })]);
                 if (!ok) {
                     fallosSeguidosPad++;
+                    if (fallosSeguidosPad === 1 || fallosSeguidosPad % 10 === 0) registrarPad('No se pudo abrir el pad (' + motivo + ', intento ' + fallosSeguidosPad + ')' + (wacom.ultimoError ? ': ' + String(wacom.ultimoError.message || '').slice(0, 80) : ''));
                     var autorizado = await wacom.checkAvailable();
                     if (wacom.ultimoError && /open|in use|busy|access/i.test(String(wacom.ultimoError.message))) {
                         ponerEstadoPad('disconnected', '⚠ El pad está en uso por otra pestaña o programa');
@@ -3369,10 +3422,12 @@ button:disabled { opacity: .55; }
                 }
             }
             await prepararPadTrasConectar();
+            registrarPad(motivo === 'inicio' ? 'Pad conectado al abrir la herramienta' : 'Pad reconectado (' + motivo + ')');
             if (motivo !== 'inicio' && motivo !== 'vigilante-silencioso') { reconexionesPad++; mostrarToast('✓ Pad reconectado', 'success'); }
             return true;
         } catch (e) {
             console.warn('No se pudo conectar el pad:', e);
+            registrarPad('Falló la conexión: ' + String(e && e.message || e).slice(0, 100));
             fallosSeguidosPad++;
             ponerEstadoPad('disconnected', '● Pad desconectado · reintentando');
             return false;
@@ -3393,10 +3448,7 @@ button:disabled { opacity: .55; }
             var vivo = await wacom.ping(3000);
             if (!vivo) {
                 console.warn('El pad no respondió al ping; reconectando…');
-                padPreparado = false;
-                await wacom.desconectar();
-                ponerEstadoPad('reconnecting', '● Reconectando pad…');
-                asegurarConexionPad('ping');
+                forzarReconexionPad('no respondió al ping');
             }
         }
     }, 4000);
@@ -3411,6 +3463,7 @@ button:disabled { opacity: .55; }
             var ok = await wacom.connect();
             if (ok === false) return;
             await prepararPadTrasConectar();
+            registrarPad('Conectado con el botón');
         } catch (e) {
             console.warn(e);
             if (e && e.name === 'NotFoundError') return;          // el usuario cerró el selector
