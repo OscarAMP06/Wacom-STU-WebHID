@@ -1856,6 +1856,10 @@ button:disabled { opacity: .55; }
 .grFila { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; color: var(--text); font-size: 13.5px; cursor: pointer; }
 .grFila:hover { background: var(--surface-2); border-color: var(--border); }
 .grFila .grFilaNombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.grFilaCaja { display: flex; align-items: center; gap: 6px; }
+.grFilaCaja .grFila { flex: 1; min-width: 0; }
+#btnVerPendientes { display: none; }
+#estadoCarpetaEntradaFila.conectada #btnVerPendientes { display: inline-flex; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1916,7 +1920,7 @@ button:disabled { opacity: .55; }
                         <p class="seccionSub">Elige un PDF de SAP para firmarlo, o marca varios de la misma persona.</p>
                     </div>
                 </div>
-                <div id="estadoCarpetaEntradaFila"><svg class="icon sm"><use href="#i-carpeta"/></svg> Carpeta de entrada: <strong id="estadoCarpetaEntradaTexto">no conectada (ve a ⚙️ para configurarla)</strong></div>
+                <div id="estadoCarpetaEntradaFila"><svg class="icon sm"><use href="#i-carpeta"/></svg> Carpeta de entrada: <strong id="estadoCarpetaEntradaTexto">no conectada (ve a ⚙️ para configurarla)</strong><button type="button" class="trBtn" id="btnVerPendientes" onclick="grAbrirCarpeta('entrada')" style="margin-left:auto; min-height:30px; padding:4px 10px;">Ver pendientes</button></div>
                 <div id="filaRefresh">
                     <button id="btnRefrescarLista" onclick="refrescarManual()"><svg class="icon sm"><use href="#i-refresh"/></svg>Actualizar</button>
                     <label><input type="checkbox" id="chkAutoRefresh" checked onchange="toggleAutoRefresh()"> Auto-actualizar</label>
@@ -2957,6 +2961,7 @@ button:disabled { opacity: .55; }
         document.getElementById('estadoCarpetaSalida').innerText = carpetaGuardado ? ('✓ ' + carpetaGuardado.name) : 'No conectada (se descargará al navegador)';
         document.getElementById('estadoCarpetaMateriales').innerText = carpetaMateriales ? ('✓ ' + carpetaMateriales.name) : 'No conectada';
         document.getElementById('estadoCarpetaEntradaTexto').innerText = carpetaPendientes ? carpetaPendientes.name : 'no conectada (ve a ⚙️ para configurarla)';
+        document.getElementById('estadoCarpetaEntradaFila').classList.toggle('conectada', !!carpetaPendientes);
         var estadoMatTexto = document.getElementById('estadoCarpetaMaterialesTexto');
         if (estadoMatTexto) estadoMatTexto.innerText = carpetaMateriales ? carpetaMateriales.name : 'no conectada (ve a ⚙️ para configurarla)';
         var avisoMat = document.getElementById('avisoSinCarpetaMateriales');
@@ -8931,9 +8936,9 @@ button:disabled { opacity: .55; }
     // ============ Guardados recientes: acceso rápido a lo último que se firmó y a su carpeta ============
     // El navegador no puede abrir el Explorador de Windows, pero sí abrir los archivos de las carpetas conectadas.
     var GR_CLAVE = 'guardadosRecientes';
-    var GR_CARPETAS = { salida: 'Carpeta de salida', materiales: 'Carpeta de materiales', uniformes: 'Carpeta de uniformes' };
+    var GR_CARPETAS = { entrada: 'Pendientes de firma', salida: 'Carpeta de salida', materiales: 'Carpeta de materiales', uniformes: 'Carpeta de uniformes' };
     var grLista = (function () { try { return JSON.parse(localStorage.getItem(GR_CLAVE) || '[]'); } catch (e) { return []; } })();
-    function grCarpeta(clave) { return clave === 'materiales' ? carpetaMateriales : clave === 'uniformes' ? carpetaUniformes : carpetaGuardado; }
+    function grCarpeta(clave) { if (clave === 'entrada') return carpetaPendientes; return clave === 'materiales' ? carpetaMateriales : clave === 'uniformes' ? carpetaUniformes : carpetaGuardado; }
     function grModuloActual() { return modoActual === 'editor' ? 'editor' : modoActual; }
     function registrarGuardado(nombre, carpeta, enCarpeta) {
         grLista.push({ n: nombre, c: carpeta, m: grModuloActual(), f: Date.now(), d: !enCarpeta });
@@ -8991,6 +8996,7 @@ button:disabled { opacity: .55; }
     }
     async function grAbrirCarpeta(clave) {
         var carpeta = grCarpeta(clave);
+        if (!carpeta) { mostrarToast('Conecta primero la carpeta en ⚙.', 'info'); toggleAdmin(); return; }
         var dlg = document.getElementById('dlgCarpeta');
         if (!dlg) {
             dlg = document.createElement('dialog');
@@ -9004,6 +9010,8 @@ button:disabled { opacity: .55; }
             dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
             dlg.querySelector('#grDlgBuscar').oninput = function () { grPintarListaCarpeta(); };
             dlg.querySelector('#grDlgLista').onclick = function (e) {
+                var f = e.target.closest('[data-firmar]');
+                if (f) { var ent = mapaArchivosPorNombre[f.getAttribute('data-firmar')]; dlg.close(); if (ent) { if (modoActual !== 'documento') cambiarModo('documento'); cargarPdf(ent); } return; }
                 var b = e.target.closest('[data-archivo]'); if (b) grAbrirArchivo(dlg.dataset.clave, b.getAttribute('data-archivo'));
             };
         }
@@ -9023,7 +9031,7 @@ button:disabled { opacity: .55; }
             }
             archivos.sort(function (a, b) { return b.f - a.f; });
             dlg._archivos = archivos;
-            document.getElementById('grDlgSub').textContent = GR_CARPETAS[clave] + ' · ' + archivos.length + ' archivo(s), los más recientes primero';
+            document.getElementById('grDlgSub').textContent = GR_CARPETAS[clave] + ' · ' + archivos.length + ' archivo(s), los más recientes primero. Clic en un archivo para abrirlo.';
             grPintarListaCarpeta();
         } catch (e) {
             document.getElementById('grDlgSub').textContent = 'No se pudo leer la carpeta: ' + (e.message || e) + '. Reconéctala en ⚙.';
@@ -9033,8 +9041,9 @@ button:disabled { opacity: .55; }
         var dlg = document.getElementById('dlgCarpeta'), q = document.getElementById('grDlgBuscar').value.trim().toLowerCase();
         var lista = (dlg._archivos || []).filter(function (a) { return !q || a.n.toLowerCase().indexOf(q) !== -1; }).slice(0, 200);
         document.getElementById('grDlgLista').innerHTML = lista.length ? lista.map(function (a) {
-            return '<button type="button" class="grFila" data-archivo="' + escaparHtml(a.n) + '"><span class="icoDoc"></span><span class="grFilaNombre">' + escaparHtml(a.n) +
-                '</span><span class="grMeta">' + grHace(a.f) + ' · ' + Math.max(1, Math.round(a.t / 1024)) + ' KB</span></button>';
+            var firmar = dlg.dataset.clave === 'entrada' && /\.pdf$/i.test(a.n) ? '<button type="button" class="trBtn" data-firmar="' + escaparHtml(a.n) + '" style="min-height:30px; padding:4px 10px;">Cargar para firmar</button>' : '';
+            return '<div class="grFilaCaja"><button type="button" class="grFila" data-archivo="' + escaparHtml(a.n) + '" title="Abrir en una pestaña nueva"><span class="icoDoc"></span><span class="grFilaNombre">' + escaparHtml(a.n) +
+                '</span><span class="grMeta">' + grHace(a.f) + ' · ' + Math.max(1, Math.round(a.t / 1024)) + ' KB</span></button>' + firmar + '</div>';
         }).join('') : '<div class="estadoVacio">' + (q ? 'Ningún archivo coincide con la búsqueda.' : 'La carpeta no tiene archivos firmados todavía.') + '</div>';
     }
     (function () {
