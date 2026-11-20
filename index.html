@@ -1832,6 +1832,30 @@ button:disabled { opacity: .55; }
     .subTabs::-webkit-scrollbar { display: none; }
     .subTabs button { flex: 0 0 auto; white-space: nowrap; }
 }
+
+/* Documento abierto: barra con botón para cerrarlo */
+#barraDocAbierto { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding: 8px 10px 8px 12px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2); font-size: 13px; color: var(--text-2); }
+/* Guardados recientes */
+.guardReciente { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 14px; padding: 8px 10px 8px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); font-size: 13px; color: var(--text-2); }
+.guardReciente:empty { display: none; }
+.guardReciente .grIco { color: var(--muted); display: inline-flex; }
+.guardReciente .grTxt { flex: 1 1 260px; min-width: 0; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.guardReciente b { color: var(--text); font-weight: 600; }
+.guardReciente .grNombre { font-weight: 500; color: var(--text); max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.guardReciente .grMeta, .grFila .grMeta { color: var(--muted); font-size: 12.5px; }
+.guardReciente .grHoy { padding: 1px 8px; border-radius: var(--r-full); background: var(--success-soft); color: var(--success); font-size: 12px; font-weight: 600; }
+.guardReciente .grAcc { display: flex; gap: 6px; }
+.guardReciente .trBtn { min-height: 32px; padding: 5px 10px; }
+#dlgCarpeta { width: min(640px, calc(100vw - 32px)); max-height: min(78vh, 720px); padding: 18px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); display: none; flex-direction: column; gap: 10px; }
+#dlgCarpeta[open] { display: flex; }
+#dlgCarpeta::backdrop { background: rgba(20, 28, 33, .45); }
+#dlgCarpeta .grDlgHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+#dlgCarpeta h3 { margin: 0; font-family: var(--f-rotulo); font-size: 20px; font-weight: 600; }
+#dlgCarpeta input[type=search] { padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 13.5px; }
+.grDlgLista { overflow: auto; display: flex; flex-direction: column; gap: 4px; min-height: 120px; }
+.grFila { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border: 1px solid transparent; border-radius: var(--r-sm); background: transparent; color: var(--text); font-size: 13.5px; cursor: pointer; }
+.grFila:hover { background: var(--surface-2); border-color: var(--border); }
+.grFila .grFilaNombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 </style>
 </head>
 <body data-modo="documento">
@@ -1916,6 +1940,10 @@ button:disabled { opacity: .55; }
                     <canvas id="pdfCanvas"></canvas>
                 </div>
                 <div id="docNumeroDetectado"></div>
+                <div id="barraDocAbierto" style="display:none;">
+                    <span id="textoDocAbierto"></span>
+                    <button type="button" class="trBtn" onclick="cerrarDocumentoActual()">Cerrar documento</button>
+                </div>
             </div>
 
             <div id="progresoMultiple"></div>
@@ -3139,7 +3167,7 @@ button:disabled { opacity: .55; }
             actualizarBarraSeleccion();
             return;
         }
-        var mostrarCheckbox = !documentoListoParaFirmar && !modoMultipleActivo;
+        var mostrarCheckbox = !modoMultipleActivo;   // las casillas siguen disponibles aunque haya un documento abierto
         archivosFiltrados.forEach(function (entrada) {
             var fila = document.createElement('div');
             fila.className = 'archivoItem' + (entradaArchivoActual && entradaArchivoActual.name === entrada.name ? ' activo' : '');
@@ -3153,9 +3181,17 @@ button:disabled { opacity: .55; }
             if (inputChk) {
                 inputChk.onclick = function (ev) { ev.stopPropagation(); };
                 inputChk.onchange = function () {
+                    // marcar una casilla con un documento abierto: se cierra ese documento para pasar a selección múltiple
+                    if (this.checked && documentoListoParaFirmar) {
+                        if ((hayTrazosFirma || hayTrazosTarjeta) && !confirm('Hay una firma sin guardar en el documento abierto. ¿Cerrarlo para seleccionar varios? Se perderá la firma.')) { this.checked = false; return; }
+                        var abierto = entradaArchivoActual && entradaArchivoActual.name;
+                        cerrarDocumentoActual(true);
+                        if (abierto && abierto !== entrada.name) seleccionMultipleActiva.add(abierto);   // el que estaba abierto queda marcado también
+                    }
                     if (this.checked) seleccionMultipleActiva.add(entrada.name);
                     else seleccionMultipleActiva.delete(entrada.name);
-                    actualizarBarraSeleccion();
+                    if (documentoListoParaFirmar === false) firmaListaPendientes = null;
+                    renderizarListaPendientes();
                 };
             }
             contenedor.appendChild(fila);
@@ -3163,6 +3199,29 @@ button:disabled { opacity: .55; }
         actualizarBarraSeleccion();
     }
 
+    // Cierra el documento abierto sin firmarlo (vuelve a la lista con casillas)
+    function cerrarDocumentoActual(silencioso) {
+        if (!silencioso && (hayTrazosFirma || hayTrazosTarjeta) && !confirm('Hay una firma sin guardar. ¿Cerrar el documento de todas formas? Se perderá.')) return;
+        tokenCargaPdf++;                          // cancela una carga en curso
+        pdfBytesActual = null;
+        entradaArchivoActual = null;
+        numeroDocumentoDetectado = null;
+        paginaActualPdf = null;
+        documentoListoParaFirmar = false;
+        limpiarRevisionMateriales();
+        document.getElementById('previewPdf').style.display = 'none';
+        document.getElementById('docNumeroDetectado').style.display = 'none';
+        document.getElementById('barraDocAbierto').style.display = 'none';
+        document.getElementById('btnConnect').disabled = true;
+        document.getElementById('ssvvggFirma').innerHTML = '';
+        document.getElementById('ssvvggTarjeta').innerHTML = '';
+        hayTrazosFirma = false;
+        hayTrazosTarjeta = false;
+        document.getElementById('btnConfirmar').disabled = true;
+        dibujarPantallaSegunModo();
+        firmaListaPendientes = null;
+        renderizarListaPendientes();
+    }
     function actualizarBarraSeleccion() {
         var barra = document.getElementById('barraSeleccionMultiple');
         var n = seleccionMultipleActiva.size;
@@ -3194,6 +3253,7 @@ button:disabled { opacity: .55; }
         document.getElementById('barraSeleccionMultiple').classList.remove('visible');
         document.getElementById('previewPdf').style.display = 'none';
         document.getElementById('docNumeroDetectado').style.display = 'none';
+        document.getElementById('barraDocAbierto').style.display = 'none';
         document.getElementById('infoModoMultiple').style.display = 'block';
         document.getElementById('textoInfoModoMultiple').innerText =
             'Firmando para ' + documentosParaFirmarMultiple.length + ' documento(s): ' + documentosParaFirmarMultiple.join(', ');
@@ -3296,6 +3356,8 @@ button:disabled { opacity: .55; }
         document.getElementById('previewPdf').style.display = 'block';
         document.getElementById('btnConnect').disabled = false;
         documentoListoParaFirmar = true;
+        document.getElementById('textoDocAbierto').textContent = 'Abierto: ' + entradaArchivo.name + '. Para firmar varios a la vez, marca sus casillas en la lista.';
+        document.getElementById('barraDocAbierto').style.display = 'flex';
         dibujarPantallaSegunModo();   // primero el pad (lo que espera el mecánico); su envío corre mientras se dibuja la vista previa
         await redibujarPreviewConMarcadores();
         listarPdfs(true);             // luego refresca la lista resaltando el archivo activo
@@ -3519,6 +3581,7 @@ button:disabled { opacity: .55; }
         await cargarHistorialMateriales();
         await iniciarModuloUniformes();
         iniciarAutoRefresh();
+        pintarGuardadosRecientes();
         await conexion;
         if (!wacom.checkConnected()) dibujarPantallaSegunModo();   // al menos dibuja la vista previa en la PC
     });
@@ -4493,6 +4556,7 @@ button:disabled { opacity: .55; }
             limpiarRevisionMateriales();
             document.getElementById('previewPdf').style.display = 'none';
             document.getElementById('docNumeroDetectado').style.display = 'none';
+            document.getElementById('barraDocAbierto').style.display = 'none';
             document.getElementById('btnConnect').disabled = true;
             document.getElementById('ssvvggFirma').innerHTML = '';
             document.getElementById('ssvvggTarjeta').innerHTML = '';
@@ -6242,6 +6306,7 @@ button:disabled { opacity: .55; }
                 } catch (e) { console.warn(e); }
             }
             if (!enCarpeta) guardarArchivoDescarga(numero + '.pdf', bytes);
+            registrarGuardado(numero + '.pdf', 'uniformes', enCarpeta);
             // registro + existencias
             historialUN.push({ numero: numero, fecha: d.fecha, nombre: d.nombre, tarjeta: d.tarjeta, area: d.area, observaciones: d.observaciones,
                 entregadoPor: configUN.entregadoPor || '', articulos: d.articulos, anulado: false });
@@ -8861,6 +8926,132 @@ button:disabled { opacity: .55; }
                 nav.scrollTo({ left: Math.max(0, destino), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
             }
         };
+    })();
+
+    // ============ Guardados recientes: acceso rápido a lo último que se firmó y a su carpeta ============
+    // El navegador no puede abrir el Explorador de Windows, pero sí abrir los archivos de las carpetas conectadas.
+    var GR_CLAVE = 'guardadosRecientes';
+    var GR_CARPETAS = { salida: 'Carpeta de salida', materiales: 'Carpeta de materiales', uniformes: 'Carpeta de uniformes' };
+    var grLista = (function () { try { return JSON.parse(localStorage.getItem(GR_CLAVE) || '[]'); } catch (e) { return []; } })();
+    function grCarpeta(clave) { return clave === 'materiales' ? carpetaMateriales : clave === 'uniformes' ? carpetaUniformes : carpetaGuardado; }
+    function grModuloActual() { return modoActual === 'editor' ? 'editor' : modoActual; }
+    function registrarGuardado(nombre, carpeta, enCarpeta) {
+        grLista.push({ n: nombre, c: carpeta, m: grModuloActual(), f: Date.now(), d: !enCarpeta });
+        if (grLista.length > 300) grLista = grLista.slice(-300);
+        try { localStorage.setItem(GR_CLAVE, JSON.stringify(grLista)); } catch (e) { }
+        pintarGuardadosRecientes();
+    }
+    function grHace(ms) {
+        var s = Math.round((Date.now() - ms) / 1000);
+        if (s < 60) return 'hace un momento';
+        if (s < 3600) return 'hace ' + Math.round(s / 60) + ' min';
+        var d = new Date(ms), hoy = new Date();
+        var hora = d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
+        if (d.toDateString() === hoy.toDateString()) return 'hoy ' + hora;
+        return d.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' }) + ' ' + hora;
+    }
+    function grCarpetaDeModulo(mod) { return mod === 'materiales' ? 'materiales' : mod === 'uniformes' ? 'uniformes' : 'salida'; }
+    function pintarGuardadosRecientes() {
+        document.querySelectorAll('.guardReciente').forEach(function (w) {
+            var mod = w.getAttribute('data-mod'), clave = grCarpetaDeModulo(mod), carpeta = grCarpeta(clave);
+            var propios = grLista.filter(function (g) { return g.m === mod; });
+            var ultimo = propios[propios.length - 1];
+            var hoy = new Date().toDateString();
+            var nHoy = propios.filter(function (g) { return new Date(g.f).toDateString() === hoy; }).length;
+            var html = '<span class="grIco"><svg class="icon sm"><use href="#i-carpeta"/></svg></span><span class="grTxt">';
+            if (ultimo) html += '<b>Último guardado:</b> <span class="grNombre" title="' + escaparHtml(ultimo.n) + '">' + escaparHtml(ultimo.n) + '</span> <span class="grMeta">' + grHace(ultimo.f) + (ultimo.d ? ', se descargó' : '') + '</span>';
+            else html += '<b>' + (carpeta ? escaparHtml(carpeta.name) : 'Sin carpeta conectada') + '</b> <span class="grMeta">' + (carpeta ? 'aquí se guardan los firmados' : 'los firmados se descargan al navegador') + '</span>';
+            html += (nHoy ? ' <span class="grHoy">' + nHoy + (nHoy === 1 ? ' guardado hoy' : ' guardados hoy') + '</span>' : '') + '</span><span class="grAcc">';
+            if (ultimo && !ultimo.d && carpeta) html += '<button type="button" class="trBtn" data-gr="abrir">Abrir</button>';
+            html += carpeta ? '<button type="button" class="trBtn" data-gr="carpeta">Ver carpeta</button>' : '<button type="button" class="trBtn" data-gr="config">Conectar carpeta</button>';
+            html += '</span>';
+            w.innerHTML = html;
+            w.onclick = function (e) {
+                var b = e.target.closest('[data-gr]'); if (!b) return;
+                var acc = b.getAttribute('data-gr');
+                if (acc === 'abrir') grAbrirArchivo(clave, ultimo.n);
+                else if (acc === 'carpeta') grAbrirCarpeta(clave);
+                else toggleAdmin();
+            };
+        });
+    }
+    async function grAbrirArchivo(clave, nombre) {
+        var carpeta = grCarpeta(clave);
+        var ventana = window.open('', '_blank');           // se abre en el clic para que el navegador no la bloquee
+        try {
+            if (!(await verificarPermiso(carpeta, 'read'))) throw new Error('Sin permiso para leer la carpeta');
+            var archivo = await (await carpeta.getFileHandle(nombre)).getFile();
+            var url = URL.createObjectURL(archivo);
+            if (ventana) ventana.location.href = url; else window.open(url, '_blank');
+            setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+        } catch (e) {
+            if (ventana) ventana.close();
+            mostrarToast(e && e.name === 'NotFoundError' ? '"' + nombre + '" ya no está en la carpeta (se movió o se borró).' : 'No se pudo abrir el archivo: ' + (e.message || e), 'error');
+        }
+    }
+    async function grAbrirCarpeta(clave) {
+        var carpeta = grCarpeta(clave);
+        var dlg = document.getElementById('dlgCarpeta');
+        if (!dlg) {
+            dlg = document.createElement('dialog');
+            dlg.id = 'dlgCarpeta';
+            dlg.innerHTML = '<div class="grDlgHead"><div><h3 id="grDlgTitulo"></h3><p class="seccionSub" id="grDlgSub"></p></div>' +
+                '<button type="button" class="trBtn" id="grDlgCerrar" aria-label="Cerrar">Cerrar</button></div>' +
+                '<input type="search" id="grDlgBuscar" placeholder="Buscar por nombre o número…" aria-label="Buscar archivo">' +
+                '<div id="grDlgLista" class="grDlgLista"></div>';
+            document.body.appendChild(dlg);
+            dlg.querySelector('#grDlgCerrar').onclick = function () { dlg.close(); };
+            dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+            dlg.querySelector('#grDlgBuscar').oninput = function () { grPintarListaCarpeta(); };
+            dlg.querySelector('#grDlgLista').onclick = function (e) {
+                var b = e.target.closest('[data-archivo]'); if (b) grAbrirArchivo(dlg.dataset.clave, b.getAttribute('data-archivo'));
+            };
+        }
+        dlg.dataset.clave = clave;
+        document.getElementById('grDlgTitulo').textContent = carpeta.name;
+        document.getElementById('grDlgSub').textContent = GR_CARPETAS[clave] + ' · leyendo archivos…';
+        document.getElementById('grDlgBuscar').value = '';
+        document.getElementById('grDlgLista').innerHTML = '';
+        dlg.showModal();
+        try {
+            if (!(await verificarPermiso(carpeta, 'read'))) throw new Error('Sin permiso para leer la carpeta');
+            var archivos = [];
+            for await (const h of carpeta.values()) {
+                if (h.kind !== 'file' || /^_/.test(h.name) || !/\.(pdf|png|jpe?g)$/i.test(h.name)) continue;
+                var f = await h.getFile();
+                archivos.push({ n: h.name, f: f.lastModified, t: f.size });
+            }
+            archivos.sort(function (a, b) { return b.f - a.f; });
+            dlg._archivos = archivos;
+            document.getElementById('grDlgSub').textContent = GR_CARPETAS[clave] + ' · ' + archivos.length + ' archivo(s), los más recientes primero';
+            grPintarListaCarpeta();
+        } catch (e) {
+            document.getElementById('grDlgSub').textContent = 'No se pudo leer la carpeta: ' + (e.message || e) + '. Reconéctala en ⚙.';
+        }
+    }
+    function grPintarListaCarpeta() {
+        var dlg = document.getElementById('dlgCarpeta'), q = document.getElementById('grDlgBuscar').value.trim().toLowerCase();
+        var lista = (dlg._archivos || []).filter(function (a) { return !q || a.n.toLowerCase().indexOf(q) !== -1; }).slice(0, 200);
+        document.getElementById('grDlgLista').innerHTML = lista.length ? lista.map(function (a) {
+            return '<button type="button" class="grFila" data-archivo="' + escaparHtml(a.n) + '"><span class="icoDoc"></span><span class="grFilaNombre">' + escaparHtml(a.n) +
+                '</span><span class="grMeta">' + grHace(a.f) + ' · ' + Math.max(1, Math.round(a.t / 1024)) + ' KB</span></button>';
+        }).join('') : '<div class="estadoVacio">' + (q ? 'Ningún archivo coincide con la búsqueda.' : 'La carpeta no tiene archivos firmados todavía.') + '</div>';
+    }
+    (function () {
+        var destinos = { documento: '#docSectionHeaderRow', cargoDirecto: '#cargoDirectoSection > .seccionHead', materiales: '#materialesSection > .seccionHead', uniformes: '#uniformesSection > .seccionHead', editor: '#editorSection .seccionHead' };
+        Object.keys(destinos).forEach(function (mod) {
+            var cab = document.querySelector(destinos[mod]);
+            if (!cab) return;
+            var w = document.createElement('div');
+            w.className = 'guardReciente'; w.setAttribute('data-mod', mod); w.setAttribute('aria-live', 'polite');
+            cab.insertAdjacentElement('afterend', w);
+        });
+        // registra lo que guarda cada módulo
+        var gFinal = guardarArchivoFinal;
+        guardarArchivoFinal = async function (nombre, bytes, mime) { var ok = await gFinal(nombre, bytes, mime); registrarGuardado(nombre, 'salida', ok); return ok; };
+        var gMat = guardarArchivoEnCarpetaMateriales;
+        guardarArchivoEnCarpetaMateriales = async function (nombre, bytes, mime) { var ok = await gMat(nombre, bytes, mime); registrarGuardado(nombre, 'materiales', ok); return ok; };
+        setInterval(pintarGuardadosRecientes, 60000);     // actualiza el "hace X min"
     })();
 </script>
 </body>
